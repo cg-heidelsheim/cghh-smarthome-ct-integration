@@ -30,7 +30,7 @@ class WebsocketManager {
      * @param {*} callback  Callback to execute on message event
      */
     connect = async (callback) => {
-        var tags = { module: "WS" };
+        let tags = { module: "WS" };
 
         await this.checkServerUrl();
         this.websocket = new WebSocket(process.env.HOMEMATIC_WS_URL, {
