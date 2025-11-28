@@ -3,16 +3,22 @@ const { Logger } = require('./src/util/logger');
 
 class Uptime {
     static pingUptime = (status, message, subject) => {
-        let url = `${subject == "CRON" ? process.env.UPTIME_KUMA_CRON_URL : process.env.UPTIME_KUMA_WS_URL}?status=${status}&msg=${message}&ping=`;
+        // Check if not in local/test mode before performing the operation
+        if (process.env.APP_MODE !== 'local' && process.env.APP_MODE !== 'test') {
+            let url = `${subject == "CRON" ? process.env.UPTIME_KUMA_CRON_URL : process.env.UPTIME_KUMA_WS_URL}?status=${status}&msg=${message}&ping=`;
 
-        var tags = { module: "HEALTH", function: "UPTIME", status, subject };
-        axios.get(url)
-            .then((response) => {
-                Logger.debug({ tags, message: "Ping sent to uptime" });
-            })
-            .catch((err) => {
-                Logger.error({ tags, message: "Could not send status to Uptime: " + err });
-            });
+            var tags = { module: "HEALTH", function: "UPTIME", status, subject };
+            axios.get(url)
+                .then((response) => {
+                    Logger.debug({ tags, message: "Ping sent to uptime" });
+                })
+                .catch((err) => {
+                    Logger.error({ tags, message: "Could not send status to Uptime: " + err });
+                });
+        } else {
+            // Log that the operation is suppressed in local/test mode
+            Logger.info({ module: "HEALTH", function: "UPTIME", message: "Test/Local mode: Ping operation is suppressed." });
+        }
     };
 }
 
