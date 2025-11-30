@@ -10,7 +10,7 @@ RUN npm install --include=dev
 COPY . ./
 
 # Run tests, fail build if tests fail
-RUN npm test
+RUN npm test:ci
 
 # Stage 2 - production image
 FROM node:20-alpine
