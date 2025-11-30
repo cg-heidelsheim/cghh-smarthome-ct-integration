@@ -6,7 +6,7 @@ const { WeatherStateAnlyzer } = require("../homematic/weather/weather-state.anal
  * 
  * @param {GroupState} group 
  * 
- * @returns void
+ * @returns object
  */
 const parseGroupStateIntoInfluxDataObject = (state) => {
     return {
@@ -97,7 +97,7 @@ const parseHeatingThermostatChannelDataIntoInfluxDataObject = (device, channel) 
  *
  * @param {WeatherState} group
  *
- * @returns void
+ * @returns object
  */
 const parseWeatherStateIntoInfluxDataObject = (state) => {
     const temperature = state.temperature;
