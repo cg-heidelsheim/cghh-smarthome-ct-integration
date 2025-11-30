@@ -20,7 +20,7 @@ class Logger {
         Logger.log("INFO", data.tags, data.message, info);
     }
 
-    static warning(data, info = {}) {
+    static warn(data, info = {}) {
         Logger.log("WARN", data.tags, data.message, info);
     }
 
