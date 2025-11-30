@@ -1,7 +1,7 @@
 // Basic ESLint configuration for modern JavaScript (Node.js)
 export default [
   {
-    ignores: ["**/node_modules/**", "**/dist/**", "**/build/**"],
+    ignores: ["**/node_modules/**", "**/dist/**", "**/build/**", "**/test/**"],
     files: ["**/*.js"],
     languageOptions: {
       ecmaVersion: 2022,

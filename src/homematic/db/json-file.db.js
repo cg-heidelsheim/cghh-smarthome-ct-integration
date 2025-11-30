@@ -1,5 +1,7 @@
 const fs = require('fs');
 const fse = require('fs-extra');
+const { Logger } = require('../../util/logger.js');
+
 
 /**
  * Generic JSON file database base class for simple key-value storage.
@@ -12,22 +14,19 @@ const fse = require('fs-extra');
    * Ensures the file exists on disk, creates empty JSON if missing.
    * 
    * @param {string} filePath Absolute path to the JSON file to use.
-   * @param {Object} [options] Optional settings for the DB instance.
-   * @param {Object} [options.logger=console] Logger instance to use for messages.
    */
-  constructor(filePath, options = {}) {
+  constructor(filePath) {
     this.filePath = filePath;
-    this.logger = options.logger || console;
     this.ensureFileExists();
   }
 
   /**
-   * Ensures the JSON file exists. If missing, creates an empty JSON object file.
+   * Ensures the JSON file exists. Creates empty JSON if not.
    */
   ensureFileExists() {
     if (!fs.existsSync(this.filePath)) {
       fse.outputFileSync(this.filePath, JSON.stringify({}, null, 2));
-      this.logger.log(`Created new DB file at ${this.filePath}`);
+      Logger.info({ tags: ['json-file-db'], message: `Created new DB file at ${this.filePath}` });
     }
   }
 
@@ -40,10 +39,10 @@ const fse = require('fs-extra');
    */
   _readFile() {
     try {
-      const rawData = fs.readFileSync(this.filePath, 'utf8');
-      return JSON.parse(rawData);
-    } catch (error) {
-      throw new Error(`Failed to read or parse DB file ${this.filePath}: ${error.message}`);
+      const raw = fs.readFileSync(this.filePath, 'utf8');
+      return JSON.parse(raw);
+    } catch (err) {
+      throw new Error(`Failed to read or parse DB file ${this.filePath}: ${err.message}`);
     }
   }
 
@@ -58,8 +57,11 @@ const fse = require('fs-extra');
     let allData;
     try {
       allData = this._readFile();
-    } catch (error) {
-      this.logger.warn(`Loading DB file failed: ${error.message}. Starting fresh.`);
+    } catch (err) {
+      Logger.warning({
+        tags: ['json-file-db'],
+        message: `Loading DB file failed: ${err.message}. Starting fresh.`,
+      });
       allData = {};
     }
     allData[id] = data;

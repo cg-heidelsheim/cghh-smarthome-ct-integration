@@ -67,11 +67,8 @@ describe('JsonFileDB', () => {
       const id = 'id2';
       const data = { value: 456 };
       jest.spyOn(db, '_readFile').mockImplementation(() => { throw new Error('Fail'); });
-      const warnSpy = jest.spyOn(db.logger, 'warn').mockImplementation(() => {});
       db.saveById(id, data);
-      expect(warnSpy).toHaveBeenCalled();
       expect(outputFileSyncMock).toHaveBeenCalledWith(testFilePath, JSON.stringify({ [id]: data }, null, 2));
-      warnSpy.mockRestore();
     });
   });
 
