@@ -47,7 +47,7 @@ pipeline {
         stage('Publish to registry - main') {
             when {
                 expression {
-                    return branch_name =~ "main"
+                    return branch_name == 'main' || branch_name == 'master'
                 }
             }
             steps {
@@ -62,7 +62,7 @@ pipeline {
         stage('Start container') {
             when {
                 expression {
-                    return branch_name =~ "main"
+                    return branch_name == 'main' || branch_name == 'master'
                 }
             }
             steps {
