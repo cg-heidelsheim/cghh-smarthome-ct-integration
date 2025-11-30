@@ -29,7 +29,7 @@ class Logger {
     }
 
     static log(level, tags, message, info = {}) {
-        tags ? tags : {};
+        tags = tags || {};
         tags["level"] = level;
 
         console.log(`[${moment().format("YYYY-MM-DD HH:mm:ss")}] [${tags.level}] ${JSON.stringify(tags)} ${message}`);

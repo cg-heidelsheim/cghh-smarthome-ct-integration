@@ -19,6 +19,7 @@ const { WeatherStateBuilder } = require("./weather/weather-state.builder");
 const { WeatherDataSender } = require("./weather/weather.data-sender");
 
 const { EventLogger } = require("../util/event.logger");
+const {Logger} = require("../util/logger");
 
 const moment = require('moment-timezone');
 moment.tz.setDefault("Europe/Berlin");
@@ -94,7 +95,8 @@ const handleGroupChangeEvent = (event) => {
 
     try {
         currentGroupState = groupStateDB.getById(group.data.id);
-    } catch (e) {
+    } catch (error) {
+        Logger.warning({ message: "No group state could be loaded from disk: " + error });
         currentGroupState = groupStateBuilder.buildInitGroupState(group.data.id);
     }
 

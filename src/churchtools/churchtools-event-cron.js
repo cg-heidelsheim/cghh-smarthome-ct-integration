@@ -153,19 +153,20 @@ async function manageLockForRoom(roomConfig) {
     }
 
     if (lock.isExpired()) {
-        const groupStateDB = new GroupStateDB();
-        const groupState = groupStateDB.getById(hmip_groupId);
-        const groupManager = new GroupManager(groupState.id, roomConfig, groupState);
+        Logger.debug({ tags, message: "Room lock expired" });
 
         try {
-            Logger.debug({ tags, message: "Room lock expired" });
+            const groupStateDB = new GroupStateDB();
+            const groupState = groupStateDB.getById(hmip_groupId);
+            const groupManager = new GroupManager(groupState.id, roomConfig, groupState);
+
             await groupManager.setToIdle(lock.eventName);
             const lockDB = new LockDB();
             lockDB.delete(lock);
 
             EventLogger.resolveLock(groupState, roomConfig.desiredTemperatureIdle, lock);
         } catch (e) {
-            Logger.error({ tags, message: "Can't set temperature back to IDLE" });
+            Logger.error({ tags, message: "Can't set temperature back to IDLE: " + e });
             throw Error("Cannnot set room to idle");
         }
     }

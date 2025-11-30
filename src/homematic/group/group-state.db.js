@@ -1,61 +1,79 @@
 const fs = require("fs");
 const fse = require("fs-extra");
 const { GroupState } = require("./group-state");
+const {Logger} = require("../../util/logger");
 
-const FILE_NAME = process.cwd() + "/persistent/states/groups.json";
+const FILE_PATH = process.cwd() + "/persistent/states/groups.json";
 
+/**
+ * Manages persistent storage and retrieval of GroupState objects
+ * as JSON data serialized on disk.
+ */
 class GroupStateDB {
 
-    constructor() {
+  constructor() {
+    // Ensure directory existence for the file to avoid errors on save
+    fse.ensureFileSync(FILE_PATH);
+  }
 
+  /**
+   * Retrieves a stored GroupState object by its id.
+   * 
+   * @param {string} groupId - Unique identifier of the group state to retrieve.
+   * @returns {GroupState} - The GroupState instance with matching id.
+   * @throws {Error} - Throws if no group state found for the given id.
+   */
+  getById(groupId) {
+    const allGroupStates = this._readFile();
+
+    const groupStateRaw = allGroupStates[groupId];
+    if (!groupStateRaw) {
+      throw new Error(`GroupState with id '${groupId}' not found`);
     }
 
-    /**
-     * @param   {string} hmip_groupId 
-     * @returns {GroupState}
-     */
-    getById(hmip_groupId) {
-        const json_data = this.getFileContent();
-        const groupStateRaw = json_data[hmip_groupId];
+    // Rehydrate raw data into GroupState instance
+    const groupState = new GroupState();
+    Object.assign(groupState, groupStateRaw);
 
-        if (!groupStateRaw) throw new Error("Group state not found");
+    return groupState;
+  }
 
-        const groupState = new GroupState();
-        Object.assign(groupState, groupStateRaw);
+  /**
+   * Saves or updates a GroupState in persistent storage.
+   * 
+   * @param {GroupState} state - The GroupState object to save.
+   */
+  save(state) {
+    let allGroupStates;
 
-        return groupState;
+    try {
+      allGroupStates = this._readFile();
+    } catch (error) {
+      Logger.warning({ message: "No group state could be loaded from disk: " + error });
+      allGroupStates = {};
     }
 
-    /**
-     * @param {GroupState} state 
-     */
-    save = (state) => {
-        const json_data = this.getFileContent();
+    // Store shallow copy of state properties (shallow clone)
+    allGroupStates[state.id] = { ...state };
 
-        const data = {
-            id: state.id,
-            label: state.label,
-            temperature: state.temperature,
-            setTemperature: state.setTemperature,
-            humidity: state.humidity,
-        };
+    fse.outputFileSync(FILE_PATH, JSON.stringify(allGroupStates, null, 2));
+  }
 
-        json_data[state.id] = data;
-
-        fse.outputFileSync(FILE_NAME, JSON.stringify(json_data, null, 2));
-    };
-
-    getFileContent = () => {
-        var dataRaw;
-
-        try {
-            dataRaw = fs.readFileSync(FILE_NAME, 'utf8');
-        } catch (e) {
-            dataRaw = "{}";
-        }
-
-        return JSON.parse(dataRaw);
-    };
+  /**
+   * Reads the contents of the storage file and parses it as JSON.
+   * Throws an error if file reading or parsing fails.
+   * 
+   * @returns {Object} Parsed JSON object containing all stored group states.
+   * @throws {Error} When failing to read or parse the file
+   */
+  _readFile() {
+    try {
+      const rawData = fs.readFileSync(FILE_PATH, 'utf8');
+      return JSON.parse(rawData);
+    } catch (error) {
+      throw new Error(`Failed to read or parse group state file: ${error.message}`);
+    }
+  }
 }
 
 module.exports = { GroupStateDB };
