@@ -1,6 +1,8 @@
 const { DeviceState } = require("./device-state");
 const { Device } = require("./device");
 
+const {ChannelState} = require("./channel-state");
+
 const fs = require("fs");
 
 const FILE_NAME = process.cwd() + "/persistent/states/devices.json";
@@ -44,18 +46,20 @@ class DeviceStateBuilder {
         deviceState.id = device.data.id;
         deviceState.label = device.data.label;
 
+        /**
+         * @type {ChannelState[]}
+         */
         const channels = [];
 
         device
             .getRelevantFunctionalChannels()
             .forEach(
                 (channel) => {
-                    const outputChannel = {
-                        index: channel.index,
-                        valvePosition: channel.valvePosition,
-                        temperature: channel.valveActualTemperature,
-                        setTemperature: channel.setPointTemperature
-                    };
+                    const outputChannel = new ChannelState();
+                    outputChannel.index = channel.index;
+                    outputChannel.valvePosition = channel.valvePosition;
+                    outputChannel.temperature = channel.valveActualTemperature;
+                    outputChannel.setTemperature = channel.setPointTemperature;
 
                     channels.push(outputChannel);
                 }

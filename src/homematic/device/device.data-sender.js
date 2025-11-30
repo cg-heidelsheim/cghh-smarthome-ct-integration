@@ -1,5 +1,4 @@
 const { DeviceState } = require("./device-state");
-const { DeviceStateAnalyzer } = require("./device-state.analyzer");
 const { parseDeviceStateChannelIntoInfluxDataObject, parseDeviceStateChannelIntoInfluxDataObjectState } = require("../../util/homematic-influx.mapper");
 const { InfluxDBManager } = require("../../influx/influx-db");
 

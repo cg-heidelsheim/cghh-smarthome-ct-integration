@@ -10,7 +10,6 @@ const { Device } = require("./device/device");
 const { DeviceState } = require("./device/device-state");
 const { DeviceStateDB } = require("./device/device-state.db");
 const { DeviceStateBuilder } = require("./device/device-state.builder");
-const { DeviceStateAnalyzer } = require("./device/device-state.analyzer");
 const { DeviceDataSender } = require("./device/device.data-sender");
 
 const { Home } = require("./weather/home");
@@ -178,18 +177,20 @@ const handleGroupStateChange = (currentState, updatedState) => {
  * @returns
  */
 const handleDeviceStateChange = (currentState, updatedState) => {
-    const deviceStateAnalyzer = new DeviceStateAnalyzer(currentState, updatedState);
     const deviceStateDB = new DeviceStateDB();
 
     updatedState.channels
         .forEach(
             (updatedChannel) => {
-                if (deviceStateAnalyzer.channelsAreIdentical(updatedChannel.index)) return;
+                const channelIndex = updatedChannel.index;
+                const currentChannel = currentState.getChannelByIndex(channelIndex);
+
+                if (updatedChannel.equalsValueAttributes(currentChannel)) return;
 
                 const dataSender = new DeviceDataSender();
-                dataSender.sendChannelData(currentState, updatedState, updatedChannel.index);
+                dataSender.sendChannelData(currentState, updatedState, channelIndex);
 
-                EventLogger.deviceUpdateEvent(currentState, updatedState, updatedChannel.index);
+                EventLogger.deviceUpdateEvent(currentState, updatedState, channelIndex);
             }
         );
 
