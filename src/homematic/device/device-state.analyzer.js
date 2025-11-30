@@ -28,18 +28,6 @@ class DeviceStateAnalyzer {
         return true;
     }
 
-    /**
-     * @returns {boolean}
-     */
-    didSetChannelTemperatureChange(channelIndex) {
-        const currentChannel = this.currentState.channels.find(channel => channel.index = channelIndex);
-        const updatedChannel = this.updatedState.channels.find(channel => channel.index = channelIndex);
-
-        if (!currentChannel) return false;
-
-        return currentChannel.setTemperature !== updatedChannel.setTemperature;
-    }
-
 }
 
 module.exports = { DeviceStateAnalyzer };

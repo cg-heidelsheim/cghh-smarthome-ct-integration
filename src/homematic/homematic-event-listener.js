@@ -4,7 +4,6 @@ const { Group } = require("./group/group");
 const { GroupState } = require("./group/group-state");
 const { GroupStateDB } = require("./group/group-state.db");
 const { GroupStateBuilder } = require("./group/group-state.builder");
-const { GroupStateAnlyzer } = require("./group/group-state.analyzer");
 const { GroupDataSender } = require("./group/group.data-sender");
 
 const { Device } = require("./device/device");
@@ -162,9 +161,7 @@ const handleHomeChangeEvent = (event) => {
  * @returns 
  */
 const handleGroupStateChange = (currentState, updatedState) => {
-    const groupStateAnalyzer = new GroupStateAnlyzer(currentState, updatedState);
-
-    if (groupStateAnalyzer.statesAreIdentical()) return;
+    if (currentState.equalsValueAttributes(updatedState)) return;
 
     const dataSender = new GroupDataSender();
     dataSender.sendData(currentState, updatedState);
