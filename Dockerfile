@@ -1,5 +1,5 @@
 # Stage 1 - build and test
-FROM node:22 AS builder
+FROM node:20 AS builder
 
 WORKDIR /usr/src/app
 
@@ -13,7 +13,7 @@ COPY . ./
 RUN npm test
 
 # Stage 2 - production image
-FROM node:22-alpine
+FROM node:20-alpine
 
 WORKDIR /usr/src/app
 
