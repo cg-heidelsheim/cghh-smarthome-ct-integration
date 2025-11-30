@@ -7,7 +7,7 @@ class Group {
     }
 
     /**
-     * Only groups with a wallthermostat or wall temperature/humidity sensor have an "actualTemperature" attribute
+     * Only groups with a wall thermostat or wall temperature/humidity sensor have an "actualTemperature" attribute
      * @returns boolean if actual temperature is set
      */
     containsThermostat() {

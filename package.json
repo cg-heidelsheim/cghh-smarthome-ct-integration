@@ -1,10 +1,11 @@
 {
-  "name": "google-assistant",
+  "name": "ct-integration",
   "version": "0.0.1",
   "description": "node.js port of the 3rd party Google Assistant SDK",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "test": "jest"
   },
   "repository": {
     "type": "git",
