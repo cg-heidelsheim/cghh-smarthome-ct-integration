@@ -12,8 +12,11 @@ const FILE_PATH = process.cwd() + "/persistent/states/groups.json";
 class GroupStateDB {
 
   constructor() {
-    // Ensure directory existence for the file to avoid errors on save
-    fse.ensureFileSync(FILE_PATH);
+    // Ensure file existence, create empty JSON object file if missing
+    if (!fs.existsSync(FILE_PATH)) {
+      fse.outputFileSync(FILE_PATH, JSON.stringify({}, null, 2));
+      console.log(`Created new group state storage file at ${FILE_PATH}`);
+    }
   }
 
   /**
@@ -24,7 +27,14 @@ class GroupStateDB {
    * @throws {Error} - Throws if no group state found for the given id.
    */
   getById(groupId) {
-    const allGroupStates = this._readFile();
+    let allGroupStates;
+
+    try {
+      allGroupStates = this._readFile();
+    } catch (error) {
+      Logger.warning({ message: "No group state could be loaded from disk: " + error });
+      allGroupStates = {};
+    }
 
     const groupStateRaw = allGroupStates[groupId];
     if (!groupStateRaw) {

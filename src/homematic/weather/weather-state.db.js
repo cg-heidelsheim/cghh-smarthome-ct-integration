@@ -1,48 +1,59 @@
 const fs = require("fs");
 const fse = require("fs-extra");
 
-const FILE_NAME = process.cwd() + "/persistent/states/weather.json";
+const {Logger} = require("../../util/logger");
 
+const FILE_PATH = process.cwd() + "/persistent/states/weather.json";
+
+/**
+ * Manages persistent storage and retrieval of WeatherState objects
+ * as JSON data serialized on disk.
+ */
 class WeatherStateDB {
 
-    constructor() {
+  constructor() {
+    // Ensure file existence, create empty JSON object file if missing
+    if (!fs.existsSync(FILE_PATH)) {
+      fse.outputFileSync(FILE_PATH, JSON.stringify({}, null, 2));
+      console.log(`Created new weather state storage file at ${FILE_PATH}`);
+    }
+  }
 
+  /**
+   * Saves or updates a WeatherState in persistent storage.
+   * 
+   * @param {WeatherState} state - WeatherState object to save.
+   */
+  save(state) {
+    let allWeatherStates;
+
+    try {
+      allWeatherStates = this._readFile();
+    } catch (error) {
+      Logger.warning({ message: "No weather state could be loaded from disk: " + error });
+      allWeatherStates = {};
     }
 
-    /**
-     * @param {WeatherState} state 
-     */
-    save = (state) => {
-        const json_data = this.getFileContent();
+    allWeatherStates[state.id] = {...state};
 
-        const data = {
-            label: state.label,
-            temperature: state.temperature,
-            minTemperature: state.minTemperature,
-            maxTemperature: state.maxTemperature,
-            humidity: state.humidity,
-            windSpeed: state.windSpeed,
-            vaporAmount: state.vaporAmount,
-            weatherCondition: state.weatherCondition,
-            weatherDayTime: state.weatherDayTime
-        };
+    fse.outputFileSync(FILE_PATH, JSON.stringify(allWeatherStates, null, 2));
+  }
 
-        json_data[state.id] = data;
-
-        fse.outputFileSync(FILE_NAME, JSON.stringify(json_data, null, 2));
-    };
-
-    getFileContent = () => {
-        var dataRaw;
-
-        try {
-            dataRaw = fs.readFileSync(FILE_NAME, 'utf8');
-        } catch (e) {
-            dataRaw = "{}";
-        }
-
-        return JSON.parse(dataRaw);
-    };
+  /**
+   * Reads and parses the weather state JSON file.
+   * Throws an error if reading or parsing fails.
+   * 
+   * @returns {Object} Parsed JSON object of all saved weather states.
+   * @throws {Error} When file cannot be read or parsed.
+   */
+  _readFile() {
+    try {
+      const rawData = fs.readFileSync(FILE_PATH, 'utf8');
+      return JSON.parse(rawData);
+    } catch (error) {
+      throw new Error(`Failed to read or parse weather state file: ${error.message}`);
+    }
+  }
 }
 
 module.exports = { WeatherStateDB };
