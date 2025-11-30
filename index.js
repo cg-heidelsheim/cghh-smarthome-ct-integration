@@ -46,7 +46,7 @@ const executeCron = async () => {
                     Uptime.pingUptime("down", e, "CRON");
                     break;
                 } else {
-                    Logger.warning({ tags: resetTags, message: e.message });
+                    Logger.warn({ tags: resetTags, message: e.message });
                 }
 
                 await checkServerUrl();
@@ -95,16 +95,16 @@ const checkServerUrl = async () => {
         const oldUrl = process.env.HOMEMATIC_API_URL;
         const newUrl = response.data["urlREST"] + "/";
         if (oldUrl !== newUrl) {
-            Logger.warning({ tags, message: "Old URL: " + oldUrl });
-            Logger.warning({ tags, message: "New URL: " + newUrl });
+            Logger.warn({ tags, message: "Old URL: " + oldUrl });
+            Logger.warn({ tags, message: "New URL: " + newUrl });
             process.env.HOMEMATIC_API_URL = newUrl;
         }
 
         const oldUrlWs = process.env.HOMEMATIC_WS_URL;
         const newUrlWs = response.data["urlWebSocket"] + "/";
         if (oldUrlWs !== newUrlWs) {
-            Logger.warning({ tags, message: "Old URL WS: " + oldUrlWs });
-            Logger.warning({ tags, message: "New URL WS: " + newUrlWs });
+            Logger.warn({ tags, message: "Old URL WS: " + oldUrlWs });
+            Logger.warn({ tags, message: "New URL WS: " + newUrlWs });
             process.env.HOMEMATIC_WS_URL = newUrlWs;
         }
     } catch (e) {

@@ -68,11 +68,11 @@ class HomematicApi {
             if (attempt <= maxRetries) {
                 const retryInMs = Math.pow(5000, attempt * 0.5);
 
-                Logger.warning({ tags, message: "Could not execute API request: " + e }, info);
-                Logger.warning({ tags, message: "Retrying in " + retryInMs + " ms" }, info);
+                Logger.warn({ tags, message: "Could not execute API request: " + e }, info);
+                Logger.warn({ tags, message: "Retrying in " + retryInMs + " ms" }, info);
 
                 setTimeout(() => {
-                    Logger.warning({ tags: { ...tags, attempt: attempt + 1 }, message: "Retrying request" }, info);
+                    Logger.warn({ tags: { ...tags, attempt: attempt + 1 }, message: "Retrying request" }, info);
                     this.callRest(path, payload, attempt++, id);
                 }, retryInMs);
             } else {

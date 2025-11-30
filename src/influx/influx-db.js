@@ -41,7 +41,7 @@ class InfluxDBManager {
         }
     }
 
-    async sendLog(data, info = {}) {
+    sendLog(data, info = {}) {
         const writeApi = this.influx.getWriteApi(this.org, "logs");
         writeApi.useDefaultTags(data.tags ? data.tags : {});
 
@@ -52,14 +52,12 @@ class InfluxDBManager {
         }
         writeApi.writePoint(point);
 
-        try {
-            await writeApi.close();
-        } catch (e) {
-            console.log("[INFLUX] [ERROR] " + e);
-        }
+        writeApi.close()
+            .then(() => {})
+            .catch((e) => { console.log("[INFLUX] [ERROR] " + e);});
     }
 
-    async sendGenericInformation(data, bucket) {
+    sendGenericInformation(data, bucket) {
         const writeApi = this.influx.getWriteApi(this.org, bucket);
 
         writeApi.useDefaultTags(data.tags ? data.tags : {});
@@ -81,11 +79,9 @@ class InfluxDBManager {
 
         writeApi.writePoint(point);
 
-        try {
-            await writeApi.close();
-        } catch (e) {
-            console.log("[INFLUX] [ERROR] " + e);
-        }
+        writeApi.close()
+            .then(() => {})
+            .catch((e) => { console.log("[INFLUX] [ERROR] " + e);});
     }
 }
 

@@ -96,7 +96,7 @@ const handleGroupChangeEvent = (event) => {
     try {
         currentGroupState = groupStateDB.getById(group.data.id);
     } catch (error) {
-        Logger.warning({ message: "No group state could be loaded from disk: " + error });
+        Logger.warn({ message: "No group state could be loaded from disk: " + error });
         currentGroupState = groupStateBuilder.buildInitGroupState(group.data.id);
     }
 

@@ -58,7 +58,7 @@ const { Logger } = require('../../util/logger.js');
     try {
       allData = this._readFile();
     } catch (err) {
-      Logger.warning({
+      Logger.warn({
         tags: ['json-file-db'],
         message: `Loading DB file failed: ${err.message}. Starting fresh.`,
       });

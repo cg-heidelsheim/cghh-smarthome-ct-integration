@@ -49,21 +49,21 @@ class WebsocketManager {
         });
 
         this.websocket.on('close', async () => {
-            Logger.warning({ tags, message: "Disconnected" });
+            Logger.warn({ tags, message: "Disconnected" });
             Uptime.pingUptime("down", "DISCONNECTED", "WS");
             this.clearPingInterval();
             this.initializeReconnectInterval(callback);
         });
 
         this.websocket.on('error', (error) => {
-            Logger.warning({ tags, message: error.message });
+            Logger.warn({ tags, message: error.message });
             Uptime.pingUptime("down", error.message, "WS");
             this.clearPingInterval();
             this.initializeReconnectInterval(callback);
         });
 
         this.websocket.on('unexpected-response', (error) => {
-            Logger.warning({ tags, message: error.message });
+            Logger.warn({ tags, message: error.message });
             Uptime.pingUptime("down", error.message, "WS");
             this.clearPingInterval();
             this.initializeReconnectInterval(callback);
@@ -147,16 +147,16 @@ class WebsocketManager {
             const oldUrl = process.env.HOMEMATIC_API_URL;
             const newUrl = response.data["urlREST"] + "/";
             if (oldUrl !== newUrl) {
-                Logger.warning({ tags, message: "Old URL: " + oldUrl });
-                Logger.warning({ tags, message: "New URL: " + newUrl });
+                Logger.warn({ tags, message: "Old URL: " + oldUrl });
+                Logger.warn({ tags, message: "New URL: " + newUrl });
                 process.env.HOMEMATIC_API_URL = newUrl;
             }
 
             const oldUrlWs = process.env.HOMEMATIC_WS_URL;
             const newUrlWs = response.data["urlWebSocket"] + "/";
             if (oldUrlWs !== newUrlWs) {
-                Logger.warning({ tags, message: "Old URL WS: " + oldUrlWs });
-                Logger.warning({ tags, message: "New URL WS: " + newUrlWs });
+                Logger.warn({ tags, message: "Old URL WS: " + oldUrlWs });
+                Logger.warn({ tags, message: "New URL WS: " + newUrlWs });
                 process.env.HOMEMATIC_WS_URL = newUrlWs;
             }
         } catch (e) {
