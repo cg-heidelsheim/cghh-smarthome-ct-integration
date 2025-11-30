@@ -114,7 +114,7 @@ pipeline {
 }
 
 void updateStatus(String value) {
-    withCredentials([string(credentialsId: 'github-status-token-seba', variable: 'GITHUB_STATUS_ACCESS_TOKEN_SEBAMOMANN')]) {
+    withCredentials([string(credentialsId: 'GITHUB_STATUS_ACCESS_TOKEN_SEBAMOMANN', variable: 'GITHUB_STATUS_ACCESS_TOKEN_SEBAMOMANN')]) {
         sh """
             curl -s "https://api.github.com/repos/cg-heidelsheim/cghh-smarthome-ct-integration/statuses/$GIT_COMMIT" \
               -H "Content-Type: application/json" \
