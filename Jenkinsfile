@@ -114,10 +114,18 @@ pipeline {
 }
 
 void updateStatus(String value) {
-    sh 'curl -s "https://api.github.com/repos/sebamomann/cghh-smarthome-ct-integration/statuses/$GIT_COMMIT" \\\n' +
-            '  -H "Content-Type: application/json" \\\n' +
-            '  -H "Authorization: token $GITHUB_STATUS_ACCESS_TOKEN_SEBAMOMANN" \\\n' +
-            '  -X POST \\\n' +
-            '  -d "{\\"state\\": \\"' + value + '\\", \\"description\\": \\"Jenkins\\", \\"context\\": \\"continuous-integration/jenkins\\", \\"target_url\\": \\"https://jenkins.dankoe.de/job/cghh-smarthome-ct-integration/job/$BRANCH_NAME/$BUILD_NUMBER/console\\"}" \\\n' +
-            ' '
+    withCredentials([string(credentialsId: 'github-status-token-seba', variable: 'GITHUB_STATUS_ACCESS_TOKEN_SEBAMOMANN')]) {
+        sh """
+            curl -s "https://api.github.com/repos/cg-heidelsheim/cghh-smarthome-ct-integration/statuses/$GIT_COMMIT" \
+              -H "Content-Type: application/json" \
+              -H "Authorization: token $GITHUB_STATUS_ACCESS_TOKEN_SEBAMOMANN" \
+              -X POST \
+              -d '{
+                "state": "${value}",
+                "description": "Jenkins",
+                "context": "continuous-integration/jenkins",
+                "target_url": "https://jenkins.dankoe.de/job/cghh-smarthome-ct-integration/job/$BRANCH_NAME/$BUILD_NUMBER/console"
+              }'
+        """
+    }
 }
