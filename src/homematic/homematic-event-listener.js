@@ -17,7 +17,6 @@ const { Home } = require("./weather/home");
 const { WeatherState } = require("./weather/weather-state");
 const { WeatherStateDB } = require("./weather/weather-state.db");
 const { WeatherStateBuilder } = require("./weather/weather-state.builder");
-const { WeatherStateAnlyzer } = require("./weather/weather-state.analyzer");
 const { WeatherDataSender } = require("./weather/weather.data-sender");
 
 const { EventLogger } = require("../util/event.logger");
@@ -203,9 +202,7 @@ const handleDeviceStateChange = (currentState, updatedState) => {
  * @returns 
  */
 const handleWeatherStateChange = (currentState, updatedState) => {
-    const weatherStateAnalyzer = new WeatherStateAnlyzer(currentState, updatedState);
-
-    if (weatherStateAnalyzer.statesAreIdentical()) return;
+    if (currentState.equalsValueAttributes(updatedState)) return;
 
     const dataSender = new WeatherDataSender();
     dataSender.sendData(currentState, updatedState);

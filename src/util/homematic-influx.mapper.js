@@ -1,5 +1,4 @@
 const { WeatherState } = require("../homematic/weather/weather-state");
-const { WeatherStateAnlyzer } = require("../homematic/weather/weather-state.analyzer");
 
 /**
  * Take information of a {@link GroupState} and parse it into a influx usable DB object 
