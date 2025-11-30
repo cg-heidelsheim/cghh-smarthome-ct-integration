@@ -60,6 +60,11 @@ pipeline {
         }
 
         stage('Start container') {
+            when {
+                expression {
+                    return branch_name =~ "main"
+                }
+            }
             steps {
                 script {
                     docker.withRegistry('http://localhost:34015') {
