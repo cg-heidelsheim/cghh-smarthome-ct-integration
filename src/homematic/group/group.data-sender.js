@@ -1,6 +1,5 @@
 const { currentTime } = require("@influxdata/influxdb-client");
 const { GroupState } = require("./group-state");
-const { GroupStateAnlyzer } = require("./group-state.analyzer");
 const { GroupStateBuilder } = require("./group-state.builder");
 const { parseGroupStateIntoInfluxDataObject } = require("../../util/homematic-influx.mapper");
 const { InfluxDBManager } = require("../../influx/influx-db");
