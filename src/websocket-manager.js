@@ -1,7 +1,7 @@
-const axios = require('axios');
 const WebSocket = require('ws');
 const { Uptime } = require('../uptime');
 const { Logger } = require('./util/logger');
+const {EnvironmentManager} = require("./util/environment-manager");
 
 class WebsocketManager {
     websocket;
@@ -32,7 +32,8 @@ class WebsocketManager {
     connect = async (callback) => {
         let tags = { module: "WS" };
 
-        await this.checkServerUrl();
+        await EnvironmentManager.updateServerVariables();
+
         this.websocket = new WebSocket(process.env.HOMEMATIC_WS_URL, {
             headers: this.headers
         });
@@ -89,7 +90,7 @@ class WebsocketManager {
     };
 
     /**
-     * Set new reconect interval.
+     * Set new reconnect interval.
      * Interval causes reconnect to server every {@link reconnectIntervallMillis} milliseconds, if the connection broke down for some reason.
      * Always check if connection is still valid.
      */
@@ -116,55 +117,6 @@ class WebsocketManager {
     clearWsReconnectInterval = () => {
         if (this.reconnectIntervalRef) {
             clearInterval(this.reconnectIntervalRef);
-        }
-    };
-
-    checkServerUrl = async () => {
-        var tags = { module: "API", function: "HOMEMATIC_LOOKUP" };
-        Logger.debug({ tags, message: "Fetching Server URL for Homematic API" });
-
-        const payload = {
-            "clientCharacteristics": {
-                "apiVersion": "10",
-                "applicationIdentifier": "homematicip-python",
-                "applicationVersion": "1.0",
-                "deviceManufacturer": "none",
-                "deviceType": "Computer",
-                "language": "de-DE",
-                "osType": "Windows",
-                "osVersion": "10"
-            },
-            "id": process.env.HOMEMATIC_ACCESS_POINT_ID
-        };
-
-        const headers = {};
-
-        const url = "https://lookup.homematic.com:48335/getHost";
-
-        var response;
-        try {
-            response = await axios.post(url, payload, { headers });
-            const oldUrl = process.env.HOMEMATIC_API_URL;
-            const newUrl = response.data["urlREST"] + "/";
-            if (oldUrl !== newUrl) {
-                Logger.warn({ tags, message: "Old URL: " + oldUrl });
-                Logger.warn({ tags, message: "New URL: " + newUrl });
-                process.env.HOMEMATIC_API_URL = newUrl;
-            }
-
-            const oldUrlWs = process.env.HOMEMATIC_WS_URL;
-            const newUrlWs = response.data["urlWebSocket"] + "/";
-            if (oldUrlWs !== newUrlWs) {
-                Logger.warn({ tags, message: "Old URL WS: " + oldUrlWs });
-                Logger.warn({ tags, message: "New URL WS: " + newUrlWs });
-                process.env.HOMEMATIC_WS_URL = newUrlWs;
-            }
-        } catch (e) {
-            tags = { ...tags, path: "/getHost" };
-            const info = { request: payload, response: e.response?.data };
-            Logger.error({ tags, message: "Could not execute API request: " + e }, info);
-
-            throw Error(e);
         }
     };
 }

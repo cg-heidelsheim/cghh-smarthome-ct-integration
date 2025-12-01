@@ -1,49 +1,28 @@
-const { InfluxDB } = require('@influxdata/influxdb-client');
-const { Point } = require('@influxdata/influxdb-client');
-const { GroupState } = require('./../homematic/group/group-state');
+const {InfluxDB} = require('@influxdata/influxdb-client');
+const {Point} = require('@influxdata/influxdb-client');
 const moment = require('moment-timezone');
 moment.tz.setDefault("Europe/Berlin");
 
 class InfluxDBManager {
     org = process.env.INFLUX_ORG;
+    env = process.env.ENVIRONMENT;
 
     influx;
 
     constructor() {
+        const influxUrl = RegExp(/^https?:\/\//).exec(process.env.INFLUX_HOST)
+            ? process.env.INFLUX_HOST
+            : `http://${process.env.INFLUX_HOST}:${process.env.INFLUX_PORT}`;
+
         this.influx = new InfluxDB({
-            url: "http://" + process.env.INFLUX_HOST + ":" + process.env.INFLUX_PORT,
+            url: influxUrl,
             token: process.env.INFLUX_TOKEN
         });
     }
 
-    /**
-     * @param {GroupState} currentState 
-     * @param {GroupState} updatedState
-     * @param {GroupState} automatic
-     */
-    async sendGroupLog(currentState, updatedState, automatic, eventName) {
-        const writeApi = this.influx.getWriteApi(this.org, "logs");
-        writeApi.useDefaultTags({});
-
-        const point = new Point("Temperature manipulation");
-        point.stringField("log", `Changed setTemperature from ${currentState.setTemperature} to ${updatedState.setTemperature}`);
-        point.tags = {
-            group: currentState.label.replace(/\s/g, ""),
-            type: (automatic ? "AUTO" : "MANU"),
-            event: (automatic ? eventName.replace(/\s/g, "") : "")
-        };
-        writeApi.writePoint(point);
-
-        try {
-            await writeApi.close();
-        } catch (e) {
-            console.log("[INFLUX] [ERROR] " + e);
-        }
-    }
-
     sendLog(data, info = {}) {
         const writeApi = this.influx.getWriteApi(this.org, "logs");
-        writeApi.useDefaultTags(data.tags ? data.tags : {});
+        writeApi.useDefaultTags({environment: this.env, ...(data.tags ? data.tags : {})});
 
         const point = new Point("Default Log");
         point.stringField("log", data.message);
@@ -53,14 +32,17 @@ class InfluxDBManager {
         writeApi.writePoint(point);
 
         writeApi.close()
-            .then(() => {})
-            .catch((e) => { console.log("[INFLUX] [ERROR] " + e);});
+            .then(() => {
+            })
+            .catch((e) => {
+                console.log("[INFLUX] [ERROR] " + e);
+            });
     }
 
     sendGenericInformation(data, bucket) {
         const writeApi = this.influx.getWriteApi(this.org, bucket);
 
-        writeApi.useDefaultTags(data.tags ? data.tags : {});
+        writeApi.useDefaultTags({environment: this.env, ...(data.tags ? data.tags : {})});
 
         const point = new Point(data.label);
 
@@ -80,9 +62,12 @@ class InfluxDBManager {
         writeApi.writePoint(point);
 
         writeApi.close()
-            .then(() => {})
-            .catch((e) => { console.log("[INFLUX] [ERROR] " + e);});
+            .then(() => {
+            })
+            .catch((e) => {
+                console.log("[INFLUX] [ERROR] " + e);
+            });
     }
 }
 
-module.exports = { InfluxDBManager };
+module.exports = {InfluxDBManager};
