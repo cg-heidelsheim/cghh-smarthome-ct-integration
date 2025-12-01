@@ -55,16 +55,17 @@ For each current or upcoming event with valid room bookings (`status_id = 2`), t
 If a room is locked, it is excluded from further processing.
 
 To determine the heating requirement for a room, the system compares the current temperature with the desired target temperature.
-Each room has a **spinup time**, representing how long it takes for the radiators to warm up and the first temperature changes to become noticeable (depending on room size).
+Each room has a **spinup time** (including a buffer timer), representing how long it takes for the radiators to warm up and the first temperature changes to become noticeable (depending on room size).
 Additionally, a **minutesPerDegree** value is used to estimate how long the room takes to heat per degree, based on historical data.
 
 The calculation is:
 ```js
-requiredTime = spinupTime + (degreeDifference * minutesPerDegree)
+requiredTime = spinupTime + buffer + (degreeDifference * minutesPerDegree)
 ```
 
 If `requiredTime` (in minutes) exceeds the time remaining until the event begins, heating for that room is triggered — but **only if no manual override is active**.
 The system respects manual changes and will not overwrite them; automatic heating is simply delayed to the next cycle.
+
 When heating successfully starts, a lock is created for that room.
 
 ---

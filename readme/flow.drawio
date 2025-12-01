@@ -57,7 +57,7 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="1G1G9F-5L1GQU38p1lX5-17" value="Fitler Updates&lt;br&gt;Write data (temperature)" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" vertex="1" parent="1">
+        <mxCell id="1G1G9F-5L1GQU38p1lX5-17" value="Filter Updates&lt;br&gt;Write data (temperature)" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" vertex="1" parent="1">
           <mxGeometry x="440" y="270" width="235" height="60" as="geometry" />
         </mxCell>
         <mxCell id="1G1G9F-5L1GQU38p1lX5-20" value="" style="html=1;verticalLabelPosition=bottom;align=center;labelBackgroundColor=#ffffff;verticalAlign=top;strokeWidth=2;strokeColor=#0080F0;shadow=0;dashed=0;shape=mxgraph.ios7.icons.home;" vertex="1" parent="1">
