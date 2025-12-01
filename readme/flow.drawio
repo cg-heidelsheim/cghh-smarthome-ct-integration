@@ -1,0 +1,82 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36" version="28.0.6">
+  <diagram name="Seite-1" id="89XHjBHoZ7X0Gq7zF-xA">
+    <mxGraphModel dx="1584" dy="2013" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="1G1G9F-5L1GQU38p1lX5-3" value="INFLUX" style="shape=datastore;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="770" y="190" width="60" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="1G1G9F-5L1GQU38p1lX5-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="1G1G9F-5L1GQU38p1lX5-5" target="1G1G9F-5L1GQU38p1lX5-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="1G1G9F-5L1GQU38p1lX5-5" value="" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/other/Grafana.svg;" vertex="1" parent="1">
+          <mxGeometry x="900" y="193.6" width="68" height="52.800000000000004" as="geometry" />
+        </mxCell>
+        <mxCell id="1G1G9F-5L1GQU38p1lX5-7" value="" style="sketch=0;aspect=fixed;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;fillColor=#00188D;shape=mxgraph.mscae.enterprise.calendar" vertex="1" parent="1">
+          <mxGeometry x="526.41" y="-91" width="62.19" height="51" as="geometry" />
+        </mxCell>
+        <mxCell id="1G1G9F-5L1GQU38p1lX5-8" value="ChurchTools" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="512.5" y="-120" width="90" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="1G1G9F-5L1GQU38p1lX5-14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="1G1G9F-5L1GQU38p1lX5-10" target="1G1G9F-5L1GQU38p1lX5-13">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="1G1G9F-5L1GQU38p1lX5-10" value="CRON" style="html=1;shape=mxgraph.infographic.ribbonSimple;notch1=20;notch2=0;align=center;verticalAlign=middle;fontSize=14;fontStyle=0;flipH=1;fillColor=#FFFFFF;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="200" y="120" width="160" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="1G1G9F-5L1GQU38p1lX5-19" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="1G1G9F-5L1GQU38p1lX5-11" target="1G1G9F-5L1GQU38p1lX5-17">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="1G1G9F-5L1GQU38p1lX5-11" value="WS Event" style="html=1;shape=mxgraph.infographic.ribbonSimple;notch1=20;notch2=0;align=center;verticalAlign=middle;fontSize=14;fontStyle=0;flipH=1;fillColor=#FFFFFF;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="200" y="280" width="160" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="1G1G9F-5L1GQU38p1lX5-16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="1G1G9F-5L1GQU38p1lX5-13">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="770" y="210" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="722" y="150" />
+              <mxPoint x="722" y="210" />
+              <mxPoint x="770" y="210" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="1G1G9F-5L1GQU38p1lX5-13" value="Fetch Calendar&lt;br&gt;Calculate Preheating&lt;br&gt;Write action Log&lt;br&gt;Send Temperatur Change" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" vertex="1" parent="1">
+          <mxGeometry x="440" y="110" width="235" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="1G1G9F-5L1GQU38p1lX5-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="1G1G9F-5L1GQU38p1lX5-13" target="1G1G9F-5L1GQU38p1lX5-7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="1G1G9F-5L1GQU38p1lX5-18" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="1G1G9F-5L1GQU38p1lX5-17">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="770" y="230" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="723" y="300" />
+              <mxPoint x="723" y="230" />
+              <mxPoint x="770" y="230" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="1G1G9F-5L1GQU38p1lX5-17" value="Fitler Updates&lt;br&gt;Write data (temperature)" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" vertex="1" parent="1">
+          <mxGeometry x="440" y="270" width="235" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="1G1G9F-5L1GQU38p1lX5-20" value="" style="html=1;verticalLabelPosition=bottom;align=center;labelBackgroundColor=#ffffff;verticalAlign=top;strokeWidth=2;strokeColor=#0080F0;shadow=0;dashed=0;shape=mxgraph.ios7.icons.home;" vertex="1" parent="1">
+          <mxGeometry x="800" y="-91.5" width="48.94" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="1G1G9F-5L1GQU38p1lX5-21" value="HMIP" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="800" y="-121" width="50" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="1G1G9F-5L1GQU38p1lX5-22" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.084;entryY=0.804;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="1G1G9F-5L1GQU38p1lX5-13" target="1G1G9F-5L1GQU38p1lX5-20">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="826" y="-30" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="720" y="130" />
+              <mxPoint x="720" y="-50" />
+              <mxPoint x="804" y="-50" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
