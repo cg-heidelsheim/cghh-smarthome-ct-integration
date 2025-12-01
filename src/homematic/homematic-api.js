@@ -1,5 +1,4 @@
 const axios = require("axios");
-const { InfluxDBManager } = require("../influx/influx-db");
 const { Logger } = require("../util/logger");
 
 require('dotenv').config();
@@ -9,15 +8,6 @@ class HomematicApi {
     ACCES_POINT_ID = process.env.HOMEMATIC_ACCESS_POINT_ID;
     AUTHTOKEN = process.env.HOMEMATIC_API_AUTHTOKEN;
     CLIENTAUTH = process.env.HOMEMATIC_API_CLIENTAUTH;
-    influxDb = new InfluxDBManager();
-
-    constructor() {
-
-    }
-
-    async getCurrentHomeState() {
-        return await this.callRest("home/getCurrentState", this.getCharacteristics());
-    }
 
     /**
      * 
@@ -27,6 +17,12 @@ class HomematicApi {
      */
     async setTemperatureForGroup(groupId, desiredTemperature) {
         const tags = { module: "API", function: "HOMEMATIC", group: groupId };
+
+        if (process.env.ENVIRONMENT !== 'production') {
+            Logger.info({ tags, message: `[${process.env.ENVIRONMENT}] Dry run: Would set temperature of ${groupId} to ${desiredTemperature}` });
+            return;
+        }
+
         Logger.debug({ tags, message: `Set temperature of ${groupId} to ${desiredTemperature}` });
         return await this.callRest("group/heating/setSetPointTemperature", {
             "groupId": groupId,
