@@ -1,78 +1,38 @@
-const { Lock } = require("./lock");
+const {JsonFileDB} = require("../db/json-file.db");
+const {Lock} = require("./lock");
 
-const fs = require("fs");
-const fse = require("fs-extra");
-const { Logger } = require("../../util/logger");
+const FILE_PATH = process.cwd() + "/persistent/locks.json";
 
-const FILE_NAME = process.cwd() + "/persistent/locks.json";
-
-class LockDB {
+class LockDB extends JsonFileDB {
 
     constructor() {
-
+        super(FILE_PATH);
     }
 
     /**
-     * @param   {string} hmip_groupId 
+     * @param {string} id Key of the record to get. In this case HMIP group ID.
      * @returns {Lock}
      */
-    getByGroupId(hmip_groupId) {
-        const json_data = this.getFileContent();
-        var tags = { module: "LockDB", function: "getByGroupId", group: hmip_groupId };
-        Logger.trace({ tags, message: "LockDB State: " + JSON.stringify(json_data) });
-
-        const lockRaw = json_data[hmip_groupId];
-
-        if (!lockRaw) throw new Error("Lock not found");
-
-        const lock = new Lock();
-        Object.assign(lock, lockRaw);
-
-        return lock;
-    }
-
-    /**
-     * @param {Lock} lock 
-     */
-    save(lock) {
-        const json_data = this.getFileContent();
-
-        const data = {
-            groupId: lock.groupId,
-            expiring: lock.expiring,
-            eventName: lock.eventName,
-        };
-
-        json_data[lock.groupId] = data;
-
-        fse.outputFileSync(FILE_NAME, JSON.stringify(json_data, null, 2));
+    getById(id) {
+        const rawData = super.getById(id);
+        return Object.assign(new Lock(), rawData);
     }
 
     /**
      * @param {Lock} lock
+     * @returns {void}
      */
-    delete(lock) {
-        const json_data = this.getFileContent();
-        delete json_data[lock.groupId];
-
-        fse.outputFileSync(FILE_NAME, JSON.stringify(json_data, null, 2));
+    save(lock) {
+        const shallowCopy = {...lock};
+        super.saveById(lock.id, shallowCopy);
     }
 
-    getFileContent() {
-        var dataRaw;
-
-        try {
-            dataRaw = fs.readFileSync(FILE_NAME, 'utf8');
-        } catch (e) {
-            dataRaw = "{}";
-        }
-
-        try {
-            return JSON.parse(dataRaw);
-        } catch (e) {
-            return {};
-        }
+    /**
+     * @param {string} id HMIP group id of the lock
+     */
+    deleteById(id) {
+        super.deleteById(id);
     }
 }
 
-module.exports = { LockDB };
+module.exports = {LockDB};

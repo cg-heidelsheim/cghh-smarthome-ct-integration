@@ -3,18 +3,17 @@ moment.tz.setDefault("Europe/Berlin");
 
 class Lock {
 
-    /** @type {string} */
-    groupId;
+    /** @type {string} HMIP group ID */
+    id;
     /** @type {string} UTC Timestamp as string*/
     expiring;
     /** @type {string} */
     eventName;
 
-    constructor() {
-
-    }
-
     /**
+     * Check if lock is expired.
+     * Locks are expired if current date is after expiration date
+     *
      * @returns {boolean}
      */
     isExpired = () => {
@@ -25,4 +24,4 @@ class Lock {
     };
 }
 
-module.exports = { Lock };
+module.exports = {Lock};

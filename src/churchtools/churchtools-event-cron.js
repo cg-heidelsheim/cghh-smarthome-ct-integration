@@ -16,7 +16,6 @@ const { Lock } = require("../homematic/lock/lock");
 const { LockDB } = require("../homematic/lock/lock.db");
 const { GroupManager } = require("../homematic/group/group-manager");
 const { GroupStateDB } = require("../homematic/group/group-state.db");
-const { GroupState } = require("../homematic/group/group-state");
 const { RoomConfiguration } = require("../homematic/room/room-config");
 const { GroupStateBuilder } = require("../homematic/group/group-state.builder");
 const { Uptime } = require("../../uptime");
@@ -162,7 +161,7 @@ async function manageLockForRoom(roomConfig) {
 
             await groupManager.setToIdle(lock.eventName);
             const lockDB = new LockDB();
-            lockDB.delete(lock);
+            lockDB.deleteById(lock.id);
 
             EventLogger.resolveLock(groupState, roomConfig.desiredTemperatureIdle, lock);
         } catch (e) {
@@ -264,7 +263,7 @@ const handleBookingOfEventHeating = async (event, booking) => {
             const lock = new Lock();
             lock.expiring = moment(event.enddate);
             lock.eventName = event.bezeichnung;
-            lock.groupId = groupState.id;
+            lock.id = groupState.id;
             lockDB.save(lock);
         } catch (e) {
             if (e.message !== "Blocked") console.log(e);

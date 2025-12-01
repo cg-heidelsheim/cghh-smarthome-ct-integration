@@ -84,4 +84,62 @@ describe('JsonFileDB', () => {
       expect(() => db.getById('missing')).toThrow('Entry with id missing not found in DB.');
     });
   });
+
+  describe('getAll', () => {
+    it('should return empty array if no data stored', () => {
+      jest.spyOn(db, '_readFile').mockReturnValue({});
+      expect(db.getAll()).toEqual([]);
+    });
+
+    it('should return all stored objects as an array', () => {
+      const sampleData = {
+        id1: { value: 1 },
+        id2: { value: 2 },
+      };
+      jest.spyOn(db, '_readFile').mockReturnValue(sampleData);
+      const allItems = db.getAll();
+      expect(allItems).toHaveLength(2);
+      expect(allItems).toEqual(expect.arrayContaining([
+        expect.objectContaining({ value: 1 }),
+        expect.objectContaining({ value: 2 }),
+      ]));
+    });
+
+    it('should return empty array on read error', () => {
+      jest.spyOn(db, '_readFile').mockImplementation(() => { throw new Error('fail'); });
+      expect(() => db.getAll()).toThrow();
+    });
+  });
+
+  describe('deleteById', () => {
+    it('should remove item by id and save updated data', () => {
+      const initialData = {
+        id1: { value: 1 },
+        id2: { value: 2 },
+      };
+      jest.spyOn(db, '_readFile').mockReturnValue(initialData);
+
+      db.deleteById('id1');
+
+      expect(db._readFile).toHaveBeenCalled();
+      expect(fse.outputFileSync).toHaveBeenCalledWith(
+          testFilePath,
+          JSON.stringify({ id2: { value: 2 } }, null, 2)
+      );
+    });
+
+    it('should do nothing if id to delete does not exist', () => {
+      const initialData = {
+        id1: { value: 1 },
+      };
+      jest.spyOn(db, '_readFile').mockReturnValue(initialData);
+
+      db.deleteById('nonexistent');
+
+      expect(fse.outputFileSync).toHaveBeenCalledWith(
+          testFilePath,
+          JSON.stringify(initialData, null, 2)
+      );
+    });
+  });
 });

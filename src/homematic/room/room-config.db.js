@@ -1,90 +1,30 @@
-var fs = require('fs');
-const { outputFileSync } = require('fs-extra');
-const { RoomConfiguration } = require('./room-config');
+const {JsonFileDB} = require('../db/json-file.db.js');
+const {RoomConfiguration} = require('./room-config');
 
-const FILE_NAME = process.cwd() + "/config/room.config.json";
+const FILE_PATH = process.cwd() + "/config/room.config.json";
 
-class RoomConfigurationDB {
-
-    state;
+class RoomConfigurationDB extends JsonFileDB {
 
     constructor() {
-        var dataRaw;
-
-        try {
-            dataRaw = fs.readFileSync(FILE_NAME, 'utf8');
-        } catch (e) {
-            dataRaw = "{}";
-        }
-
-        this.state = JSON.parse(dataRaw);
+        super(FILE_PATH);
     }
 
     /**
      * @returns {RoomConfiguration[]}
      */
     getAll() {
-        const rooms = this.state.rooms;
-
-        const output = [];
-
-        rooms.forEach(roomRaw => {
-            const roomConfiguration = new RoomConfiguration();
-            roomConfiguration.populateFields(roomRaw);
-
-            output.push(roomConfiguration);
-        });
-
-        return output;
+        let rooms = super.getAll();
+        return rooms.map(roomRaw => Object.assign(new RoomConfiguration(), roomRaw));
     }
 
     /**
-     * @param   {String} ct_roomId 
+     * @param {string} id Key of the record to get. In this case CT room ID.
      * @returns {RoomConfiguration}
      */
-    getByChurchtoolsId(ct_roomId) {
-        const rooms = this.state.rooms;
-        const roomRaw = rooms.find(room => room.id === ct_roomId);
-
-        if (!roomRaw) throw new Error("Room does not exist in HMIP. CT_RoomId: " + ct_roomId);
-
-        const roomConfiguration = new RoomConfiguration();
-        roomConfiguration.populateFields(roomRaw);
-
-        return roomConfiguration;
-    }
-
-    /**
-     * @param   {String} roomName 
-     * @returns {RoomConfiguration}
-     */
-    getByHomematicName(roomName) {
-        const rooms = this.state.rooms;
-        const roomRaw = rooms.find(room => room.homematicName === roomName);
-
-        if (!roomRaw) throw new Error("Room does not exist in HMIP. HMIP_GroupName: " + roomName);
-
-        const roomConfiguration = new RoomConfiguration();
-        roomConfiguration.populateFields(roomRaw);
-
-        return roomConfiguration;
-    }
-
-    /**
-     * @param   {string} roomId
-     * @returns {RoomConfiguration}
-     */
-    getByHomematicId(roomId) {
-        const rooms = this.state.rooms;
-        const roomRaw = rooms.find(room => room.homematicId === roomId);
-
-        if (!roomRaw) throw new Error("Room does not exist in HMIP. HMIP_GroupID: " + roomId);
-
-        const roomConfiguration = new RoomConfiguration();
-        roomConfiguration.populateFields(roomRaw);
-
-        return roomConfiguration;
+    getById(id) {
+        const rawData = super.getById(id);
+        return Object.assign(new RoomConfiguration(), rawData);
     }
 }
 
-module.exports = { RoomConfigurationDB };
+module.exports = {RoomConfigurationDB};
