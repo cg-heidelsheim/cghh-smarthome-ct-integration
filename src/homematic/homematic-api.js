@@ -4,13 +4,17 @@ const { Logger } = require("../util/logger");
 require('dotenv').config();
 
 class HomematicApi {
+    LOOKUP_URL = process.env.HOMEMATIC_LOOKUP_URL;
     API_URL = process.env.HOMEMATIC_API_URL;
-    ACCES_POINT_ID = process.env.HOMEMATIC_ACCESS_POINT_ID;
-    AUTHTOKEN = process.env.HOMEMATIC_API_AUTHTOKEN;
-    CLIENTAUTH = process.env.HOMEMATIC_API_CLIENTAUTH;
+
+    ACCESS_POINT_ID = process.env.HOMEMATIC_ACCESS_POINT_ID;
+
+    AUTH_TOKEN = process.env.HOMEMATIC_API_AUTHTOKEN;
+    CLIENT_AUTH = process.env.HOMEMATIC_API_CLIENTAUTH;
 
     /**
-     * 
+     * Update the temperature for a group by its ID
+     *
      * @param {string} groupId 
      * @param {number} desiredTemperature 
      * @returns 
@@ -19,21 +23,40 @@ class HomematicApi {
         const tags = { module: "API", function: "HOMEMATIC", group: groupId };
 
         if (process.env.ENVIRONMENT !== 'production') {
-            Logger.info({ tags, message: `[${process.env.ENVIRONMENT}] Dry run: Would set temperature of ${groupId} to ${desiredTemperature}` });
+            Logger.info({ tags, message: `[ENV - ${process.env.ENVIRONMENT}] Dry run: Would set temperature of ${groupId} to ${desiredTemperature}` });
             return;
         }
 
         Logger.debug({ tags, message: `Set temperature of ${groupId} to ${desiredTemperature}` });
-        return await this.callRest("group/heating/setSetPointTemperature", {
+
+        return await this.callRest( this.API_URL, "hmip/group/heating/setSetPointTemperature", {
             "groupId": groupId,
             "setPointTemperature": desiredTemperature
         });
     }
 
-    async callRest(path, payload, attempt = 1, id = null) {
+    async getServerUrls(){
+        const tags = { module: "API", function: "HOMEMATIC_LOOKUP" };
+        Logger.debug({ tags, message: "Fetching Server URL for Homematic API" });
+
+        return await this.callRest(this.LOOKUP_URL, "getHost", {
+            "clientCharacteristics": {
+                "apiVersion": "10",
+                "applicationIdentifier": "homematicip-python",
+                "applicationVersion": "1.0",
+                "deviceManufacturer": "none",
+                "deviceType": "Computer",
+                "language": "de-DE",
+                "osType": "Windows",
+                "osVersion": "10"
+            },
+            "id": this.ACCESS_POINT_ID
+        });
+    }
+
+    async callRest(url, path, payload, attempt = 1, id = null) {
         if (id == null) {
-            let r = (Math.random() + 1).toString(36).substring(7);
-            id = r;
+            id = (Math.random() + 1).toString(36).substring(7);
         }
 
         const maxRetries = 5;
@@ -41,14 +64,14 @@ class HomematicApi {
             "content-type": "application/json",
             "accept": "application/json",
             "version": "12",
-            "authtoken": this.AUTHTOKEN,
-            "clientauth": this.CLIENTAUTH,
+            "authtoken": this.AUTH_TOKEN,
+            "clientauth": this.CLIENT_AUTH,
         };
 
-        const url = this.API_URL + "hmip/" + path;
+        let response;
 
-        var response;
-        var tags = { module: "API", function: "HOMEMATIC", attempt, identifier: id, path: "hmip/" + path };
+        let tags = { module: "API", function: "HOMEMATIC", attempt, identifier: id, path: path };
+
         const info = { request: payload };
 
         try {
@@ -76,23 +99,6 @@ class HomematicApi {
                 throw Error(e);
             }
         }
-
-    }
-
-    getCharacteristics() {
-        return {
-            "clientCharacteristics": {
-                "apiVersion": "10",
-                "applicationIdentifier": "homematicip-python",
-                "applicationVersion": "1.0",
-                "deviceManufacturer": "none",
-                "deviceType": "Computer",
-                "language": "de-DE",
-                "osType": "Windows",
-                "osVersion": "10"
-            },
-            "id": this.ACCES_POINT_ID
-        };
     }
 }
 
