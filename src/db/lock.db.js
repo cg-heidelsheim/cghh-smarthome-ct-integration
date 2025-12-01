@@ -1,5 +1,5 @@
-const {JsonFileDB} = require("../db/json-file.db");
-const {Lock} = require("./lock");
+const {JsonFileDB} = require("./json-file.db");
+const {Lock} = require("../homematic/lock/lock");
 
 const FILE_PATH = process.cwd() + "/persistent/locks.json";
 

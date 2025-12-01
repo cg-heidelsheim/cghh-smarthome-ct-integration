@@ -1,6 +1,6 @@
 // classes
 const { EventLogger } = require("../util/event.logger");
-const { RoomConfigurationDB } = require('../homematic/room/room-config.db');
+const { RoomConfigurationDB } = require('../db/room-config.db');
 // functions
 const { getEvents } = require("./events");
 // elements
@@ -13,9 +13,9 @@ moment.tz.setDefault("Europe/Berlin");
 const { HomematicApi } = require("./../homematic/homematic-api");
 
 const { Lock } = require("../homematic/lock/lock");
-const { LockDB } = require("../homematic/lock/lock.db");
+const { LockDB } = require("../db/lock.db");
 const { GroupManager } = require("../homematic/group/group-manager");
-const { GroupStateDB } = require("../homematic/group/group-state.db");
+const { GroupStateDB } = require("../db/group-state.db");
 const { RoomConfiguration } = require("../homematic/room/room-config");
 const { GroupStateBuilder } = require("../homematic/group/group-state.builder");
 const { Uptime } = require("../../uptime");

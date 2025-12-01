@@ -1,6 +1,6 @@
 const fs = require('fs');
 const fse = require('fs-extra');
-const {Logger} = require('../../util/logger.js');
+const {Logger} = require('../util/logger.js');
 
 
 /**

@@ -1,7 +1,7 @@
 const fs = require('fs');
 const fse = require('fs-extra');
 const path = require('path');
-const { JsonFileDB } = require('../../../src/homematic/db/json-file.db.js');
+const { JsonFileDB } = require('../../src/db/json-file.db.js');
 
 jest.mock('fs-extra');
 

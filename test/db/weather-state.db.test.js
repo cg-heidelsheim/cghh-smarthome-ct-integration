@@ -1,7 +1,7 @@
 const fs = require('fs');
 const fse = require('fs-extra');
-const { WeatherStateDB } = require('../../../src/homematic/weather/weather-state.db');
-const { WeatherState } = require('../../../src/homematic/weather/weather-state');
+const { WeatherStateDB } = require('../../src/db/weather-state.db');
+const { WeatherState } = require('../../src/homematic/weather/weather-state');
 
 const mockFilePath = process.cwd() + "/persistent/states/weather.json";
 

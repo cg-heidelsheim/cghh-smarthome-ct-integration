@@ -1,5 +1,5 @@
-const {JsonFileDB} = require("../db/json-file.db");
-const {GroupState} = require("./group-state");
+const {JsonFileDB} = require("./json-file.db");
+const {GroupState} = require("../homematic/group/group-state");
 
 const FILE_PATH = process.cwd() + "/persistent/states/groups.json";
 
