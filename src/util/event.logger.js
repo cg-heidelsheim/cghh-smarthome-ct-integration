@@ -11,12 +11,12 @@ class EventLogger {
     /**
      * @param {number} minutes
      * @param {number} minPreOfBooking
+     * @param {GroupState} groupState
      */
-    static heatingTimeExpectancy(minutes, minPreOfBooking) {
+    static heatingTimeExpectancy(minutes, minPreOfBooking, groupState) {
         const tags = {module: "CRON", function: "EXECUTE", group: groupState.label.replace(/ /g, '_')};
-        const message = `[-] Preheating takes ~ ${Math.round(minutes)} min. (incl. ${minPreOfBooking} min. offset)}`;
+        const message = `[#] Preheating takes ~ ${Math.round(minutes)} min. (incl. ${minPreOfBooking} min. offset)}`;
         Logger.core({tags, message});
-
     }
 
     static resolveLock(groupState, desiredTemperature, lock) {
@@ -33,7 +33,7 @@ class EventLogger {
 
     static groupUpdatePreheatBlocked(eventName, roomName) {
         const tags = {module: "CRON", function: "EXECUTE", group: roomName.replace(/ /g, '_')};
-        const message = `[#] ${roomName} preheating is blocked for event ${eventName} due to current manual override`;
+        const message = `[#] ${roomName} preheating is blocked for event ${eventName} due to manual temperature override`;
         Logger.core({tags, message});
     }
 

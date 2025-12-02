@@ -1,5 +1,6 @@
 const {getEvents} = require("./events");
 const {Logger} = require("../util/logger");
+const {HeatingScheduler} = require("../churchtools/heating-scheduler");
 const {filterCurrentAndUpcomingEvents} = require("../util/event-filter.util");
 const {GroupStateBuilder} = require("../homematic/group/group-state.builder");
 const {GroupManagerFactory} = require("../homematic/group/group-manager.factory");
@@ -50,19 +51,19 @@ class EventManager {
      * @returns void
      */
     async handleEvent(event) {
-        const tags = {...this.tags, event: event.bezeichnung};
+        this.tags = {...this.tags, event: event.bezeichnung};
 
-        Logger.debug({tags, message: `Handling event ${event.bezeichnung}`});
+        Logger.debug({tags: this.tags, message: `Handling event ${event.bezeichnung}`});
 
         const bookings = event.bookings;
 
         if (!bookings) {
-            Logger.info({tags, message: `Event has no bookings`});
+            Logger.info({tags: this.tags, message: `Event has no bookings`});
             return;
         }
 
         const bookingValues = Object.values(bookings);
-        Logger.debug({tags, message: `Bookings: #${bookingValues.length}`});
+        Logger.debug({tags: this.tags, message: `Bookings: #${bookingValues.length}`});
 
         for (const booking of bookingValues) {
             await this.handleBookingOfEventHeating(event, booking);
@@ -88,53 +89,31 @@ class EventManager {
             return;
         }
 
-        const tags = {...this.tags, group: roomConfig.name.replace(/ /g, '_'), event: event.bezeichnung};
+        this.tags = {...this.tags, group: roomConfig.name.replace(/ /g, '_')};
 
-        // ONLY ALLOW ROOMS WITH STATUS "gebucht"
-        if (booking.status_id !== "2") {
-            Logger.warn({tags: tags, message: `Booking for group is not in status "accepted"`});
-            return;
-        }
+        if (!this.#isAcceptedBooking(booking)) return;
+        if (this.#isEventLocked(roomConfig)) return;
 
-        try {
-            this.lockDB.getById(roomConfig.homematicId);
-            Logger.info({tags, message: `${roomConfig.name} is locked - SKIP`});
-            return;
-        } catch (err) {
-            Logger.debug({tags, message: `${roomConfig.name} is not locked`});
-        }
+        let groupState = this.#getGroupState(roomConfig);
 
-        let groupState;
+        await this.#executeHeatingSchedule(roomConfig, event, groupState, booking);
+    };
 
-        try {
-            groupState = this.groupStateDB.getById(roomConfig.homematicId);
-        } catch (e) {
-            Logger.error({message: "Group state not found in DB. Using Dummy. Error: " + e.message});
-            groupState = GroupStateBuilder.dummyState(roomConfig.homematicId);
-        }
+    async #executeHeatingSchedule(roomConfig, event, groupState, booking) {
+        const {
+            shouldStartHeating,
+            minutesUntilHeatingStart,
+            minutesToReachTemp,
+            minPreOfBooking
+        } = HeatingScheduler.calculateHeatingSchedule(roomConfig, event, groupState, booking);
 
-        let minsToReachTemp = roomConfig.getMinutesNeededToReachTemperatureForEvent(event, groupState);
-        minsToReachTemp = Math.round(minsToReachTemp);
-
-        const minPreOfBooking = booking.minpre;
-        minsToReachTemp += minPreOfBooking;
-
-        const calculatedTimeToStartHeating = moment(event.startdate).subtract(minsToReachTemp, "minute");
-
-        const calculatedTimeIsOverdue = calculatedTimeToStartHeating.isBefore(moment());
-        const eventAlreadyStarted = moment(event.startdate).isBefore(moment());
-
-        let now = moment(new Date());
-        let duration = moment.duration(calculatedTimeToStartHeating.diff(now));
-        let minutes = duration.asMinutes();
-
-        if (calculatedTimeIsOverdue || eventAlreadyStarted) {
+        if (shouldStartHeating) {
             try {
                 const groupManager = GroupManagerFactory.createGroupManager(groupState.id);
                 await groupManager.heatForEvent(event);
 
                 EventLogger.groupUpdatePreheat(groupState.label, roomConfig.getDesiredRoomTemepratureForEvent(event), event);
-                EventLogger.heatingTimeExpectancy(minsToReachTemp, minPreOfBooking);
+                EventLogger.heatingTimeExpectancy(minutesToReachTemp, minPreOfBooking, groupState);
 
                 const lock = new Lock();
                 lock.expiring = moment(event.enddate);
@@ -142,16 +121,46 @@ class EventManager {
                 lock.id = groupState.id;
                 this.lockDB.save(lock);
             } catch (e) {
-                if (e.message !== "Blocked") Logger.error({tags, message: e.message});
+                if (e.message !== "Blocked") Logger.error({tags: this.tags, message: e.message});
 
                 // blocked due to existing manual override
                 EventLogger.groupUpdatePreheatBlocked(event.bezeichnung, groupState.label);
             }
         } else {
-            const message = `Event ${event.bezeichnung} lies too far in the future. Min. needed: ${minsToReachTemp} - Preheat in approx. ${minutes} min.`;
-            Logger.debug({tags, message});
+            const message = `Event ${event.bezeichnung} lies too far in the future. Min. needed: ${minutesToReachTemp} - Preheat in approx. ${minutesUntilHeatingStart} min.`;
+            Logger.debug({tags: this.tags, message});
         }
-    };
+    }
+
+    #getGroupState(roomConfig) {
+        try {
+            return this.groupStateDB.getById(roomConfig.homematicId);
+        } catch (e) {
+            Logger.error({message: "Group state not found in DB. Using Dummy. Error: " + e.message});
+            return GroupStateBuilder.dummyState(roomConfig.homematicId);
+        }
+    }
+
+    #isAcceptedBooking(booking, tags) {
+        // ONLY ALLOW ROOMS WITH STATUS "gebucht"
+        if (booking.status_id !== "2") {
+            Logger.warn({tags: tags, message: `Booking for group is not in status "accepted"`});
+            return false;
+        }
+
+        return true;
+    }
+
+    #isEventLocked(roomConfig, tags) {
+        try {
+            this.lockDB.getById(roomConfig.homematicId);
+            Logger.info({tags, message: `${roomConfig.name} is locked - SKIP`});
+            return true;
+        } catch (err) {
+            Logger.debug({tags, message: `${roomConfig.name} is not locked`});
+            return false;
+        }
+    }
 }
 
 exports.module = {EventManager}
