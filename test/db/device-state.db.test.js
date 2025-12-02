@@ -1,7 +1,7 @@
 const fs = require('fs');
 const fse = require('fs-extra');
 const { DeviceStateDB } = require('../../src/db/device-state.db');
-const { DeviceState } = require('../../src/homematic/device/device-state');
+const { DeviceState } = require('../../src/db/model/device-state');
 
 const mockFilePath = process.cwd() + "/persistent/states/devices.json";
 

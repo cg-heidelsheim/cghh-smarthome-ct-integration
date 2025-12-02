@@ -1,5 +1,5 @@
-const {ChannelState} = require("./channel-state");
-const {DeviceState} = require("./device-state");
+const {ChannelState} = require("../../db/model/channel-state");
+const {DeviceState} = require("../../db/model/device-state");
 const {Device} = require("./device");
 
 class DeviceStateBuilder {

@@ -2,7 +2,7 @@ const fs = require('fs');
 const fse = require('fs-extra');
 const path = require('path');
 const { RoomConfigurationDB } = require('../../src/db/room-config.db.js');
-const { RoomConfiguration } = require('../../src/homematic/room/room-config');
+const { RoomConfiguration } = require('../../src/db/model/room-config');
 
 const mockFilePath = path.join(process.cwd(), 'config', 'room.config.json');
 

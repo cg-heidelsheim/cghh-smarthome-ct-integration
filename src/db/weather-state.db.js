@@ -1,5 +1,5 @@
 const {JsonFileDB} = require("./json-file.db");
-const {WeatherState} = require("../homematic/weather/weather-state");
+const {WeatherState} = require("./model/weather-state");
 
 const FILE_PATH = process.cwd() + "/persistent/states/weather.json";
 

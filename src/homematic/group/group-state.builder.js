@@ -1,4 +1,4 @@
-const {GroupState} = require("./group-state");
+const {GroupState} = require("../../db/model/group-state");
 const {Group} = require("./group");
 
 class GroupStateBuilder {

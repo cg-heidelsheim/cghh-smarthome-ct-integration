@@ -1,4 +1,4 @@
-const { DeviceState } = require("./device-state");
+const { DeviceState } = require("../../db/model/device-state");
 const { parseDeviceStateChannelIntoInfluxDataObject, parseDeviceStateChannelIntoInfluxDataObjectState } = require("../../util/homematic-influx.mapper");
 const { InfluxDBManager } = require("../../influx/influx-db");
 
@@ -21,7 +21,7 @@ class DeviceDataSender {
      * If so, resend this set temperature before the new data. This causes a aprupt change in the db visualization of setTemperature.
      * Otherwise a slow rise in the setTemperature would be interpreted.
      * 
-     * @param {DeviceState} currentState 
+     * @param {DeviceState} currentState
      * @param {DeviceState} updatedState
      */
     async sendChannelData(currentState, updatedState, channelIndex) {

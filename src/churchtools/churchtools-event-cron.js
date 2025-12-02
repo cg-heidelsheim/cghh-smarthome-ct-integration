@@ -12,11 +12,11 @@ moment.tz.setDefault("Europe/Berlin");
 
 const { HomematicApi } = require("./../homematic/homematic-api");
 
-const { Lock } = require("../homematic/lock/lock");
+const { Lock } = require("../db/model/lock");
 const { LockDB } = require("../db/lock.db");
 const { GroupManager } = require("../homematic/group/group-manager");
 const { GroupStateDB } = require("../db/group-state.db");
-const { RoomConfiguration } = require("../homematic/room/room-config");
+const { RoomConfiguration } = require("../db/model/room-config");
 const { GroupStateBuilder } = require("../homematic/group/group-state.builder");
 const { Uptime } = require("../../uptime");
 const { Logger } = require("../util/logger");

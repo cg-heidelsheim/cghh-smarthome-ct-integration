@@ -1,4 +1,4 @@
-const { ChannelState } = require('../../src/homematic/device/channel-state');
+const { ChannelState } = require('../../src/db/model/channel-state');
 
 describe('ChannelState.equalsValueAttributes', () => {
   let channelA;

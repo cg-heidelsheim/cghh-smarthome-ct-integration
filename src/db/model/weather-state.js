@@ -76,10 +76,6 @@ class WeatherState {
                this.weatherCondition === other.weatherCondition &&
                this.weatherDayTime === other.weatherDayTime;
     }
-
-    constructor() {
-        // Initialization can be added here if needed.
-    }
 }
 
 module.exports = { WeatherState };

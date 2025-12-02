@@ -1,19 +1,19 @@
 const { WebsocketManager } = require("../websocket-manager");
 
 const { Group } = require("./group/group");
-const { GroupState } = require("./group/group-state");
+const { GroupState } = require("../db/model/group-state");
 const { GroupStateDB } = require("../db/group-state.db");
 const { GroupStateBuilder } = require("./group/group-state.builder");
 const { GroupDataSender } = require("./group/group.data-sender");
 
 const { Device } = require("./device/device");
-const { DeviceState } = require("./device/device-state");
+const { DeviceState } = require("../db/model/device-state");
 const { DeviceStateDB } = require("../db/device-state.db");
 const { DeviceStateBuilder } = require("./device/device-state.builder");
 const { DeviceDataSender } = require("./device/device.data-sender");
 
 const { Home } = require("./weather/home");
-const { WeatherState } = require("./weather/weather-state");
+const { WeatherState } = require("../db/model/weather-state");
 const { WeatherStateDB } = require("../db/weather-state.db");
 const { WeatherStateBuilder } = require("./weather/weather-state.builder");
 const { WeatherDataSender } = require("./weather/weather.data-sender");

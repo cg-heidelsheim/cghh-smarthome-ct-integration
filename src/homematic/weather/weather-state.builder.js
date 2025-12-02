@@ -1,4 +1,4 @@
-const {WeatherState} = require("./weather-state");
+const {WeatherState} = require("../../db/model/weather-state");
 const {Home} = require("./home");
 
 class WeatherStateBuilder {

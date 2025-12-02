@@ -1,5 +1,5 @@
 /**
- * Represents the state of a channel in a device.
+ * Represents the state of a channel in a {@link Device}.
  */
 class ChannelState {
     /**

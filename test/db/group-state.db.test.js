@@ -1,6 +1,6 @@
 const fse = require('fs-extra');
 const { GroupStateDB } = require('../../src/db/group-state.db');
-const { GroupState } = require('../../src/homematic/group/group-state');
+const { GroupState } = require('../../src/db/model/group-state');
 
 const mockFilePath = process.cwd() + "/persistent/states/groups.json";
 

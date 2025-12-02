@@ -1,5 +1,5 @@
 const {JsonFileDB} = require('./json-file.db.js');
-const {RoomConfiguration} = require('../homematic/room/room-config');
+const {RoomConfiguration} = require('./model/room-config');
 
 const FILE_PATH = process.cwd() + "/config/room.config.json";
 

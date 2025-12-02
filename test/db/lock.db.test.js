@@ -3,7 +3,7 @@ const fse = require('fs-extra');
 const path = require('path');
 const moment = require('moment-timezone');
 const { LockDB } = require('../../src/db/lock.db.js');
-const { Lock } = require('../../src/homematic/lock/lock.js');
+const { Lock } = require('../../src/db/model/lock.js');
 
 const mockFilePath = path.join(process.cwd(), 'persistent', 'locks.json');
 

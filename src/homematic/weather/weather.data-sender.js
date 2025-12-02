@@ -1,6 +1,6 @@
 const { InfluxDBManager } = require("../../influx/influx-db");
 const { parseWeatherStateIntoInfluxDataObject } = require("../../util/homematic-influx.mapper");
-const { WeatherState } = require("./weather-state");
+const { WeatherState } = require("../../db/model/weather-state");
 
 class WeatherDataSender {
 

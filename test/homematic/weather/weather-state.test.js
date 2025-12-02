@@ -1,4 +1,4 @@
-const { WeatherState } = require('../../../src/homematic/weather/weather-state');
+const { WeatherState } = require('../../../src/db/model/weather-state');
 
 describe('WeatherState.equalsValueAttributes', () => {
   let stateA;

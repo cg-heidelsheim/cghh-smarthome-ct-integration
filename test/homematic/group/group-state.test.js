@@ -1,4 +1,4 @@
-const { GroupState } = require('../../../src/homematic/group/group-state');
+const { GroupState } = require('../../../src/db/model/group-state');
 
 describe('GroupState.equalsValueAttributes', () => {
   let stateA;

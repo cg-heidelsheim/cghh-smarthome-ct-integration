@@ -1,8 +1,8 @@
 const { PendingLogsManager } = require("../../db/pending-log.db");
 const { Logger } = require("../../util/logger");
 const { HomematicApi } = require("../homematic-api");
-const { GroupState } = require("./group-state");
-const {PendingLog} = require("../../pending-log");
+const { GroupState } = require("../../db/model/group-state");
+const {PendingLog} = require("../../db/model/pending-log");
 
 class GroupManager {
 

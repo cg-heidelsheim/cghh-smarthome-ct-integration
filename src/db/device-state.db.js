@@ -1,5 +1,5 @@
 const {JsonFileDB} = require('./json-file.db');
-const {DeviceState} = require("../homematic/device/device-state");
+const {DeviceState} = require("./model/device-state");
 
 const FILE_PATH = process.cwd() + "/persistent/states/devices.json";
 

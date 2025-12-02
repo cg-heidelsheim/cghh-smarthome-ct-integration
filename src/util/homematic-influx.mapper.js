@@ -1,4 +1,4 @@
-const { WeatherState } = require("../homematic/weather/weather-state");
+const { WeatherState } = require("../db/model/weather-state");
 
 /**
  * Take information of a {@link GroupState} and parse it into a influx usable DB object 
