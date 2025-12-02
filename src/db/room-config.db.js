@@ -1,30 +1,30 @@
 const {JsonFileDB} = require('./json-file.db.js');
-const {RoomConfiguration} = require('./model/room-config');
+const {RoomConfig} = require('./model/room-config');
 
 const FILE_PATH = process.cwd() + "/config/room.config.json";
 
-class RoomConfigurationDB extends JsonFileDB {
+class RoomConfigDB extends JsonFileDB {
 
     constructor() {
         super(FILE_PATH);
     }
 
     /**
-     * @returns {RoomConfiguration[]}
+     * @returns {RoomConfig[]}
      */
     getAll() {
         let rooms = super.getAll();
-        return rooms.map(roomRaw => Object.assign(new RoomConfiguration(), roomRaw));
+        return rooms.map(roomRaw => Object.assign(new RoomConfig(), roomRaw));
     }
 
     /**
      * @param {string} id Key of the record to get. Uses HMIP id.
-     * @returns {RoomConfiguration}
+     * @returns {RoomConfig}
      */
     getById(id) {
         const rawData = super.getById(id);
-        return Object.assign(new RoomConfiguration(), rawData);
+        return Object.assign(new RoomConfig(), rawData);
     }
 }
 
-module.exports = {RoomConfigurationDB};
+module.exports = {RoomConfigDB};

@@ -1,6 +1,6 @@
 // classes
 const { EventLogger } = require("../util/event.logger");
-const { RoomConfigurationDB } = require('../db/room-config.db');
+const { RoomConfigDB } = require('../db/room-config.db');
 // functions
 const { getEvents } = require("./events");
 // elements
@@ -17,7 +17,7 @@ const { LockDB } = require("../db/lock.db");
 const { LockManager } = require("../churchtools/lock-manager");
 const { GroupManager } = require("../homematic/group/group-manager");
 const { GroupStateDB } = require("../db/group-state.db");
-const { RoomConfiguration } = require("../db/model/room-config");
+const { RoomConfig } = require("../db/model/room-config");
 const { GroupStateBuilder } = require("../homematic/group/group-state.builder");
 const { Uptime } = require("../../uptime");
 const { Logger } = require("../util/logger");
@@ -28,14 +28,15 @@ const { Logger } = require("../util/logger");
 /** ------------------- */
 
 /**
- * @type RoomConfigurationDB
+ * @type RoomConfigDB
  */
 var roomConfigurationDB;
 
 async function manageLocks() {
-    roomConfigurationDB = new RoomConfigurationDB();
-    const lockManagerDB = new LockDB();
-    const lockManager = new LockManager(lockManagerDB, roomConfigurationDB);
+    const roomConfigDB = new RoomConfigDB();
+    const lockDB = new LockDB();
+
+    const lockManager = new LockManager(lockDB, roomConfigDB);
     await lockManager.manageLocks();
 }
 
@@ -48,6 +49,8 @@ async function manageEvents() {
  * Initialize run for heating adjustment
  */
 async function execute() {
+    roomConfigurationDB = new RoomConfigDB();
+
     await manageLocks();
     await manageEvents();
 }
@@ -151,7 +154,7 @@ const handleEventForHeatingAdjustment = (event) => {
  * @returns void
  */
 const handleBookingOfEventHeating = async (event, booking) => {
-    /** @type {RoomConfiguration} */
+    /** @type {RoomConfig} */
     var roomConfiguration;
 
     // ONLY ALLOW ROOMS WITH STATUS "gebucht"

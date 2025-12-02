@@ -1,7 +1,7 @@
 const {Logger} = require("../util/logger");
 const {Lock} = require("../db/model/lock");
 const {LockDB} = require("../db/lock.db");
-const {RoomConfigurationDB} = require("../db/room-config.db");
+const {RoomConfigDB} = require("../db/room-config.db");
 const {GroupManagerFactory} = require("../homematic/group/group-manager.factory")
 const {EventLogger} = require("../util/event.logger");
 
@@ -10,7 +10,7 @@ class LockManager {
 
     /**
      * @param {LockDB} lockDB
-     * @param {RoomConfigurationDB} roomConfigDB
+     * @param {RoomConfigDB} roomConfigDB
      */
     constructor(lockDB, roomConfigDB) {
         this.lockDB = lockDB;

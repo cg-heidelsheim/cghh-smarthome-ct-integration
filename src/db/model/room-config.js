@@ -1,6 +1,6 @@
 const {EventTemperatureMapper} = require("../../util/event-temperature.mapper");
 
-class RoomConfiguration {
+class RoomConfig {
 
     id; // CT ID
     name;
@@ -52,4 +52,4 @@ class RoomConfiguration {
     }
 };
 
-module.exports = {RoomConfiguration};
+module.exports = {RoomConfig};

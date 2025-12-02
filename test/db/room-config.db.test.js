@@ -1,8 +1,8 @@
 const fs = require('fs');
 const fse = require('fs-extra');
 const path = require('path');
-const { RoomConfigurationDB } = require('../../src/db/room-config.db.js');
-const { RoomConfiguration } = require('../../src/db/model/room-config');
+const { RoomConfigDB } = require('../../src/db/room-config.db.js');
+const { RoomConfig } = require('../../src/db/model/room-config');
 
 const mockFilePath = path.join(process.cwd(), 'config', 'room.config.json');
 
@@ -23,8 +23,8 @@ describe('RoomConfigurationDB', () => {
     let room;
 
     beforeEach(() => {
-        db = new RoomConfigurationDB();
-        room = new RoomConfiguration();
+        db = new RoomConfigDB();
+        room = new RoomConfig();
 
         room.id = 'room-123';
         room.name = 'Test Room Configuration';
@@ -48,7 +48,7 @@ describe('RoomConfigurationDB', () => {
         const allRooms = db.getAll();
         expect(allRooms).toHaveLength(2);
         allRooms.forEach(room => {
-            expect(room).toBeInstanceOf(RoomConfiguration);
+            expect(room).toBeInstanceOf(RoomConfig);
             expect(room.id).toBeDefined();
         });
     });
@@ -61,7 +61,7 @@ describe('RoomConfigurationDB', () => {
         memoryFileStore[mockFilePath] = JSON.stringify(sampleRooms);
 
         const room = db.getById('room1');
-        expect(room).toBeInstanceOf(RoomConfiguration);
+        expect(room).toBeInstanceOf(RoomConfig);
         expect(room.id).toBe('room1');
     });
 
