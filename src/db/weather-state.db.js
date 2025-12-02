@@ -15,10 +15,11 @@ class WeatherStateDB extends JsonFileDB {
      */
     save(state) {
         const shallowCopy = {...state};
-        super.saveById(state.id, shallowCopy);
+        super.saveById(state.label, shallowCopy);
     }
 
     /**
+     * @param {string} id Location identifier (label)
      * @returns {WeatherState}
      */
     getById(id) {

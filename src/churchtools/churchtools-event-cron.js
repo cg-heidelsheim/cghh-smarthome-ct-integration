@@ -230,13 +230,13 @@ const handleBookingOfEventHeating = async (event, booking) => {
     }
 
     const groupStateDB = new GroupStateDB();
-    const groupStateBuilder = new GroupStateBuilder();
-    var groupState;
+    let groupState;
 
     try {
         groupState = groupStateDB.getById(roomConfiguration.homematicId);
     } catch (e) {
-        groupState = groupStateBuilder.buildInitGroupState(roomConfiguration.homematicId);
+        Logger.error({message: "Group state not found in db. Error: " + e.message});
+        groupState = GroupStateBuilder.dummyState(roomConfiguration.homematicId);
     }
 
     var minutesNeededToReachDesiredTemperature = roomConfiguration.getMinutesNeededToReachTemperatureForEvent(event, groupState);

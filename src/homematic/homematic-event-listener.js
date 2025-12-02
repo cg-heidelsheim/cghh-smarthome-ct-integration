@@ -88,19 +88,18 @@ const handleGroupChangeEvent = (event) => {
 
     if (!group.isHeatingGroup()) return;
 
-    const groupStateBuilder = new GroupStateBuilder();
     const groupStateDB = new GroupStateDB();
 
-    var currentGroupState;
+    let currentGroupState;
 
     try {
         currentGroupState = groupStateDB.getById(group.data.id);
     } catch (error) {
         Logger.warn({ message: "No group state could be loaded from disk: " + error });
-        currentGroupState = groupStateBuilder.buildInitGroupState(group.data.id);
+        currentGroupState = GroupStateBuilder.dummyState(group.data.id);
     }
 
-    const updatedGroupState = groupStateBuilder.groupStateFromHomematicGroup(group);
+    const updatedGroupState = GroupStateBuilder.fromHomematicGroup(group);
 
     updatedGroupState.lock = currentGroupState.lock;
     handleGroupStateChange(currentGroupState, updatedGroupState);
@@ -123,10 +122,17 @@ const handleDeviceChanged = (event) => {
 
     if (!device.isHeatingThermostat()) return;
 
-    const deviceStateBuilder = new DeviceStateBuilder();
+    const deviceStateDb = new DeviceStateDB();
 
-    const currentDeviceState = deviceStateBuilder.deviceStateFromFile(device.data.id);
-    const updatedDeviceState = deviceStateBuilder.deviceStateFromHomematicDevice(device);
+    let currentDeviceState;
+    try {
+        currentDeviceState = deviceStateDb.getById(device.data.id);
+    } catch (e) {
+        Logger.error({message: "Device state not found in db. Error: " + e.message});
+        currentDeviceState = DeviceStateBuilder.dummyState(device.data.id);
+    }
+
+    const updatedDeviceState = DeviceStateBuilder.fromHomematicDevice(device);
 
     handleDeviceStateChange(currentDeviceState, updatedDeviceState);
 };
@@ -146,10 +152,17 @@ const handleHomeChangeEvent = (event) => {
 
     const home = new Home(rawHome);
 
-    const weatherStateBuilder = new WeatherStateBuilder();
+    const weatherStateDb = new WeatherStateDB();
 
-    const currentWeatherState = weatherStateBuilder.weatherStateFromFile(home.data.location.city.split(",")[0]);
-    const updatedWeatherState = weatherStateBuilder.weatherStateFromHomematicHome(home);
+    let currentWeatherState;
+    try {
+        currentWeatherState = weatherStateDb.getById(home.data.location.city.split(",")[0]);
+    } catch (e) {
+        Logger.error({message: "Weather state not found in db. Error: " + e.message});
+        currentWeatherState = WeatherStateBuilder.dummyState();
+    }
+
+    const updatedWeatherState = WeatherStateBuilder.fromHomematicHome(home);
 
     handleWeatherStateChange(currentWeatherState, updatedWeatherState);
 };

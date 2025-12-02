@@ -1,3 +1,7 @@
+/**
+ * TODO: find out what fields the HMIP sends for a group on a WebSocket message. Update this class respectively
+ */
+
 class Group {
 
     data;

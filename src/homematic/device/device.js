@@ -1,3 +1,6 @@
+/**
+ * TODO: find out what fields the HMIP sends for a device on a WebSocket message. Update this class respectively
+ */
 class Device {
 
     data;

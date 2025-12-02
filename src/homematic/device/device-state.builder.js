@@ -1,85 +1,44 @@
-const { DeviceState } = require("./device-state");
-const { Device } = require("./device");
-
 const {ChannelState} = require("./channel-state");
-
-const fs = require("fs");
-
-const FILE_NAME = process.cwd() + "/persistent/states/devices.json";
+const {DeviceState} = require("./device-state");
+const {Device} = require("./device");
 
 class DeviceStateBuilder {
-    constructor() {
-
-    }
-
-    deviceStateFromFile(deviceId) {
-        var dataRaw;
-
-        try {
-            dataRaw = fs.readFileSync(FILE_NAME, 'utf8');
-        } catch (e) {
-            dataRaw = "{}";
-        }
-
-        const json_data = JSON.parse(dataRaw);
-
-        const deviceStateRaw = json_data[deviceId];
-
-        if (!deviceStateRaw) {
-            return this.buildInitDeviceState();
-        }
-
-        const deviceState = new DeviceState();
-        Object.assign(deviceState, deviceStateRaw);
-
-        return deviceState;
-    }
 
     /**
-     * 
-     * @param {Device} device 
-     * @returns 
+     * Transform a HMIP device object into a device state object for DB storage.
+     *
+     * @param {Device} device Device object from HMIP
+     * @returns {DeviceState}
      */
-    deviceStateFromHomematicDevice(device) {
+    static fromHomematicDevice(device) {
         const deviceState = new DeviceState();
 
         deviceState.id = device.data.id;
         deviceState.label = device.data.label;
-
-        /**
-         * @type {ChannelState[]}
-         */
-        const channels = [];
-
-        device
-            .getRelevantFunctionalChannels()
-            .forEach(
-                (channel) => {
-                    const outputChannel = new ChannelState();
-                    outputChannel.index = channel.index;
-                    outputChannel.valvePosition = channel.valvePosition;
-                    outputChannel.temperature = channel.valveActualTemperature;
-                    outputChannel.setTemperature = channel.setPointTemperature;
-
-                    channels.push(outputChannel);
-                }
-            );
-
-        deviceState.channels = channels;
+        deviceState.channels = device.getRelevantFunctionalChannels()
+            .map(channel => {
+                const outputChannel = new ChannelState();
+                outputChannel.index = channel.index;
+                outputChannel.valvePosition = channel.valvePosition;
+                outputChannel.temperature = channel.valveActualTemperature;
+                outputChannel.setTemperature = channel.setPointTemperature;
+                return outputChannel;
+            });
 
         return deviceState;
     }
 
     /**
-     * @param {DeviceState} state 
+     * Built a dummy object, representing a placeholder for the first save.
+     * Contains a label with the value "INIT" that can later be checked for different logging and processing
+     *
+     * @param {string} id HMIP device id
+     * @returns {DeviceState}
      */
-    deviceStateFromDeviceState(state) {
-        return JSON.parse(JSON.stringify(state));
-    }
-
-    buildInitDeviceState() {
+    static dummyState(id) {
         const deviceState = new DeviceState();
 
+        deviceState.id = id;
         deviceState.label = "INIT";
         deviceState.channels = [];
 
@@ -87,4 +46,4 @@ class DeviceStateBuilder {
     }
 }
 
-module.exports = { DeviceStateBuilder };
+module.exports = {DeviceStateBuilder};
