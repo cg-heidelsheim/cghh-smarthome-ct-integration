@@ -20,7 +20,7 @@ class GroupStateDB extends JsonFileDB {
 
     /**
      * @param {String} id ID of HMIP group
-     * @returns {DeviceState}
+     * @returns {GroupState}
      */
     getById(id) {
         const rawData = super.getById(id);

@@ -14,6 +14,7 @@ const { HomematicApi } = require("./../homematic/homematic-api");
 
 const { Lock } = require("../db/model/lock");
 const { LockDB } = require("../db/lock.db");
+const { LockManager } = require("../churchtools/lock-manager");
 const { GroupManager } = require("../homematic/group/group-manager");
 const { GroupStateDB } = require("../db/group-state.db");
 const { RoomConfiguration } = require("../db/model/room-config");
@@ -31,15 +32,24 @@ const { Logger } = require("../util/logger");
  */
 var roomConfigurationDB;
 
+async function manageLocks() {
+    roomConfigurationDB = new RoomConfigurationDB();
+    const lockManagerDB = new LockDB();
+    const lockManager = new LockManager(lockManagerDB, roomConfigurationDB);
+    await lockManager.manageLocks();
+}
+
+async function manageEvents() {
+    const events = await getEvents();
+    handleEvents(events);
+}
+
 /**
  * Initialize run for heating adjustment
  */
 async function execute() {
-    roomConfigurationDB = new RoomConfigurationDB();
     await manageLocks();
-
-    const events = await getEvents();
-    handleEvents(events);
+    await manageEvents();
 }
 
 /**
@@ -106,70 +116,6 @@ const handleEvents = (events) => {
 
     Logger.info({ tags, message: "Finished event handling" });
 };
-
-/**
- * Filter relevant IDLE events and execute event handling.
- * Relevant events are events that ended in the last cronjob timeframe.
- *
- * @param {*} events
- * 
- * @returns void
- */
-async function manageLocks() {
-    const roomConfigs = roomConfigurationDB.getAll();
-
-    var tags = { module: "CRON", function: "LOCKS" };
-    Logger.debug({ tags, message: "Starting lock resolving" });
-    for (const roomConfig of roomConfigs) {
-        try {
-          await manageLockForRoom(roomConfig);
-        } catch (e) {
-            Logger.error({ tags: {...tags,  group: roomConfig.name.replace(/ /g, '_') }, message: "Lock management failed for room: " + e });
-        }
-    }
-    Logger.debug({ tags, message: "Finished lock resolving" });
-}
-
-/**
- * @param {RoomConfiguration} roomConfig 
- */
-async function manageLockForRoom(roomConfig) {
-    const hmip_groupId = roomConfig.homematicId;
-    var tags = { module: "CRON", function: "LOCKS", group: roomConfig.name.replace(/ /g, '_') };
-
-    /** @type {Lock} */
-    var lock;
-
-    try {
-        const lockDB = new LockDB();
-        lock = lockDB.getByGroupId(hmip_groupId);
-        Logger.debug({ tags, message: "Room locked" });
-    } catch (e) {
-        Logger.debug({ tags, message: "Room not locked - SKIP" });
-        // element is not locked
-        // nothing to do (no resolve needed)
-        return;
-    }
-
-    if (lock.isExpired()) {
-        Logger.debug({ tags, message: "Room lock expired" });
-
-        try {
-            const groupStateDB = new GroupStateDB();
-            const groupState = groupStateDB.getById(hmip_groupId);
-            const groupManager = new GroupManager(groupState.id, roomConfig, groupState);
-
-            await groupManager.setToIdle(lock.eventName);
-            const lockDB = new LockDB();
-            lockDB.deleteById(lock.id);
-
-            EventLogger.resolveLock(groupState, roomConfig.desiredTemperatureIdle, lock);
-        } catch (e) {
-            Logger.error({ tags, message: "Can't set temperature back to IDLE: " + e });
-            throw Error("Cannnot set room to idle");
-        }
-    }
-}
 
 /**
  * @param {*} event     Event to manage

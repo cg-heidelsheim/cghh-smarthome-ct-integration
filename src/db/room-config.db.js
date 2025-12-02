@@ -18,7 +18,7 @@ class RoomConfigurationDB extends JsonFileDB {
     }
 
     /**
-     * @param {string} id Key of the record to get. In this case CT room ID.
+     * @param {string} id Key of the record to get. Uses HMIP id.
      * @returns {RoomConfiguration}
      */
     getById(id) {

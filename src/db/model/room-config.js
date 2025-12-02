@@ -2,13 +2,13 @@ const {EventTemperatureMapper} = require("../../util/event-temperature.mapper");
 
 class RoomConfiguration {
 
-    id;
+    id; // CT ID
     name;
     heatingForEvent;
     heatingOffset;
     heatingOffsetIdle;
     homematicName;
-    homematicId;
+    homematicId; // HMIP ID
     desiredTemperature;
     desiredTemperatureIdle;
     heatingRate;
