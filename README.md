@@ -106,3 +106,12 @@ If differences are found, updated data is sent to InfluxDB, and the new state is
 - Was there an actual booking of the room? 
 - Is the room booking status accepted `status_id = 2`
 - Is the room common, or is there a room that doesn't exist in Homematic? 
+
+# Best Practices (Coding)
+## Logging
+### Core Messages
+A core message describes any action or state of the application that is absolutely relevant do directly view an action that the system made, or that prevented an action from taking place. Core actions are
+- Heating started
+- Heating ended
+- Manual change
+- Room is blocked (manual override)

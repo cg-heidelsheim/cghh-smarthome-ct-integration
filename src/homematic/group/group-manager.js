@@ -1,7 +1,8 @@
-const { PendingLogsManager } = require("../../pending-logs.manager");
+const { PendingLogsManager } = require("../../db/pending-log.db");
 const { Logger } = require("../../util/logger");
 const { HomematicApi } = require("../homematic-api");
 const { GroupState } = require("./group-state");
+const {PendingLog} = require("../../pending-log");
 
 class GroupManager {
 
@@ -46,8 +47,11 @@ class GroupManager {
     async updateTemperature(desiredTemperature, eventName, isIdle = false) {
         var tags = { module: "CRON", function: "EVENT", group: this.groupId };
         // set before data send, otherwise websocket might trigger before lock is set
-        const pendingLogsManager = new PendingLogsManager();
-        pendingLogsManager.setPendingForGroupId(this.groupId, true, eventName);
+        const pendingLogDb = new PendingLogsManager();
+        const pendingLog = new PendingLog();
+        pendingLog.id = this.groupId;
+        pendingLog.eventName = eventName;
+        pendingLogDb.save(pendingLog);
 
         try {
             await this.homematicAPI.setTemperatureForGroup(this.groupId, desiredTemperature);
@@ -56,8 +60,8 @@ class GroupManager {
         } catch (e) {
             Logger.error({ tags, message: `Can't set temperature of ${this.groupId} to ${desiredTemperature}: ${e}` });
 
-            // revert pending
-            pendingLogsManager.setPendingForGroupId(this.groupId, false, null);
+            // revert pending log
+            pendingLogDb.delete(this.groupId);
             throw new Error("Cannot set Temperature to idle");
         }
     }
