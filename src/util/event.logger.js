@@ -3,13 +3,20 @@ const {PendingLogsManager} = require('../db/pending-log.db');
 const {Logger} = require('./logger');
 moment.tz.setDefault("Europe/Berlin");
 
+/**
+ * TODO second class for non core messages
+ */
 class EventLogger {
 
     /**
-     * @param {string} minutes
+     * @param {number} minutes
+     * @param {number} minPreOfBooking
      */
-    static heatingTimeExpectancy(minutes, minpreOfBooking) {
-        console.log(`[${this.t()}] [CRON] [ROOM UPDATE] [+] Preheating takes ~ ${Math.round(minutes)} minutes (incl. ${minpreOfBooking} min booking offset)`);
+    static heatingTimeExpectancy(minutes, minPreOfBooking) {
+        const tags = {module: "CRON", function: "EXECUTE", group: groupState.label.replace(/ /g, '_')};
+        const message = `[-] Preheating takes ~ ${Math.round(minutes)} min. (incl. ${minPreOfBooking} min. offset)}`;
+        Logger.core({tags, message});
+
     }
 
     static resolveLock(groupState, desiredTemperature, lock) {
@@ -20,7 +27,7 @@ class EventLogger {
 
     static groupUpdatePreheat(roomName, desiredTemperature, event) {
         const tags = {module: "CRON", function: "EXECUTE", group: roomName.replace(/ /g, '_')};
-        const message = `[+] ${roomName} to ${desiredTemperature} for ${event.bezeichnung} ending at ${this.ft(event.startdate)}`;
+        const message = `[+] ${roomName} to ${desiredTemperature} for ${event.bezeichnung} starting ${this.ft(event.startdate)}`;
         Logger.core({tags, message});
     }
 

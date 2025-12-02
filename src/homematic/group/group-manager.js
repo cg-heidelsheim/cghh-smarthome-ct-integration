@@ -4,6 +4,9 @@ const { HomematicApi } = require("../homematic-api");
 const { GroupState } = require("../../db/model/group-state");
 const {PendingLog} = require("../../db/model/pending-log");
 
+/**
+ * TODO REFACTOR
+ */
 class GroupManager {
 
     /** @type {RoomConfiguration} */

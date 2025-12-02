@@ -3,6 +3,9 @@ const { eventNames } = require('process');
 
 const FILE_NAME = process.cwd() + "/config/event-room-temperature.config.json";
 
+/**
+ * TODO: DB CLASS
+ */
 class EventTemperatureMapper {
     constructor() {
     }

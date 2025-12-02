@@ -6,6 +6,7 @@ const axios = require('axios');
 var cookietoken = "";
 
 // TODO CT API CLASS
+// TODO EVENT CLASS
 async function getEvents() {
     await loginForSessionRevalidation();
 

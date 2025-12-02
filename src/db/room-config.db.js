@@ -25,6 +25,21 @@ class RoomConfigDB extends JsonFileDB {
         const rawData = super.getById(id);
         return Object.assign(new RoomConfig(), rawData);
     }
+
+    /**
+     * @param {string} id Key of the record to get. Uses CT.
+     * @returns {RoomConfig}
+     */
+    getByCTId(id) {
+        const roomConfigs = this.getAll();
+        const roomConfig = roomConfigs.find(roomConfig => roomConfig.id === id);
+
+        if (!roomConfig) {
+            throw new Error(`Resource with id ${booking.resource_id} does not exist as configuration`)
+        }
+
+        return roomConfig;
+    }
 }
 
 module.exports = {RoomConfigDB};
