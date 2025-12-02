@@ -4,19 +4,19 @@ const { Group } = require("./group/group");
 const { GroupState } = require("../db/model/group-state");
 const { GroupStateDB } = require("../db/group-state.db");
 const { GroupStateBuilder } = require("./group/group-state.builder");
-const { GroupDataSender } = require("./group/group.data-sender");
+const { GroupDataSender } = require("../timeseries/group.data-sender");
 
 const { Device } = require("./device/device");
 const { DeviceState } = require("../db/model/device-state");
 const { DeviceStateDB } = require("../db/device-state.db");
 const { DeviceStateBuilder } = require("./device/device-state.builder");
-const { DeviceDataSender } = require("./device/device.data-sender");
+const { DeviceDataSender } = require("../timeseries/device.data-sender");
 
 const { Home } = require("./weather/home");
 const { WeatherState } = require("../db/model/weather-state");
 const { WeatherStateDB } = require("../db/weather-state.db");
 const { WeatherStateBuilder } = require("./weather/weather-state.builder");
-const { WeatherDataSender } = require("./weather/weather.data-sender");
+const { WeatherDataSender } = require("../timeseries/weather.data-sender");
 
 const { EventLogger } = require("../util/event.logger");
 const {Logger} = require("../util/logger");
@@ -203,7 +203,7 @@ const handleDeviceStateChange = (currentState, updatedState) => {
                 if (updatedChannel.equalsValueAttributes(currentChannel)) return;
 
                 const dataSender = new DeviceDataSender();
-                dataSender.sendChannelData(currentState, updatedState, channelIndex);
+                dataSender.sendData(updatedState, channelIndex);
 
                 EventLogger.deviceUpdateEvent(currentState, updatedState, channelIndex);
             }
