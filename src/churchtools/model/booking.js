@@ -22,22 +22,6 @@ class Booking {
     this.note = note;
   }
 
-  /**
-   * Returns a JSON representation of the booking.
-   * @returns {Object}
-   */
-  toJSON() {
-    return {
-      id: this.id,
-      minpre: this.minPre,
-      minpost: this.minPost,
-      resource_id: this.resourceId,
-      status_id: this.statusId,
-      location: this.location,
-      note: this.note
-    };
-  }
-
   static fromJSON(json) {
     return new Booking(
         json.id,

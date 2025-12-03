@@ -1,6 +1,6 @@
 const WebSocket = require('ws');
-const { Uptime } = require('../uptime');
-const { Logger } = require('./util/logger');
+const {Uptime} = require('../uptime');
+const {Logger} = require('./util/logger');
 const {EnvironmentManager} = require("./util/environment-manager");
 
 class WebsocketManager {
@@ -26,11 +26,11 @@ class WebsocketManager {
     /**
      * Start websocket connection
      * Set default callback on message
-     * 
+     *
      * @param {*} callback  Callback to execute on message event
      */
     connect = async (callback) => {
-        let tags = { module: "WS" };
+        let tags = {module: "WS"};
 
         await EnvironmentManager.updateServerVariables();
 
@@ -44,27 +44,27 @@ class WebsocketManager {
         });
 
         this.websocket.on('open', () => {
-            Logger.info({ tags, message: "Connected" });
+            Logger.info({tags, message: "Connected"});
             Uptime.pingUptime("up", "CONNECTED", "WS");
             this.initializePingInterval();
         });
 
         this.websocket.on('close', async () => {
-            Logger.warn({ tags, message: "Disconnected" });
+            Logger.warn({tags, message: "Disconnected"});
             Uptime.pingUptime("down", "DISCONNECTED", "WS");
             this.clearPingInterval();
             this.initializeReconnectInterval(callback);
         });
 
         this.websocket.on('error', (error) => {
-            Logger.warn({ tags, message: error.message });
+            Logger.warn({tags, message: error.message});
             Uptime.pingUptime("down", error.message, "WS");
             this.clearPingInterval();
             this.initializeReconnectInterval(callback);
         });
 
         this.websocket.on('unexpected-response', (error) => {
-            Logger.warn({ tags, message: error.message });
+            Logger.warn({tags, message: error.message});
             Uptime.pingUptime("down", error.message, "WS");
             this.clearPingInterval();
             this.initializeReconnectInterval(callback);
@@ -98,7 +98,7 @@ class WebsocketManager {
         this.clearWsReconnectInterval();
 
         this.reconnectIntervalRef = setInterval(() => {
-            this.connect(callback);
+            this.connect(callback).then(_ => console.log("WS Connected 2"));
         }, this.reconnectIntervallMillis);
     };
 
@@ -121,4 +121,4 @@ class WebsocketManager {
     };
 }
 
-module.exports = { WebsocketManager };
+module.exports = {WebsocketManager};

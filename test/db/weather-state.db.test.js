@@ -10,9 +10,6 @@ fse.outputFileSync = jest.fn((file, data) => {
   memoryFileStore[file] = data;
 });
 
-// Spy on fs.readFileSync and mock implementation
-const originalReadFileSync = fs.readFileSync;
-
 jest.spyOn(fs, 'readFileSync').mockImplementation((file) => {
   if (memoryFileStore[file]) {
     return memoryFileStore[file];

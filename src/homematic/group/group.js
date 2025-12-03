@@ -11,14 +11,6 @@ class Group {
     }
 
     /**
-     * Only groups with a wall thermostat or wall temperature/humidity sensor have an "actualTemperature" attribute
-     * @returns boolean if actual temperature is set
-     */
-    containsThermostat() {
-        return this.data.actualTemperature !== null;
-    }
-
-    /**
      * @returns boolean if is of type "HEATING"
      */
     isHeatingGroup() {

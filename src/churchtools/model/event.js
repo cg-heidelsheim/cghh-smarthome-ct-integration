@@ -23,38 +23,6 @@ class Event {
     }
 
     /**
-     * Add a booking to this event.
-     * @param {Booking} booking - The booking to add.
-     */
-    addBooking(booking) {
-        this.bookings[booking.id] = booking;
-    }
-
-    /**
-     * Get a booking by its ID.
-     * @param {string} id - Booking ID.
-     * @returns {Booking | undefined} - The found booking or undefined if not found.
-     */
-    getBooking(id) {
-        return this.bookings[id];
-    }
-
-    /**
-     * Returns a JSON representation of the event including bookings.
-     * @returns {Object}
-     */
-    toJSON() {
-        return {
-            startdate: this.startDate,
-            enddate: this.endDate,
-            bezeichnung: this.name,
-            category_id: this.categoryId,
-            category_name: this.categoryName,
-            bookings: this.bookings,
-        };
-    }
-
-    /**
      * @param json
      * @returns {Event}
      */

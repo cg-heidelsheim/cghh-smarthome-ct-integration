@@ -33,7 +33,7 @@ const startEventListener = () => {
         'CLIENTAUTH': process.env.HOMEMATIC_API_CLIENTAUTH,
     };
     websocketManager.setHeaders(headers);
-    websocketManager.connect(callback);
+    websocketManager.connect(callback).then(_ => console.log("WS Connected 1"));
 };
 
 /**

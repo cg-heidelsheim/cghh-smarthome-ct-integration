@@ -54,7 +54,7 @@ class EventLogger {
     }
 
     static groupUpdateEventString(fromTo, groupState) {
-        var message = groupState.label;
+        let message = groupState.label;
 
         if (groupState.setTemperature) message += ` - SetTemp: ${groupState.setTemperature.toFixed(1)}`;
         if (groupState.temperature) message += ` - CurrTemp: ${groupState.temperature.toFixed(1)}`;
@@ -83,7 +83,7 @@ class EventLogger {
     }
 
     static deviceUpdateEventString(fromTo, deviceState, channel) {
-        var message = deviceState.label;
+        let message = deviceState.label;
 
         if (channel.setTemperature) message += ` - SetTemp: ${channel.setTemperature.toFixed(1)}`;
         if (channel.temperature) message += ` - CurrTemp: ${channel.temperature.toFixed(1)}`;
@@ -111,7 +111,7 @@ class EventLogger {
     }
 
     static weatherUpdateEventString(fromTo, state) {
-        var message = `${state.label} CurrTemp: ${state.temperature.toFixed(1)}`;
+        let message = `${state.label} CurrTemp: ${state.temperature.toFixed(1)}`;
         message += ` - MinTemp: ${state.minTemperature.toFixed(1)}`;
         message += ` - MaxTemp: ${state.maxTemperature.toFixed(1)}`;
         message += ` - Humidity: ${state.humidity.toFixed(1)}`;
@@ -137,7 +137,7 @@ class EventLogger {
             const pendigObj = pendingLogsManager.getById(currentState.id);
             const isPending = pendigObj?.pending;
 
-            var tags = {
+            let tags = {
                 module: "WS",
                 function: "GROUP_UPDATE",
                 group: currentState.label.replace(/\s/g, ""),

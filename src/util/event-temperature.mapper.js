@@ -1,5 +1,4 @@
-var fs = require('fs');
-const { eventNames } = require('process');
+let fs = require('fs');
 
 const FILE_NAME = process.cwd() + "/config/event-room-temperature.config.json";
 
@@ -11,7 +10,7 @@ class EventTemperatureMapper {
     }
 
     static getDesiredTemperatureForEvent(eventName) {
-        var dataRaw;
+        let dataRaw;
 
         try {
             dataRaw = fs.readFileSync(FILE_NAME, 'utf8');

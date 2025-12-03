@@ -1,9 +1,9 @@
 const { WeatherState } = require("../db/model/weather-state");
 
 /**
- * Take information of a {@link GroupState} and parse it into a influx usable DB object 
+ * Take information of a {@link GroupState} and parse it into an influx usable DB object
  * 
- * @param {GroupState} group 
+ * @param {GroupState} state
  * 
  * @returns object
  */
@@ -39,7 +39,7 @@ const parseDeviceStateChannelIntoInfluxDataObject = (state, channel) => {
 
 
 /**
- * Take information of heating group and parse it into a influx parsable DB object 
+ * Take information of heating group and parse it into an influx parsable DB object
  * 
  * @param {*} group 
  * @returns 
@@ -56,31 +56,9 @@ const parseHeatingGroupDataIntoInfluxDataObject = (group) => {
 };
 
 /**
- * Take information of heating group and parse it into a influx parsable DB object 
- * 
- * @param {*} group 
- * @returns 
- */
-const parseHeatingThermostatChannelDataIntoInfluxDataObject = (device, channel) => {
-    const deviceSetPointTemperature = channel.setPointTemperature;
-    const deviceActualValveTemperature = channel.valveActualTemperature;
-
-    return {
-        label: device.data.label,
-        values: {
-            temperature: deviceActualValveTemperature,
-            setTemperature: deviceSetPointTemperature
-        },
-        tags: {
-            channel: channel.index
-        }
-    };
-};
-
-/**
- * Take information of a {@link WeatherState} and parse it into a influx usable DB object
+ * Take information of a {@link WeatherState} and parse it into an influx usable DB object
  *
- * @param {WeatherState} group
+ * @param {WeatherState} state
  *
  * @returns object
  */
@@ -114,6 +92,5 @@ module.exports = {
     parseGroupStateIntoInfluxDataObject,
     parseDeviceStateChannelIntoInfluxDataObject,
     parseHeatingGroupDataIntoInfluxDataObject,
-    parseHeatingThermostatChannelDataIntoInfluxDataObject,
     parseWeatherStateIntoInfluxDataObject
 };

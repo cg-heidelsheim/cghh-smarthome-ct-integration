@@ -5,9 +5,9 @@ class HeatingScheduler {
      * Calculates when heating for a room should start for a given event/booking.
      *
      * @param {RoomConfig} roomConfig
-     * @param {Object} event
+     * @param {Event} event
      * @param {GroupState} groupState
-     * @param {Object} booking
+     * @param {Booking} booking
      *
      * @returns {{
      *   shouldStartHeating: boolean,
@@ -19,9 +19,9 @@ class HeatingScheduler {
      */
     static calculateHeatingSchedule(roomConfig, event, groupState, booking) {
         const now = moment();
-        const eventStart = moment(event.startdate);
+        const eventStart = moment(event.startDate);
 
-        const minutesPreOfBooking = booking.minpre ?? 0;
+        const minutesPreOfBooking = booking.minPre ?? 0;
 
         let minutesToReachTemp = roomConfig.getMinutesNeededToReachTemperatureForEvent(
             event,

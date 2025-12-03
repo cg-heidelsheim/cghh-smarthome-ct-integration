@@ -3,7 +3,7 @@
 require('dotenv').config();
 const axios = require('axios');
 
-var cookietoken = "";
+let cookietoken = "";
 
 // TODO CT API CLASS
 // TODO EVENT CLASS

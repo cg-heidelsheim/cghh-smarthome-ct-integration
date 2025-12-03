@@ -1,9 +1,7 @@
 const {
   parseGroupStateIntoInfluxDataObject,
   parseDeviceStateChannelIntoInfluxDataObject,
-  parseDeviceStateChannelIntoInfluxDataObjectState,
   parseHeatingGroupDataIntoInfluxDataObject,
-  parseHeatingThermostatChannelDataIntoInfluxDataObject,
   parseWeatherStateIntoInfluxDataObject
 } = require("../homematic-influx.mapper");
 
@@ -81,26 +79,6 @@ describe("homematic-influx.mapper", () => {
         temperature: 20.0,
         setTemperature: 21.5,
         humidity: 40
-      }
-    });
-  });
-
-  test("parseHeatingThermostatChannelDataIntoInfluxDataObject parses correctly", () => {
-    const device = { data: { label: "Thermostat Device" } };
-    const channel = {
-      setPointTemperature: 19.5,
-      valveActualTemperature: 18.0,
-      index: 0
-    };
-    const result = parseHeatingThermostatChannelDataIntoInfluxDataObject(device, channel);
-    expect(result).toEqual({
-      label: "Thermostat Device",
-      values: {
-        temperature: 18.0,
-        setTemperature: 19.5
-      },
-      tags: {
-        channel: 0
       }
     });
   });

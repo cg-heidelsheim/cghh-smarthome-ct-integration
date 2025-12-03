@@ -1,6 +1,5 @@
 const {JsonFileDB} = require("./json-file.db");
 const {Lock} = require("./model/lock");
-const {RoomConfig} = require("./model/room-config");
 
 const FILE_PATH = process.cwd() + "/persistent/locks.json";
 

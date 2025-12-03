@@ -1,3 +1,4 @@
+const {Event} = require("../../churchtools/model/event")
 const {EventTemperatureMapper} = require("../../util/event-temperature.mapper");
 
 class RoomConfig {
@@ -18,7 +19,8 @@ class RoomConfig {
      * Calculate the aprox. minutes to heat the room.
      * Calculated by taking the current temperature and room heating rate into account.
      *
-     * @param {*} event
+     * @param {Event} event
+     * @param {GroupState} groupState
      */
     getMinutesNeededToReachTemperatureForEvent(event, groupState) {
         const desiredTemperature = this.getDesiredRoomTemepratureForEvent(event);
@@ -36,13 +38,13 @@ class RoomConfig {
     }
 
     /**
-     * Get the desired temperature for this room in regards to a specific event.
+     * Get the desired temperature for this room in regard to a specific event.
      * Some events require different temperatures than the default desired temperature for the particular room.
      *
-     * @param {*} event
+     * @param {Event} event
      */
     getDesiredRoomTemepratureForEvent(event) {
-        var temperature = EventTemperatureMapper.getDesiredTemperatureForEvent(event.bezeichnung);
+        let temperature = EventTemperatureMapper.getDesiredTemperatureForEvent(event.bezeichnung);
 
         if (!temperature) {
             temperature = this.desiredTemperature;
@@ -50,6 +52,6 @@ class RoomConfig {
 
         return temperature;
     }
-};
+}
 
 module.exports = {RoomConfig};

@@ -20,16 +20,15 @@ class Device {
         const functionalChannels = this.data.functionalChannels;
         const functionalChannelKeys = Object.keys(functionalChannels);
 
-        var channels = [];
+        const channels = [];
 
-        for (let index = 0; index < functionalChannelKeys.length; index++) {
-            const key = functionalChannelKeys[index];
-            const channel = functionalChannels[key];
+        for (const channelKey of functionalChannelKeys) {
+            const channel = functionalChannels[channelKey];
 
             if (channel.functionalChannelType !== "HEATING_THERMOSTAT_CHANNEL") continue;
 
             channels.push(channel);
-        };
+        }
 
         return channels;
     }
