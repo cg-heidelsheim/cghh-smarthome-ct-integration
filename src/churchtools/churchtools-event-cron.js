@@ -55,6 +55,7 @@ async function execute() {
 }
 
 /**
+ * TODO
  * If no lock exists for the room, reset it to idle
  */
 async function resetEverythingIfNotLocked(earlierResetNotPossible) {

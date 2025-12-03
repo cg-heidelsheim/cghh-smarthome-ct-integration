@@ -101,34 +101,33 @@ class EventManager {
 
     async #executeHeatingSchedule(roomConfig, event, groupState, booking) {
         const {
-            shouldStartHeating,
-            minutesUntilHeatingStart,
-            minutesToReachTemp,
-            minPreOfBooking
+            shouldStartHeating, minutesUntilHeatingStart, minutesToReachTemp, minPreOfBooking
         } = HeatingScheduler.calculateHeatingSchedule(roomConfig, event, groupState, booking);
 
-        if (shouldStartHeating) {
-            try {
-                const groupManager = GroupManagerFactory.createGroupManager(groupState.id);
-                await groupManager.heatForEvent(event);
-
-                EventLogger.groupUpdatePreheat(groupState.label, roomConfig.getDesiredRoomTemepratureForEvent(event), event);
-                EventLogger.heatingTimeExpectancy(minutesToReachTemp, minPreOfBooking, groupState);
-
-                const lock = new Lock();
-                lock.expiring = moment(event.enddate);
-                lock.eventName = event.bezeichnung;
-                lock.id = groupState.id;
-                this.lockDB.save(lock);
-            } catch (e) {
-                if (e.message !== "Blocked") Logger.error({tags: this.tags, message: e.message});
-
-                // blocked due to existing manual override
-                EventLogger.groupUpdatePreheatBlocked(event.bezeichnung, groupState.label);
-            }
-        } else {
+        if (!shouldStartHeating) {
             const message = `Event ${event.bezeichnung} lies too far in the future. Min. needed: ${minutesToReachTemp} - Preheat in approx. ${minutesUntilHeatingStart} min.`;
             Logger.debug({tags: this.tags, message});
+
+            return;
+        }
+
+        try {
+            const groupManager = GroupManagerFactory.createGroupManager(groupState.id);
+            await groupManager.heatForEvent(event);
+
+            EventLogger.groupUpdatePreheat(groupState.label, roomConfig.getDesiredRoomTemepratureForEvent(event), event);
+            EventLogger.heatingTimeExpectancy(minutesToReachTemp, minPreOfBooking, groupState);
+
+            const lock = new Lock();
+            lock.expiring = moment(event.enddate);
+            lock.eventName = event.bezeichnung;
+            lock.id = groupState.id;
+            this.lockDB.save(lock);
+        } catch (e) {
+            if (e.message !== "Blocked") Logger.error({tags: this.tags, message: e.message});
+
+            // blocked due to existing manual override
+            EventLogger.groupUpdatePreheatBlocked(event.bezeichnung, groupState.label);
         }
     }
 

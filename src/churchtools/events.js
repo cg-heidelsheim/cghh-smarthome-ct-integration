@@ -7,39 +7,45 @@ var cookietoken = "";
 
 // TODO CT API CLASS
 // TODO EVENT CLASS
+const Event = require('./model/event');
+
+/**
+ * Fetches calendar events from ChurchTools API and returns them as Event instances.
+ * @returns {Promise<Event[]>} Resolves to an array of Event objects.
+ */
 async function getEvents() {
     await loginForSessionRevalidation();
 
-    var url = "https://heidelsheim.church.tools/index.php?q=churchcal/ajax&func=getCalendarEvents&from=-1&to=1";
+    let url = "https://heidelsheim.church.tools/index.php?q=churchcal/ajax&func=getCalendarEvents&from=-1&to=1";
     const categoryIds = process.env.CALENDAR_CATEGORIES.split(",");
 
-    categoryIds
-        .forEach(id => {
-            url += "&category_ids[]=" + id;
-        });
-
+    categoryIds.forEach(id => {
+        url += "&category_ids[]=" + id;
+    });
 
     try {
         const response = await axios.get(url, {
             withCredentials: true,
-            "headers": {
+            headers: {
                 'Access-Control-Allow-Origin': '*',
                 'Content-Type': 'application/json',
-                "cookie": "ChurchTools_ct_heidelsheim=" + cookietoken
+                cookie: "ChurchTools_ct_heidelsheim=" + cookietoken
             }
         });
-
-        var events = response.data.data;
 
         if (response.data.status === "error") {
             throw new Error(response.data);
         }
 
-        return events;
+        const rawEvents = response.data.data;
+
+        // Convert raw event data into Event instances
+        return rawEvents.map(ev => Event.fromJSON(ev));
     } catch (error) {
         throw new Error(error);
     }
-};
+}
+
 
 async function loginForSessionRevalidation() {
     try {
@@ -62,4 +68,4 @@ async function loginForSessionRevalidation() {
     }
 }
 
-module.exports = { getEvents };
+module.exports = {getEvents};
