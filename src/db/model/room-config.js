@@ -1,5 +1,5 @@
 const {Event} = require("../../churchtools/model/event")
-const {EventTemperatureMapper} = require("../../util/event-temperature.mapper");
+const {EventRoomConfigDB} = require("../event-room-configuration.db");
 
 class RoomConfig {
 
@@ -13,7 +13,7 @@ class RoomConfig {
     spinUpTime;
 
     /**
-     * Calculate the aprox. minutes to heat the room.
+     * Calculate the approx. minutes to heat the room.
      * Calculated by taking the current temperature and room heating rate into account.
      *
      * @param {Event} event
@@ -42,10 +42,17 @@ class RoomConfig {
      * @return {number} Temperature in °C
      */
     getDesiredRoomTemperatureForEvent(event) {
-        let temperature = EventTemperatureMapper.getDesiredTemperatureForEvent(event.name);
+        let temperature = this.desiredTemperature;
 
-        if (!temperature) {
-            temperature = this.desiredTemperature;
+        const eventRoomConfigDB = new EventRoomConfigDB();
+        /** @type {EventRoomConfig[]} */
+        const allConfigs = eventRoomConfigDB.getAll();
+
+        // Case-insensitive partial match
+        for (const config of allConfigs) {
+            if (event.name.toLowerCase().includes(config.id.toLowerCase())) {
+                temperature = config.desiredTemperature;
+            }
         }
 
         return temperature;
