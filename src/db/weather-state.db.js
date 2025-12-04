@@ -8,6 +8,9 @@ class WeatherStateDB extends JsonFileDB {
         super(FILE_PATH, WeatherState);
     }
 
+    /**
+     * @param {WeatherState} state
+     */
     save(state) {
         const shallowCopy = {...state};
         super.saveById(state.label, shallowCopy);

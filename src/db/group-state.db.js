@@ -6,25 +6,7 @@ const FILE_PATH = process.cwd() + "/persistent/states/groups.json";
 class GroupStateDB extends JsonFileDB {
 
     constructor() {
-        super(FILE_PATH);
-    }
-
-    /**
-     * @param {GroupState} state
-     * @returns {void}
-     */
-    save(state) {
-        const shallowCopy = {...state};
-        super.saveById(state.id, shallowCopy);
-    }
-
-    /**
-     * @param {String} id ID of HMIP group
-     * @returns {GroupState}
-     */
-    getById(id) {
-        const rawData = super.getById(id);
-        return Object.assign(new GroupState(), rawData);
+        super(FILE_PATH, GroupState);
     }
 }
 
