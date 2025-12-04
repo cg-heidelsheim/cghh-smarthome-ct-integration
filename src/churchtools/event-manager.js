@@ -1,4 +1,4 @@
-const {getEvents} = require("./events");
+const ChurchToolsApiClient = require("./ct-api");
 const {Logger} = require("../util/logger");
 const {HeatingScheduler} = require("../churchtools/heating-scheduler");
 const {filterCurrentAndUpcomingEvents} = require("../util/event-filter.util");
@@ -31,7 +31,8 @@ class EventManager {
      * @returns void
      */
     async handleEvents() {
-        const events = await getEvents();
+        const ctClient = new ChurchToolsApiClient();
+const events = await ctClient.getEvents();
 
         Logger.info({tags: this.tags, message: "Start event handling. Events: #" + events.length});
 
