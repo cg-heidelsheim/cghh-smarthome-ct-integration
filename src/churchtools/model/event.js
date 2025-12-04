@@ -23,17 +23,17 @@ class Event {
     }
 
     /**
-     * @param json
+     * @param {any} json
      * @returns {Event}
      */
     static fromJSON(json) {
         return new Event(
-            json.startDate,
-            json.endDate,
-            json.name,
-            json.categoryId,
-            json.categoryName,
-            json.bookings.map(jsonBooking => fromJSON(jsonBooking)),
+            json.startdate,
+            json.enddate,
+            json.bezeichnung,
+            json.category_id,
+            json.category_name,
+            json.bookings.map(/** @type {Object} */jsonBooking => fromJSON(jsonBooking)),
         );
     }
 }

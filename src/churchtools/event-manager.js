@@ -5,6 +5,8 @@ const {filterCurrentAndUpcomingEvents} = require("../util/event-filter.util");
 const {GroupStateBuilder} = require("../homematic/group/group-state.builder");
 const {GroupManagerFactory} = require("../homematic/group/group-manager.factory");
 const {EventLogger} = require("../util/event.logger");
+const {Event} = require("./model/event");
+const {Booking} = require("./model/booking");
 const moment = require("moment");
 
 
@@ -46,14 +48,14 @@ class EventManager {
 
 
     /**
-     * @param {*} event     Event to manage
+     * @param {Event} event     Event to manage
      *
      * @returns void
      */
     async handleEvent(event) {
-        this.tags = {...this.tags, event: event.bezeichnung};
+        this.tags = {...this.tags, event: event.name};
 
-        Logger.debug({tags: this.tags, message: `Handling event ${event.bezeichnung}`});
+        Logger.debug({tags: this.tags, message: `Handling event ${event.name}`});
 
         const bookings = event.bookings;
 
@@ -73,8 +75,8 @@ class EventManager {
     /**
      * Determine if heating needs to be started for passed booking
      *
-     * @param {*} event     Event containing passed booking
-     * @param {*} booking   Booking (room) to possibly adjust
+     * @param {Event} event     Event containing passed booking
+     * @param {Booking} booking   Booking (room) to possibly adjust
      *
      * @returns void
      */
@@ -83,7 +85,7 @@ class EventManager {
         let roomConfig;
 
         try {
-            roomConfig = this.roomConfigDB.findByCTId(booking.resource_id);
+            roomConfig = this.roomConfigDB.findByCTId(booking.resourceId);
         } catch (e) {
             Logger.error({tags: this.tags, message: `${e.message}`});
             return;
@@ -105,7 +107,7 @@ class EventManager {
         } = HeatingScheduler.calculateHeatingSchedule(roomConfig, event, groupState, booking);
 
         if (!shouldStartHeating) {
-            const message = `Event ${event.bezeichnung} lies too far in the future. Min. needed: ${minutesToReachTemp} - Preheat in approx. ${minutesUntilHeatingStart} min.`;
+            const message = `Event ${event.name} lies too far in the future. Min. needed: ${minutesToReachTemp} - Preheat in approx. ${minutesUntilHeatingStart} min.`;
             Logger.debug({tags: this.tags, message});
 
             return;
@@ -119,15 +121,15 @@ class EventManager {
             EventLogger.heatingTimeExpectancy(minutesToReachTemp, minPreOfBooking, groupState);
 
             const lock = new Lock();
-            lock.expiring = moment(event.enddate);
-            lock.eventName = event.bezeichnung;
+            lock.expiring = moment(event.endDate);
+            lock.eventName = event.name;
             lock.id = groupState.id;
             this.lockDB.save(lock);
         } catch (e) {
             if (e.message !== "Blocked") Logger.error({tags: this.tags, message: e.message});
 
             // blocked due to existing manual override
-            EventLogger.groupUpdatePreheatBlocked(event.bezeichnung, groupState.label);
+            EventLogger.groupUpdatePreheatBlocked(event.name, groupState.label);
         }
     }
 
@@ -142,7 +144,7 @@ class EventManager {
 
     #isAcceptedBooking(booking, tags) {
         // ONLY ALLOW ROOMS WITH STATUS "gebucht"
-        if (booking.status_id !== "2") {
+        if (booking.statusId !== "2") {
             Logger.warn({tags: tags, message: `Booking for group is not in status "accepted"`});
             return false;
         }
