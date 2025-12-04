@@ -14,9 +14,11 @@ class JsonFileDB {
      * Ensures the file exists on disk, creates empty JSON if missing.
      *
      * @param {string} filePath Absolute path to the JSON file to use.
+     * @param ModelClass JS Class that en entry is converted into
      */
-    constructor(filePath) {
+    constructor(filePath, ModelClass = null) {
         this.filePath = filePath;
+        this.ModelClass = ModelClass;
         this.ensureFileExists();
     }
 
@@ -44,6 +46,16 @@ class JsonFileDB {
             fse.outputFileSync(this.filePath, JSON.stringify({}, null, 2));
             Logger.info({tags: ['json-file-db'], message: `Created new DB file at ${this.filePath}`});
         }
+    }
+
+    /**
+     * Saves or updates a record by its "id" field in the JSON file.
+     * On file read error, starts fresh with empty data.
+     *
+     * @param {Object} state The data object to save.
+     */
+    save(state) {
+        super.saveById(state.id, state);
     }
 
     /**
@@ -93,6 +105,11 @@ class JsonFileDB {
         if (!data) {
             throw new Error(`Entry with id ${id} not found in DB.`);
         }
+
+        if (this.ModelClass) {
+            return Object.assign(new this.ModelClass(), data);
+        }
+
         return data;
     }
 
@@ -105,6 +122,15 @@ class JsonFileDB {
      */
     getAll() {
         const allData = this._readFile();
+
+        if (this.ModelClass) {
+            const Model = this.ModelClass;
+            return Object.values(allData).map((data) => {
+                return Object.assign(new Model(), data);
+            });
+        }
+
+
         return Object.values(allData);
     }
 }

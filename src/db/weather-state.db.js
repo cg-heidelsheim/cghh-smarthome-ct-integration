@@ -4,27 +4,13 @@ const {WeatherState} = require("./model/weather-state");
 const FILE_PATH = process.cwd() + "/persistent/states/weather.json";
 
 class WeatherStateDB extends JsonFileDB {
-
     constructor() {
-        super(FILE_PATH);
+        super(FILE_PATH, WeatherState);
     }
 
-    /**
-     * @param {WeatherState} state
-     * @returns {void}
-     */
     save(state) {
         const shallowCopy = {...state};
         super.saveById(state.label, shallowCopy);
-    }
-
-    /**
-     * @param {string} id Location identifier (label)
-     * @returns {WeatherState}
-     */
-    getById(id) {
-        const rawData = super.getById(id);
-        return Object.assign(new WeatherState(), rawData);
     }
 }
 
