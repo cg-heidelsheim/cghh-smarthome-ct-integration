@@ -83,7 +83,7 @@ class EventManager {
         let roomConfig;
 
         try {
-            roomConfig = this.roomConfigDB.getByCTId(booking.resource_id);
+            roomConfig = this.roomConfigDB.findByCTId(booking.resource_id);
         } catch (e) {
             Logger.error({tags: this.tags, message: `${e.message}`});
             return;

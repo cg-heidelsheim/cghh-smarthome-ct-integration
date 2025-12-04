@@ -13,16 +13,8 @@ class RoomConfigDB extends JsonFileDB {
      * @param id
      * @returns {RoomConfig}
      */
-    getByCTId(id) {
-        /** @type {RoomConfig[]} */
-        const roomConfigs = this.getAll();
-        const roomConfig = roomConfigs.find(roomConfig => roomConfig.id === id);
-
-        if (!roomConfig) {
-            throw new Error(`Resource with id ${id} does not exist as configuration`);
-        }
-
-        return roomConfig;
+    findByCTId(id) {
+        return this.findByAttribute('id', id);
     }
 }
 

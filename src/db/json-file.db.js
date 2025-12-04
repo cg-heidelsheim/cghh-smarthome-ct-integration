@@ -52,7 +52,7 @@ class JsonFileDB {
      * Saves or updates a record by its "id" field in the JSON file.
      * On file read error, starts fresh with empty data.
      *
-     * @param {Object} state The data object to save.
+     * @param {any} state The data object to save.
      */
     save(state) {
         super.saveById(state.id, state);
@@ -111,6 +111,31 @@ class JsonFileDB {
         }
 
         return data;
+    }
+
+    /**
+     * Retrieves a record by arbitrary attribute value from the JSON file.
+     * The attribute name is passed as attributeName, and the exact match is searched.
+     * Returns the first matching record found, or throws if none found.
+     *
+     * @param {string} attributeName The attribute key to search by (e.g. 'id' or 'homematicId').
+     * @param {any} value The exact value to look for in the attribute.
+     * @returns {any} The first matching data object found.
+     * @throws {Error} When no matching record is found.
+     */
+    findByAttribute(attributeName, value) {
+        const allData = this._readFile();
+        const allEntries = Object.values(allData);
+        const found = allEntries.find(entry => entry[attributeName] === value);
+        if (!found) {
+            throw new Error(`Entry with ${attributeName} = ${value} not found in DB.`);
+        }
+
+        if (this.ModelClass) {
+            return Object.assign(new this.ModelClass(), found);
+        }
+
+        return found;
     }
 
     /**
