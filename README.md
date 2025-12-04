@@ -60,7 +60,7 @@ Additionally, a **minutesPerDegree** value is used to estimate how long the room
 
 The calculation is:
 ```js
-requiredTime = spinupTime + buffer + (degreeDifference * minutesPerDegree)
+requiredTime = spinUpTime + buffer + (degreeDifference * minutesPerDegree)
 ```
 
 If `requiredTime` (in minutes) exceeds the time remaining until the event begins, heating for that room is triggered — but **only if no manual override is active**.

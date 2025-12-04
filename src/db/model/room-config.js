@@ -5,15 +5,12 @@ class RoomConfig {
 
     id; // CT ID
     name;
-    heatingForEvent;
-    heatingOffset;
-    heatingOffsetIdle;
     homematicName;
     homematicId; // HMIP ID
     desiredTemperature;
     desiredTemperatureIdle;
     heatingRate;
-    spinupTime;
+    spinUpTime;
 
     /**
      * Calculate the aprox. minutes to heat the room.
@@ -23,18 +20,18 @@ class RoomConfig {
      * @param {GroupState} groupState
      */
     getMinutesNeededToReachTemperatureForEvent(event, groupState) {
-        const desiredTemperature = this.getDesiredRoomTemepratureForEvent(event);
+        const desiredTemperature = this.getDesiredRoomTemperatureForEvent(event);
         const currentRoomTemperature = groupState.temperature;
 
         if (!currentRoomTemperature) return 120; // fallback if no current temperature entry is present
 
-        const spinupTime = this.spinupTime;
+        const spinUpTime = this.spinUpTime;
         const minutesPerDegree = this.heatingRate;
         const degreeDifference = desiredTemperature - currentRoomTemperature;
 
         if (degreeDifference < 0) return 0; // no heating needed
 
-        return spinupTime + (degreeDifference * minutesPerDegree);
+        return spinUpTime + (degreeDifference * minutesPerDegree);
     }
 
     /**
@@ -42,9 +39,10 @@ class RoomConfig {
      * Some events require different temperatures than the default desired temperature for the particular room.
      *
      * @param {Event} event
+     * @return {number} Temperature in °C
      */
-    getDesiredRoomTemepratureForEvent(event) {
-        let temperature = EventTemperatureMapper.getDesiredTemperatureForEvent(event.bezeichnung);
+    getDesiredRoomTemperatureForEvent(event) {
+        let temperature = EventTemperatureMapper.getDesiredTemperatureForEvent(event.name);
 
         if (!temperature) {
             temperature = this.desiredTemperature;

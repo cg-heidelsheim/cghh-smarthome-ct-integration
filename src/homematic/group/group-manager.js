@@ -33,7 +33,7 @@ class GroupManager {
      * @throws {Error} If room is currently heated (may happen if somebody changes temperature between events)
      */
     async heatForEvent(event) {
-        const desiredTemperature = this.roomConfiguration.getDesiredRoomTemepratureForEvent(event);
+        const desiredTemperature = this.roomConfiguration.getDesiredRoomTemperatureForEvent(event);
 
         // check if temp is currently manually changed
         const temperatureIsManuallyChanged = this.groupState.setTemperature !== this.roomConfiguration.desiredTemperatureIdle;

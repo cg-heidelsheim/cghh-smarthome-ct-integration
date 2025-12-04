@@ -32,7 +32,7 @@ class EventManager {
      */
     async handleEvents() {
         const ctClient = new ChurchToolsApiClient();
-const events = await ctClient.getEvents();
+        const events = await ctClient.getEvents();
 
         Logger.info({tags: this.tags, message: "Start event handling. Events: #" + events.length});
 
@@ -118,7 +118,7 @@ const events = await ctClient.getEvents();
             const groupManager = GroupManagerFactory.createGroupManager(groupState.id);
             await groupManager.heatForEvent(event);
 
-            EventLogger.groupUpdatePreheat(groupState.label, roomConfig.getDesiredRoomTemepratureForEvent(event), event);
+            EventLogger.groupUpdatePreheat(groupState.label, roomConfig.getDesiredRoomTemperatureForEvent(event), event);
             EventLogger.heatingTimeExpectancy(minutesToReachTemp, minPreOfBooking, groupState);
 
             const lock = new Lock();
