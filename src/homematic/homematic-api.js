@@ -1,5 +1,5 @@
 const axios = require("axios");
-const { Logger } = require("../util/logger");
+const {Logger} = require("../util/logger");
 
 require('dotenv').config();
 
@@ -15,31 +15,34 @@ class HomematicApi {
     /**
      * Update the temperature for a group by its ID
      *
-     * @param {string} groupId 
-     * @param {number} desiredTemperature 
-     * @returns 
+     * @param {string} groupId
+     * @param {number} desiredTemperature
+     * @returns
      */
     async setTemperatureForGroup(groupId, desiredTemperature) {
-        const tags = { module: "API", function: "HOMEMATIC", group: groupId };
+        const tags = {module: "API", function: "HOMEMATIC", group: groupId};
 
         if (process.env.ENVIRONMENT !== 'production') {
-            Logger.info({ tags, message: `[ENV - ${process.env.ENVIRONMENT}] Dry run: Would set temperature of ${groupId} to ${desiredTemperature}` });
+            Logger.info({
+                tags,
+                message: `[ENV - ${process.env.ENVIRONMENT}] Dry run: Would set temperature of ${groupId} to ${desiredTemperature}`
+            });
             return;
         }
 
-        Logger.debug({ tags, message: `Set temperature of ${groupId} to ${desiredTemperature}` });
+        Logger.debug({tags, message: `Set temperature of ${groupId} to ${desiredTemperature}`});
 
-        return await this.callRest( this.API_URL, "hmip/group/heating/setSetPointTemperature", {
+        return await this.callRest(this.API_URL + "hmip/group/heating/setSetPointTemperature", {
             "groupId": groupId,
             "setPointTemperature": desiredTemperature
         });
     }
 
-    async getServerUrls(){
-        const tags = { module: "API", function: "HOMEMATIC_LOOKUP" };
-        Logger.debug({ tags, message: "Fetching Server URL for Homematic API" });
+    async getServerUrls() {
+        const tags = {module: "API", function: "HOMEMATIC_LOOKUP"};
+        Logger.debug({tags, message: "Fetching Server URL for Homematic API"});
 
-        return await this.callRest(this.LOOKUP_URL, "getHost", {
+        return await this.callRest(this.LOOKUP_URL + "getHost", {
             "clientCharacteristics": {
                 "apiVersion": "10",
                 "applicationIdentifier": "homematicip-python",
@@ -54,7 +57,7 @@ class HomematicApi {
         });
     }
 
-    async callRest(url, path, payload, attempt = 1, id = null) {
+    async callRest(url, payload, attempt = 1, id = null) {
         if (id == null) {
             id = (Math.random() + 1).toString(36).substring(7);
         }
@@ -70,36 +73,36 @@ class HomematicApi {
 
         let response;
 
-        let tags = { module: "API", function: "HOMEMATIC", attempt, identifier: id, path: path };
+        let tags = {module: "API", function: "HOMEMATIC", attempt, identifier: id, url: url};
 
-        const info = { request: payload };
+        const info = {request: payload};
 
         try {
-            Logger.debug({ tags, message: "Calling " + url });
-            response = await axios.post(url, payload, { headers });
-            Logger.debug({ tags, message: "Api call succeeded" });
+            Logger.debug({tags, message: "Calling " + url});
+            response = await axios.post(url, payload, {headers});
+            Logger.debug({tags, message: "Api call succeeded"});
 
             return response.data;
         } catch (e) {
-            tags = { ...tags };
+            tags = {...tags};
             info.response = e.response?.data;
 
             if (attempt <= maxRetries) {
                 const retryInMs = Math.pow(5000, attempt * 0.5);
 
-                Logger.warn({ tags, message: "Could not execute API request: " + e }, info);
-                Logger.warn({ tags, message: "Retrying in " + retryInMs + " ms" }, info);
+                Logger.warn({tags, message: "Could not execute API request: " + e}, info);
+                Logger.warn({tags, message: "Retrying in " + retryInMs + " ms"}, info);
 
                 setTimeout(() => {
-                    Logger.warn({ tags: { ...tags, attempt: attempt + 1 }, message: "Retrying request" }, info);
-                    this.callRest(path, payload, attempt++, id);
+                    Logger.warn({tags: {...tags, attempt: attempt + 1}, message: "Retrying request"}, info);
+                    this.callRest(url, payload, attempt++, id);
                 }, retryInMs);
             } else {
-                Logger.error({ tags, message: "Could not execute API request: " + e }, info);
+                Logger.error({tags, message: "Could not execute API request: " + e}, info);
                 throw Error(e);
             }
         }
     }
 }
 
-module.exports = { HomematicApi };
+module.exports = {HomematicApi};

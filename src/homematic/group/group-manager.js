@@ -1,4 +1,4 @@
-const { PendingLogsManager } = require("../../db/pending-log.db");
+const { PendingLogDB } = require("../../db/pending-log.db");
 const { Logger } = require("../../util/logger");
 const { HomematicApi } = require("../homematic-api");
 const { GroupState } = require("../../db/model/group-state");
@@ -46,7 +46,7 @@ class GroupManager {
     async updateTemperature(desiredTemperature, eventName) {
         const tags = {module: "CRON", function: "EVENT", group: this.roomConfiguration.homematicId};
         // set before data send, otherwise websocket might trigger before lock is set
-        const pendingLogDb = new PendingLogsManager();
+        const pendingLogDb = new PendingLogDB();
         const pendingLog = new PendingLog();
         pendingLog.id = this.roomConfiguration.homematicId;
         pendingLog.eventName = eventName;

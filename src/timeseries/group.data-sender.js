@@ -4,7 +4,9 @@ const {parseGroupStateIntoInfluxDataObject} = require("../util/homematic-influx.
 
 class GroupDataSender extends DataSender {
 
-    bucket = "groups";
+    constructor() {
+        super("groups");
+    }
 
     /**
      * @param args

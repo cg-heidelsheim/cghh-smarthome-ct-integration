@@ -1,1 +1,23 @@
-{}
+{
+  "ea032b00-75c4-4505-83bc-3d10bab34933": {
+    "id": "ea032b00-75c4-4505-83bc-3d10bab34933",
+    "label": "Godi-Saal",
+    "temperature": 16.5,
+    "setTemperature": 16,
+    "humidity": 55
+  },
+  "e5afe1c4-8da3-4b86-b32e-6e1e0e06ba26": {
+    "id": "e5afe1c4-8da3-4b86-b32e-6e1e0e06ba26",
+    "label": "Foyer",
+    "temperature": null,
+    "setTemperature": 16,
+    "humidity": null
+  },
+  "df6a2bda-d2e8-4b83-aa9d-4f07fd7a1e91": {
+    "id": "df6a2bda-d2e8-4b83-aa9d-4f07fd7a1e91",
+    "label": "Kleinkindbereich",
+    "temperature": null,
+    "setTemperature": 16,
+    "humidity": null
+  }
+}

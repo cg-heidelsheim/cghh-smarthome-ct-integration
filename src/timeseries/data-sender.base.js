@@ -11,7 +11,8 @@ class DataSender {
     influxDB;
     bucket;
 
-    constructor() {
+    constructor(bucket) {
+        this.bucket = bucket;
         this.influxDB = new InfluxDBManager();
         if (!this.bucket) {
             throw new Error("Subclass must define a 'bucket' property representing the target InfluxDB bucket.");

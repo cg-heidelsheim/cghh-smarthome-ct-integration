@@ -3,8 +3,9 @@ const {WeatherState} = require("../db/model/weather-state");
 const {parseWeatherStateIntoInfluxDataObject} = require("../util/homematic-influx.mapper");
 
 class WeatherDataSender extends DataSender {
-
-    bucket = "weather";
+    constructor() {
+        super("weather");
+    }
 
     /**
      * @param args

@@ -8,7 +8,9 @@ const {parseDeviceStateChannelIntoInfluxDataObject} = require("../util/homematic
  */
 class DeviceDataSender extends DataSender {
 
-    bucket = "devices";
+    constructor() {
+        super("devices");
+    }
 
     /**
      * @param args

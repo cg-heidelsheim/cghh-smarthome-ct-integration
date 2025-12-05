@@ -45,6 +45,8 @@ const callback = (data) => {
     const rawBuffer = data.toString("utf8");
     const jsonData = JSON.parse(rawBuffer);
 
+    console.log(JSON.stringify(jsonData))
+
     const events = jsonData.events; // note: element is no array but an object with id's as identifier for each event 
     const eventIds = Object.keys(events);
 

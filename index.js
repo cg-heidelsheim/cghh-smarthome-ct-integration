@@ -73,4 +73,4 @@ const run = async () => {
     startEventListener();
 };
 
-await run();
+run();

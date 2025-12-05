@@ -16,7 +16,7 @@ class EnvironmentManager {
 
         try {
             const oldUrl = process.env.HOMEMATIC_API_URL;
-            const newUrl = response.data["urlREST"] + "/";
+            const newUrl = response["urlREST"] + "/";
 
             if (oldUrl !== newUrl) {
                 Logger.warn({ tags, message: "Old URL: " + oldUrl });
@@ -25,7 +25,7 @@ class EnvironmentManager {
             }
 
             const oldUrlWs = process.env.HOMEMATIC_WS_URL;
-            const newUrlWs = response.data["urlWebSocket"] + "/";
+            const newUrlWs = response["urlWebSocket"] + "/";
 
             if (oldUrlWs !== newUrlWs) {
                 Logger.warn({ tags, message: "Old URL WS: " + oldUrlWs });

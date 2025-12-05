@@ -55,7 +55,7 @@ class JsonFileDB {
      * @param {any} state The data object to save.
      */
     save(state) {
-        super.saveById(state.id, state);
+        this.saveById(state.id, state);
     }
 
     /**
@@ -103,7 +103,7 @@ class JsonFileDB {
         const allData = this._readFile();
         const data = allData[id];
         if (!data) {
-            throw new Error(`Entry with id ${id} not found in DB.`);
+            throw new Error(`Entry with id "${id}" not found in "${this.ModelClass.name}" DB.`);
         }
 
         if (this.ModelClass) {

@@ -1,5 +1,5 @@
 const moment = require('moment-timezone');
-const {PendingLogsManager} = require('../db/pending-log.db');
+const {PendingLogDB} = require('../db/pending-log.db');
 const {Logger} = require('./logger');
 moment.tz.setDefault("Europe/Berlin");
 
@@ -132,7 +132,7 @@ class EventLogger {
 
     static groupUpdateEventToInflux(currentState, updatedState) {
         if (currentState.setTemperature !== updatedState.setTemperature) {
-            const pendingLogsManager = new PendingLogsManager();
+            const pendingLogsManager = new PendingLogDB();
 
             const pendigObj = pendingLogsManager.getById(currentState.id);
             const isPending = pendigObj?.pending;
