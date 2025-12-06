@@ -5,6 +5,7 @@
 
 const {HMIPWSEvent} = require('./event/hmip-ws-event');
 const {HMIPWSOrigin} = require('./hmip-ws-origin');
+const {createEventFromJson} = require("./event/hmip-ws-event-factory");
 
 /**
  * @typedef {'DEVICE' | 'GROUP' | 'HOME'} HMIPWSOriginType
@@ -40,7 +41,7 @@ class HMIPWSMessage {
 
         const eventsObject = json.events || {};
         const events = Object.values(eventsObject).map(evJson =>
-            HMIPWSEvent.fromJson(evJson)
+            createEventFromJson(evJson)
         );
 
         const origin = HMIPWSOrigin.fromJson(json.origin);
