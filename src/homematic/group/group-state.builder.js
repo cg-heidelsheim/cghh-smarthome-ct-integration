@@ -6,17 +6,17 @@ class GroupStateBuilder {
     /**
      * Transform a HMIP group object into a group state object for DB storage.
      *
-     * @param {Group} group Group object from HMIP
+     * @param {HMIPWSHeatingGroup} group Group object from HMIP
      * @returns {GroupState}
      */
     static fromHomematicGroup(group) {
         const groupState = new GroupState();
 
-        groupState.id = group.data.id;
-        groupState.label = group.data.label;
-        groupState.temperature = group.data.actualTemperature;
-        groupState.setTemperature = group.data.setPointTemperature;
-        groupState.humidity = group.data.humidity;
+        groupState.id = group.id;
+        groupState.label = group.label;
+        groupState.temperature = group.actualTemperature;
+        groupState.setTemperature = group.setPointTemperature;
+        groupState.humidity = group.humidity;
 
         return groupState;
     }

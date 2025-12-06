@@ -1,27 +1,34 @@
-const { WebsocketManager } = require("../websocket-manager");
+const {WebsocketManager} = require("../websocket-manager");
 
-const { Group } = require("./group/group");
-const { GroupState } = require("../db/model/group-state");
-const { GroupStateDB } = require("../db/group-state.db");
-const { GroupStateBuilder } = require("./group/group-state.builder");
-const { GroupDataSender } = require("../timeseries/group.data-sender");
+const {Group} = require("./group/group");
+const {GroupState} = require("../db/model/group-state");
+const {GroupStateDB} = require("../db/group-state.db");
+const {GroupStateBuilder} = require("./group/group-state.builder");
+const {GroupDataSender} = require("../timeseries/group.data-sender");
 
-const { Device } = require("./device/device");
-const { DeviceState } = require("../db/model/device-state");
-const { DeviceStateDB } = require("../db/device-state.db");
-const { DeviceStateBuilder } = require("./device/device-state.builder");
-const { DeviceDataSender } = require("../timeseries/device.data-sender");
+const {Device} = require("./device/device");
+const {DeviceState} = require("../db/model/device-state");
+const {DeviceStateDB} = require("../db/device-state.db");
+const {DeviceStateBuilder} = require("./device/device-state.builder");
+const {DeviceDataSender} = require("../timeseries/device.data-sender");
 
-const { Home } = require("./weather/home");
-const { WeatherState } = require("../db/model/weather-state");
-const { WeatherStateDB } = require("../db/weather-state.db");
-const { WeatherStateBuilder } = require("./weather/weather-state.builder");
-const { WeatherDataSender } = require("../timeseries/weather.data-sender");
+const {Home} = require("./weather/home");
+const {WeatherState} = require("../db/model/weather-state");
+const {WeatherStateDB} = require("../db/weather-state.db");
+const {WeatherStateBuilder} = require("./weather/weather-state.builder");
+const {WeatherDataSender} = require("../timeseries/weather.data-sender");
 
-const { EventLogger } = require("../util/event.logger");
+const {EventLogger} = require("../util/event.logger");
 const {Logger} = require("../util/logger");
 
 const moment = require('moment-timezone');
+const {HMIPWSMessage} = require("./ws/model/hmip-ws-message");
+const {HMIPWSGroupChangedEvent} = require("./ws/model/event/hmip-ws-event-group-changed");
+const {HMIPWSDeviceChangedEvent} = require("./ws/model/event/hmip-ws-event-device-changed");
+const {HMIPWSHomeChangedEvent} = require("./ws/model/event/hmip-ws-event-home-changed");
+const {HMIPWSHeatingGroup} = require("./ws/model/group/hmip-ws-group-heating");
+const {HMIPWSHeatingThermostatDevice} = require("./ws/model/device/hmip-ws-device-heating-thermostat");
+
 moment.tz.setDefault("Europe/Berlin");
 
 require("dotenv").config();
@@ -38,8 +45,8 @@ const startEventListener = () => {
 
 /**
  * Callback function that gets executed when the websocket receives a new event
- * 
- * @param {*} data 
+ *
+ * @param {*} data
  */
 const callback = (data) => {
     const rawBuffer = data.toString("utf8");
@@ -47,27 +54,23 @@ const callback = (data) => {
 
     console.log(JSON.stringify(jsonData))
 
-    const events = jsonData.events; // note: element is no array but an object with id's as identifier for each event 
-    const eventIds = Object.keys(events);
-
-    eventIds
-        .forEach(eventId => {
-            const event = events[eventId];
-            handleElement(event);
-        });
+    const wsMessage = HMIPWSMessage.fromJson(jsonData);
+    wsMessage.events.forEach(event => {
+        handleElement(event);
+    });
 };
 
 /**
  * Handle event data send over websocket connection
- * 
- * @param {*} event 
+ *
+ * @param {HMIPWSEvent} event
  */
 const handleElement = (event) => {
-    if (event.pushEventType === "GROUP_CHANGED") {
+    if (event instanceof HMIPWSGroupChangedEvent) {
         handleGroupChangeEvent(event);
-    } else if (event.pushEventType === "DEVICE_CHANGED") {
+    } else if (event instanceof HMIPWSDeviceChangedEvent) {
         handleDeviceChanged(event);
-    } else if (event.pushEventType === "HOME_CHANGED") {
+    } else if (event instanceof HMIPWSHomeChangedEvent) {
         handleHomeChangeEvent(event);
     }
 };
@@ -76,19 +79,15 @@ const handleElement = (event) => {
  * Parse update group data object.
  * Determine if is heating group.
  * Determine if values did change.
- * 
+ *
  * Initialize data send
- * 
- * @param {*} event 
+ *
+ * @param {HMIPWSGroupChangedEvent} event
  */
 const handleGroupChangeEvent = (event) => {
-    const rawGroup = event.group;
+    const group = event.group;
 
-    if (!rawGroup) return;
-
-    const group = new Group(rawGroup);
-
-    if (!group.isHeatingGroup()) return;
+    if (!(group instanceof HMIPWSHeatingGroup)) return;
 
     const groupStateDB = new GroupStateDB();
 
@@ -97,7 +96,7 @@ const handleGroupChangeEvent = (event) => {
     try {
         currentGroupState = groupStateDB.getById(group.data.id);
     } catch (error) {
-        Logger.warn({ message: "No group state could be loaded from disk: " + error });
+        Logger.warn({message: "No group state could be loaded from disk: " + error});
         currentGroupState = GroupStateBuilder.dummyState(group.data.id);
     }
 
@@ -110,19 +109,15 @@ const handleGroupChangeEvent = (event) => {
 /**
  * Parse update device data object.
  * Determine if is heating thermostat.
- * 
+ *
  * Initialize data send
  *
- * @param {*} event
+ * @param {HMIPWSDeviceChangedEvent} event
  */
 const handleDeviceChanged = (event) => {
-    const rawDevice = event.device;
+    const device = event.device;
 
-    if (!rawDevice) return;
-
-    const device = new Device(rawDevice);
-
-    if (!device.isHeatingThermostat()) return;
+    if (!(device instanceof HMIPWSHeatingThermostatDevice)) return;
 
     const deviceStateDb = new DeviceStateDB();
 
@@ -144,8 +139,8 @@ const handleDeviceChanged = (event) => {
  * Determine if weather information is present.
  *
  * Initialize data send
- * 
- * @param {*} event 
+ *
+ * @param {*} event
  */
 const handleHomeChangeEvent = (event) => {
     const rawHome = event.home;
@@ -170,10 +165,10 @@ const handleHomeChangeEvent = (event) => {
 };
 
 /**
- * 
- * @param {GroupState} currentState 
+ *
+ * @param {GroupState} currentState
  * @param {GroupState} updatedState
- * @returns 
+ * @returns
  */
 const handleGroupStateChange = (currentState, updatedState) => {
     if (currentState.equalsValueAttributes(updatedState)) return;
@@ -215,9 +210,9 @@ const handleDeviceStateChange = (currentState, updatedState) => {
 };
 
 /**
- * @param {WeatherState} currentState 
+ * @param {WeatherState} currentState
  * @param {WeatherState} updatedState
- * @returns 
+ * @returns
  */
 const handleWeatherStateChange = (currentState, updatedState) => {
     if (currentState.equalsValueAttributes(updatedState)) return;
@@ -231,4 +226,4 @@ const handleWeatherStateChange = (currentState, updatedState) => {
     EventLogger.weatherUpdateEvent(currentState, updatedState);
 };
 
-module.exports = { startEventListener };
+module.exports = {startEventListener};

@@ -1,27 +1,29 @@
 const {ChannelState} = require("../../db/model/channel-state");
 const {DeviceState} = require("../../db/model/device-state");
 const {Device} = require("./device");
+const {HMIPWSHeatingThermostatChannel} = require("../ws/model/device/channel/hmip-ws-functional-channel-heating-thermostat");
 
 class DeviceStateBuilder {
 
     /**
      * Transform a HMIP device object into a device state object for DB storage.
      *
-     * @param {Device} device Device object from HMIP
+     * @param {HMIPWSHeatingThermostatDevice} device Device object from HMIP
      * @returns {DeviceState}
      */
     static fromHomematicDevice(device) {
         const deviceState = new DeviceState();
 
-        deviceState.id = device.data.id;
-        deviceState.label = device.data.label;
-        deviceState.channels = device.getRelevantFunctionalChannels()
-            .map(channel => {
+        deviceState.id = device.id;
+        deviceState.label = device.label;
+        deviceState.channels = (device.functionalChannels || [])
+            .filter(ch => ch instanceof HMIPWSHeatingThermostatChannel)
+            .map(ch => {
                 const outputChannel = new ChannelState();
-                outputChannel.index = channel.index;
-                outputChannel.valvePosition = channel.valvePosition;
-                outputChannel.temperature = channel.valveActualTemperature;
-                outputChannel.setTemperature = channel.setPointTemperature;
+                outputChannel.index = ch.index;
+                outputChannel.valvePosition = ch.valvePosition;
+                outputChannel.temperature = ch.valveActualTemperature;
+                outputChannel.setTemperature = ch.setPointTemperature;
                 return outputChannel;
             });
 
