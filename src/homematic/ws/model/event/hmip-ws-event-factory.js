@@ -11,7 +11,7 @@ const {HMIPWSHomeChangedEvent} = require("./hmip-ws-event-home-changed");
  */
 function createEventFromJson(json) {
     if (!json || typeof json !== 'object') {
-        throw new Error('HMIPWSEvent.fromJson: invalid event json');
+        throw new Error('createEventFromJson: invalid event json');
     }
 
     const type = json.pushEventType;

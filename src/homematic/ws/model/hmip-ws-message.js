@@ -55,4 +55,4 @@ class HMIPWSMessage {
     }
 }
 
-module.exports = {HMIPWSMessage, HMIPWSPushEventType, HMIPWSOriginType}
+module.exports = {HMIPWSMessage}
