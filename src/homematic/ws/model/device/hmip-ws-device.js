@@ -1,12 +1,13 @@
 const {HMIPWSFunctionalChannel} = require('./channel/hmip-ws-functional-channel');
 
-const {HMIPWSHeatingThermostatDevice} = require('./hmip-ws-device-heating-thermostat');
 const {createFunctionalChannelFromJson} = require("./channel/hmip-ws-functional-channel-factory");
 
 /**
  * Base class for devices
  */
 class HMIPWSDevice {
+// The fromJson static factory was moved to src/homematic/ws/model/device/hmip-ws-device-factory.js to break circular dependency
+
     /**
      * @param {string} id
      * @param {string} type
@@ -22,36 +23,6 @@ class HMIPWSDevice {
         this.lastStatusUpdate = lastStatusUpdate;
         this.label = label;
         this.functionalChannels = functionalChannels;
-    }
-
-    /**
-     * Device factory (switches based on device.type)
-     * @param {any} json
-     * @returns {HMIPWSDevice}
-     */
-    static fromJson(json) {
-        if (!json) {
-            throw new Error('HMIPWSDevice.fromJson: device json missing');
-        }
-
-        const {type} = json;
-
-        // Map of index->channel => array of channels
-        const functionalChannelsObj = json.functionalChannels || {};
-        const functionalChannels = Object.values(functionalChannelsObj).map(fc =>
-            createFunctionalChannelFromJson(fc)
-        );
-
-        switch (type) {
-            case 'HEATING_THERMOSTAT':
-                return HMIPWSHeatingThermostatDevice.fromJson({...json, functionalChannels});
-
-            // add new device types here later;
-            // for now we explicitly fail on unknown types:
-            default:
-                console.error('Unknown HMIPWSDevice.type', type, json);
-                throw new Error(`Unsupported HMIPWSDevice type: ${type}`);
-        }
     }
 }
 

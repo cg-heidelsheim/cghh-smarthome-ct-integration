@@ -1,5 +1,3 @@
-const path = require('path');
-
 const HMIPWSDeviceOperationLockChannel = require('./hmip-ws-functional-channel-operation-lock').HMIPWSDeviceOperationLockChannel;
 const HMIPWSHeatingThermostatChannel = require('./hmip-ws-functional-channel-heating-thermostat').HMIPWSHeatingThermostatChannel;
 
@@ -12,7 +10,7 @@ const HMIPWSHeatingThermostatChannel = require('./hmip-ws-functional-channel-hea
  */
 function createFunctionalChannelFromJson(json) {
     if (!json) {
-        throw new Error('HMIPWSFunctionalChannel.fromJson: missing json');
+        throw new Error('createFunctionalChannelFromJson: missing json');
     }
 
     const type = json.functionalChannelType;
