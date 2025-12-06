@@ -1,6 +1,7 @@
 const {HMIPWSFunctionalChannel} = require('./channel/hmip-ws-functional-channel');
 
 const {HMIPWSHeatingThermostatDevice} = require('./hmip-ws-device-heating-thermostat');
+const {createFunctionalChannelFromJson} = require("./channel/hmip-ws-functional-channel-factory");
 
 /**
  * Base class for devices
@@ -38,7 +39,7 @@ class HMIPWSDevice {
         // Map of index->channel => array of channels
         const functionalChannelsObj = json.functionalChannels || {};
         const functionalChannels = Object.values(functionalChannelsObj).map(fc =>
-            HMIPWSFunctionalChannel.fromJson(fc)
+            createFunctionalChannelFromJson(fc)
         );
 
         switch (type) {
