@@ -26,5 +26,12 @@
     "temperature": 16.1,
     "setTemperature": 16,
     "humidity": 60
+  },
+  "a04a824e-b5ae-4736-b1d8-55e9095c5d41": {
+    "id": "a04a824e-b5ae-4736-b1d8-55e9095c5d41",
+    "label": "Jugendraum EG",
+    "temperature": 18.3,
+    "setTemperature": 16,
+    "humidity": 60
   }
 }

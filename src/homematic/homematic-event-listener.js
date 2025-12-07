@@ -25,6 +25,7 @@ const {HMIPWSDeviceChangedEvent} = require("./ws/model/event/hmip-ws-event-devic
 const {HMIPWSHomeChangedEvent} = require("./ws/model/event/hmip-ws-event-home-changed");
 const {HMIPWSHeatingGroup} = require("./ws/model/group/hmip-ws-group-heating");
 const {HMIPWSHeatingThermostatDevice} = require("./ws/model/device/hmip-ws-device-heating-thermostat");
+const {HMIPWSHome} = require("./ws/model/home/hmip-ws-home");
 
 moment.tz.setDefault("Europe/Berlin");
 
@@ -141,7 +142,7 @@ const handleHomeChangeEvent = (event) => {
 
     if (!rawHome) return;
 
-    const home = new Home(rawHome);
+    const home = HMIPWSHome.fromJson(rawHome);
 
     const weatherStateDb = new WeatherStateDB();
 
