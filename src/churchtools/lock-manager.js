@@ -48,6 +48,7 @@ class LockManager {
 
         if (!lock.isExpired()) {
             Logger.debug({tags, message: "Lock not expired - SKIP"});
+            return
         }
 
         Logger.debug({tags, message: "Lock expired - Reset Group"});
