@@ -31,9 +31,10 @@ class HeatingScheduler {
 
         const heatingStartTime = eventStart.clone().subtract(minutesToReachTemp, 'minute');
 
-        const minutesUntilHeatingStart = moment
+        let minutesUntilHeatingStart = moment
             .duration(heatingStartTime.diff(now))
             .asMinutes();
+        minutesUntilHeatingStart = Math.round(minutesUntilHeatingStart)
 
         const shouldStartHeating = heatingStartTime.isSameOrBefore(now);
 

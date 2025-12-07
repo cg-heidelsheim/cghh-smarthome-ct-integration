@@ -110,8 +110,8 @@ class EventManager {
         } = HeatingScheduler.calculateHeatingSchedule(roomConfig, event, groupState, booking);
 
         if (!shouldStartHeating) {
-            const message = `Event '${event.name}' lies too far in the future. Min. needed: ${minutesToReachTemp} - Preheat in approx. ${minutesUntilHeatingStart} min.`;
-            Logger.debug({tags: this.tags, message});
+            const message = `Event '${event.name}' - Min. needed: ${minutesToReachTemp} - Starting in. ${minutesUntilHeatingStart} min.`;
+            Logger.info({tags: this.tags, message});
 
             return;
         }
