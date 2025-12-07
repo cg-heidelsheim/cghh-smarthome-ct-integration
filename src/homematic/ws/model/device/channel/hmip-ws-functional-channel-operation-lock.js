@@ -32,8 +32,6 @@ class HMIPWSDeviceOperationLockChannel extends HMIPWSFunctionalChannel {
         this.deviceOverheated = params.deviceOverheated;
         this.temperatureOutOfRange = params.temperatureOutOfRange;
         this.devicePowerFailureDetected = params.devicePowerFailureDetected;
-
-        // all the nullable / diagnostic flags explicitly:
         this.busConfigMismatch = params.busConfigMismatch;
         this.powerShortCircuit = params.powerShortCircuit;
         this.shortCircuitDataLine = params.shortCircuitDataLine;
@@ -44,11 +42,9 @@ class HMIPWSDeviceOperationLockChannel extends HMIPWSFunctionalChannel {
         this.displayMode = params.displayMode;
         this.invertedDisplayColors = params.invertedDisplayColors;
         this.temperatureHumiditySensorError = params.temperatureHumiditySensorError;
-        this.temperatureHumiditySensorCommunicationError =
-            params.temperatureHumiditySensorCommunicationError;
+        this.temperatureHumiditySensorCommunicationError = params.temperatureHumiditySensorCommunicationError;
         this.particulateMatterSensorError = params.particulateMatterSensorError;
-        this.particulateMatterSensorCommunicationError =
-            params.particulateMatterSensorCommunicationError;
+        this.particulateMatterSensorCommunicationError = params.particulateMatterSensorCommunicationError;
         this.sensorError = params.sensorError;
         this.sensorCommunicationError = params.sensorCommunicationError;
         this.displayContrast = params.displayContrast;
@@ -66,8 +62,7 @@ class HMIPWSDeviceOperationLockChannel extends HMIPWSFunctionalChannel {
         this.inputLayoutMode = params.inputLayoutMode;
         this.switchChannelMode = params.switchChannelMode;
         this.frostProtectionError = params.frostProtectionError;
-        this.frostProtectionErrorAcknowledged =
-            params.frostProtectionErrorAcknowledged;
+        this.frostProtectionErrorAcknowledged = params.frostProtectionErrorAcknowledged;
         this.valveFlowError = params.valveFlowError;
         this.valveWaterError = params.valveWaterError;
         this.noDataFromLinkyError = params.noDataFromLinkyError;

@@ -1,3 +1,5 @@
+const {HMIPWSWallMountedThermostatChannel} = require("./hmip-ws-functional-channel-wall-mounted-thermostat");
+const {HMIPWSAccessControllerWiredChannel} = require("./hmip-ws-functional-channel-access-controller-wired");
 const HMIPWSDeviceOperationLockChannel = require('./hmip-ws-functional-channel-operation-lock').HMIPWSDeviceOperationLockChannel;
 const HMIPWSHeatingThermostatChannel = require('./hmip-ws-functional-channel-heating-thermostat').HMIPWSHeatingThermostatChannel;
 
@@ -22,6 +24,8 @@ function createFunctionalChannelFromJson(json) {
             return HMIPWSHeatingThermostatChannel.fromJson(json);
         case 'WALL_MOUNTED_THERMOSTAT_PRO_CHANNEL':
             return HMIPWSWallMountedThermostatChannel.fromJSON(json);
+        case 'ACCESS_CONTROLLER_WIRED_CHANNEL':
+            return HMIPWSAccessControllerWiredChannel.fromJSON(json);
         default:
             console.error('Unknown HMIPWSFunctionalChannel.functionalChannelType', type, json);
             throw new Error(`Unsupported HMIPWSFunctionalChannel type: ${type}`);
