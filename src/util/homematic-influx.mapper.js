@@ -37,6 +37,19 @@ const parseDeviceStateChannelIntoInfluxDataObject = (state, channel) => {
     };
 };
 
+const parseDeviceStateChannelIntoInfluxDataObjectState = (state, channel) => {
+    return {
+        label: "sensoric",
+        values: {
+            valvePosition: channel.valvePosition ? channel.valvePosition * 100 : 0
+        },
+        tags: {
+            channel: channel.index,
+            name: state.label.replace(/\s/g, "_"),
+            type: "HEATING_THERMOSTAT"
+        }
+    };
+};
 
 /**
  * Take information of heating group and parse it into an influx parsable DB object
@@ -91,6 +104,7 @@ const parseWeatherStateIntoInfluxDataObject = (state) => {
 module.exports = {
     parseGroupStateIntoInfluxDataObject,
     parseDeviceStateChannelIntoInfluxDataObject,
+    parseDeviceStateChannelIntoInfluxDataObjectState,
     parseHeatingGroupDataIntoInfluxDataObject,
     parseWeatherStateIntoInfluxDataObject
 };

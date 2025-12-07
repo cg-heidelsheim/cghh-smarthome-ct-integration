@@ -12,6 +12,7 @@ const testFilePath = path.resolve(__dirname, 'testfile.json');
 
 describe('JsonFileDB', () => {
   let db;
+class DummyModel {}
 
   beforeEach(() => {
     existsSyncSpy.mockClear();
@@ -21,6 +22,7 @@ describe('JsonFileDB', () => {
     if (fse.readFile.mockClear) fse.readFile.mockClear();
 
     db = new JsonFileDB(testFilePath);
+    db.ModelClass = DummyModel;
   });
 
   afterAll(() => {
@@ -81,7 +83,7 @@ describe('JsonFileDB', () => {
 
     it('should throw error when id not found', () => {
       jest.spyOn(db, '_readFile').mockReturnValue({});
-      expect(() => db.getById('missing')).toThrow('Entry with id missing not found in DB.');
+      expect(() => db.getById('missing')).toThrow('Entry with id "missing" not found in "DummyModel" DB.');
     });
   });
 
