@@ -1,5 +1,5 @@
 const moment = require('moment-timezone');
-const { InfluxDBManager } = require('../timeseries/influx/influx-db');
+const {InfluxDBManager} = require('../timeseries/influx/influx-db');
 moment.tz.setDefault("Europe/Berlin");
 
 class Logger {
@@ -35,9 +35,9 @@ class Logger {
         console.log(`[${moment().format("YYYY-MM-DD HH:mm:ss")}] [${tags.level}] ${JSON.stringify(tags)} ${message}`);
 
         const influxDb = new InfluxDBManager();
-        tags = { level, ...tags };
-        influxDb.sendLog({ tags, message }, info);
+        tags = {level, ...tags};
+        influxDb.sendLog({tags, message}, info);
     }
 }
 
-module.exports = { Logger };
+module.exports = {Logger};

@@ -42,9 +42,9 @@ class GroupState {
     equalsValueAttributes(other) {
         if (!other) return false;
         return this.temperature === other.temperature &&
-               this.setTemperature === other.setTemperature &&
-               this.humidity === other.humidity;
+            this.setTemperature === other.setTemperature &&
+            this.humidity === other.humidity;
     }
 }
 
-module.exports = { GroupState };
+module.exports = {GroupState};

@@ -1,10 +1,10 @@
-const { WeatherState } = require("../db/model/weather-state");
+const {WeatherState} = require("../db/model/weather-state");
 
 /**
  * Take information of a {@link GroupState} and parse it into an influx usable DB object
- * 
+ *
  * @param {GroupState} state
- * 
+ *
  * @returns object
  */
 const parseGroupStateIntoInfluxDataObject = (state) => {
@@ -40,9 +40,9 @@ const parseDeviceStateChannelIntoInfluxDataObject = (state, channel) => {
 
 /**
  * Take information of heating group and parse it into an influx parsable DB object
- * 
- * @param {*} group 
- * @returns 
+ *
+ * @param {*} group
+ * @returns
  */
 const parseHeatingGroupDataIntoInfluxDataObject = (group) => {
     return {

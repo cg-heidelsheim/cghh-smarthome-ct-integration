@@ -17,7 +17,7 @@
  * }
  */
 
-const { ChannelState } = require("./channel-state");
+const {ChannelState} = require("./channel-state");
 
 class DeviceState {
 
@@ -38,6 +38,7 @@ class DeviceState {
      * @type {ChannelState[]}
      */
     channels = [];
+
     /**
      * Retrieves a ChannelState by its index.
      *
@@ -49,4 +50,4 @@ class DeviceState {
     }
 }
 
-module.exports = { DeviceState };
+module.exports = {DeviceState};

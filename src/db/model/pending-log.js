@@ -32,4 +32,4 @@ class PendingLog {
     eventName;
 }
 
-module.exports = { PendingLog };
+module.exports = {PendingLog};

@@ -28,16 +28,16 @@ class ChannelState {
 
     /**
      * Compares this channel state with another channel state.
-     * 
+     *
      * @param {ChannelState} other
      * @returns {boolean} true if all compared attributes are equal, false otherwise
      */
     equalsValueAttributes(other) {
         if (!other) return false;
         return this.temperature === other.temperature &&
-               this.setTemperature === other.setTemperature &&
-               this.valvePosition === other.valvePosition
+            this.setTemperature === other.setTemperature &&
+            this.valvePosition === other.valvePosition
     }
 }
 
-module.exports = { ChannelState };
+module.exports = {ChannelState};

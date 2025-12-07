@@ -68,14 +68,14 @@ class WeatherState {
     equalsValueAttributes(other) {
         if (!other) return false;
         return this.temperature === other.temperature &&
-               this.minTemperature === other.minTemperature &&
-               this.maxTemperature === other.maxTemperature &&
-               this.humidity === other.humidity &&
-               this.windSpeed === other.windSpeed &&
-               this.vaporAmount === other.vaporAmount &&
-               this.weatherCondition === other.weatherCondition &&
-               this.weatherDayTime === other.weatherDayTime;
+            this.minTemperature === other.minTemperature &&
+            this.maxTemperature === other.maxTemperature &&
+            this.humidity === other.humidity &&
+            this.windSpeed === other.windSpeed &&
+            this.vaporAmount === other.vaporAmount &&
+            this.weatherCondition === other.weatherCondition &&
+            this.weatherDayTime === other.weatherDayTime;
     }
 }
 
-module.exports = { WeatherState };
+module.exports = {WeatherState};

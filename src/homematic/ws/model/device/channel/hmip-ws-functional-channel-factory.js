@@ -35,12 +35,18 @@ function createFunctionalChannelFromJson(json) {
             const matches = ignores.some(t => type.includes(t));
 
             if (matches) {
-                Logger.warn({tags: {module: "WS", function: "FACTORY" }, message: 'IGNORE HMIPWSFunctionalChannel.functionalChannelType: ' + type});
+                Logger.warn({
+                    tags: {module: "WS", function: "FACTORY"},
+                    message: 'IGNORE HMIPWSFunctionalChannel.functionalChannelType: ' + type
+                });
             } else {
-                Logger.warn({tags: {module: "WS", function: "FACTORY" }, message: 'Unknown HMIPWSFunctionalChannel.functionalChannelType: ' + type + " - " + JSON.stringify(json)});
+                Logger.warn({
+                    tags: {module: "WS", function: "FACTORY"},
+                    message: 'Unknown HMIPWSFunctionalChannel.functionalChannelType: ' + type + " - " + JSON.stringify(json)
+                });
             }
         }
     }
 }
 
-module.exports = { createFunctionalChannelFromJson };
+module.exports = {createFunctionalChannelFromJson};
