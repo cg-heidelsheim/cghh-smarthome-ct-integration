@@ -134,24 +134,29 @@ class EventLogger {
         if (currentState.setTemperature !== updatedState.setTemperature) {
             const pendingLogsManager = new PendingLogDB();
 
-            const pendigObj = pendingLogsManager.getById(currentState.id);
-            const isPending = pendigObj?.pending;
+            let pendingObj;
+            try {
+                pendingObj = pendingLogsManager.getById(currentState.id);
+            } catch (err) {
+                Logger.debug({message: "Pending Log not found: " + err.message});
+            }
+
 
             let tags = {
                 module: "WS",
                 function: "GROUP_UPDATE",
                 group: currentState.label.replace(/\s/g, ""),
-                type: (isPending ? "AUTO" : "MANU"),
+                type: (pendingObj ? "AUTO" : "MANU"),
             };
 
-            if (isPending) {
-                tags = {...tags, event: pendigObj.eventName.replace(/\s/g, "")};
+            if (pendingObj) {
+                tags = {...tags, event: pendingObj.eventName.replace(/\s/g, "")};
             }
             const message = `${currentState.label} - Changed setTemperature from ${currentState.setTemperature} to ${updatedState.setTemperature}`;
             Logger.core({tags, message});
 
             // resolve pendig log
-            if (isPending) pendingLogsManager.delete(currentState.id);
+            if (pendingObj) pendingLogsManager.delete(currentState.id);
         }
     }
 

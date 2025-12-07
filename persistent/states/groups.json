@@ -2,7 +2,7 @@
   "ea032b00-75c4-4505-83bc-3d10bab34933": {
     "id": "ea032b00-75c4-4505-83bc-3d10bab34933",
     "label": "Godi-Saal",
-    "temperature": 21.2,
+    "temperature": 20.8,
     "setTemperature": 16,
     "humidity": 60
   },
@@ -17,7 +17,7 @@
     "id": "df6a2bda-d2e8-4b83-aa9d-4f07fd7a1e91",
     "label": "Kleinkindbereich",
     "temperature": null,
-    "setTemperature": 16,
+    "setTemperature": 22,
     "humidity": null
   },
   "372b1b15-42c1-4882-a36b-37b579e6abde": {
@@ -30,7 +30,7 @@
   "a04a824e-b5ae-4736-b1d8-55e9095c5d41": {
     "id": "a04a824e-b5ae-4736-b1d8-55e9095c5d41",
     "label": "Jugendraum EG",
-    "temperature": 18.2,
+    "temperature": 18.1,
     "setTemperature": 16,
     "humidity": 60
   }
