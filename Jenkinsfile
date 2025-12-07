@@ -110,11 +110,11 @@ pipeline {
                 script {
                     docker.withRegistry('http://localhost:34015') {
                         try {
-                            sh "docker rm ${name} -f"
+                            sh "docker rm ${name}-feature -f"
                         } catch (err) {
                             echo "cant remove container - it does not exist"
                         }
-                        sh "docker run --name ${name} \
+                        sh "docker run --name ${name}-feature \
                                 -v /var/www/vhosts/cg-heidelsheim.de/ct-integration.smarthome.cg-heidelsheim.de/volumes_feature/.env:/usr/src/app/.env \
                                 -v /var/www/vhosts/cg-heidelsheim.de/ct-integration.smarthome.cg-heidelsheim.de/volumes_feature/config:/usr/src/app/config \
                                 -v /var/www/vhosts/cg-heidelsheim.de/ct-integration.smarthome.cg-heidelsheim.de/volumes_feature/persistent:/usr/src/app/persistent \
