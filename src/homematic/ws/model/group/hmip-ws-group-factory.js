@@ -2,6 +2,7 @@ const {HMIPWSGroupChannelRef} = require("./hmip-ws-group-channel-ref");
 const {HMIPWSHeatingGroup} = require("./hmip-ws-group-heating");
 const {HMIPWSMetaGroup} = require("./hmip-ws-group-meta");
 const {HMIPWSIndoorClimateGroup} = require("./hmip-ws-group-indoor-climate");
+const {Logger} = require("../../../../util/logger");
 
 /**
  * Factory function to create HMIPWSFunctionalChannel instance from JSON.
@@ -29,8 +30,7 @@ function createGroupFromJson(json) {
         case 'INDOOR_CLIMATE':
             return HMIPWSIndoorClimateGroup.fromJson(json);
         default:
-            console.error('Unknown HMIPWSGroup.type', type, json);
-            throw new Error(`Unsupported HMIPWSGroup type: ${type}`);
+            Logger.error({tags: {module: "WS", function: "FACTORY" }, message: 'Unknown HMIPWSGroup.type: ' + type}, {json: json})
     }
 }
 

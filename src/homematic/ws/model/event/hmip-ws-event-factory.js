@@ -1,6 +1,7 @@
 const {HMIPWSDeviceChangedEvent} = require("./hmip-ws-event-device-changed");
 const {HMIPWSGroupChangedEvent} = require("./hmip-ws-event-group-changed");
 const {HMIPWSHomeChangedEvent} = require("./hmip-ws-event-home-changed");
+const {Logger} = require("../../../../util/logger");
 
 /**
  * Factory function to create HMIPWSEvent instance from JSON.
@@ -24,8 +25,7 @@ function createEventFromJson(json) {
         case 'HOME_CHANGED':
             return HMIPWSHomeChangedEvent.fromJson(json);
         default:
-            console.error('Unknown HMIPWSEvent.pushEventType', type, json);
-            throw new Error(`Unsupported HMIPWSEvent type: ${type}`);
+            Logger.error({tags: {module: "WS", function: "FACTORY" }, message: 'Unknown HMIPWSEvent.pushEventType: ' + type}, {json: json})
     }
 
 }

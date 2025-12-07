@@ -1,5 +1,6 @@
 const {createFunctionalChannelFromJson} = require("./channel/hmip-ws-functional-channel-factory");
 const {HMIPWSHeatingThermostatDevice} = require("./hmip-ws-device-heating-thermostat");
+const {Logger} = require("../../../../util/logger");
 
 /**
  * Device factory (switches based on device.type)
@@ -23,8 +24,7 @@ function createDeviceFromJson(json) {
             return HMIPWSHeatingThermostatDevice.fromJson({...json, functionalChannels});
 
         default:
-            console.error('Unknown HMIPWSDevice.type', type, json);
-            throw new Error(`Unsupported HMIPWSDevice type: ${type}`);
+            Logger.error({tags: {module: "WS", function: "FACTORY" }, message: 'Unknown HMIPWSDevice.type: ' + type}, {json: json})
     }
 }
 
