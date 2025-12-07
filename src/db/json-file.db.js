@@ -32,7 +32,7 @@ class JsonFileDB {
     _readFile() {
         try {
             const raw = fs.readFileSync(this.filePath, 'utf8');
-            return JSON.parse(raw);
+            return JSON.parse(raw || {});
         } catch (err) {
             throw new Error(`Failed to read or parse DB file ${this.filePath}: ${err.message}`);
         }

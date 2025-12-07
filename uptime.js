@@ -17,7 +17,7 @@ class Uptime {
                 });
         } else {
             // Log that the operation is suppressed in local/test mode
-            Logger.info({ module: "HEALTH", function: "UPTIME", message: "Test/Local mode: Ping operation is suppressed." });
+            Logger.info({ tags: {module: "HEALTH", function: "UPTIME"}, message: "Test/Local mode: Ping operation is suppressed." });
         }
     };
 }
