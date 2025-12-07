@@ -1,9 +1,10 @@
-const { PendingLogDB } = require("../../db/pending-log.db");
-const { Logger } = require("../../util/logger");
-const { HomematicApi } = require("../homematic-api");
-const { GroupState } = require("../../db/model/group-state");
+const {PendingLogDB} = require("../../db/pending-log.db");
+const {Logger} = require("../../util/logger");
+const {HomematicApi} = require("../homematic-api");
+const {GroupState} = require("../../db/model/group-state");
 const {PendingLog} = require("../../db/model/pending-log");
 const {Event} = require("./../../churchtools/model/event");
+
 /**
  * TODO REFACTOR
  */
@@ -37,8 +38,19 @@ class GroupManager {
 
         // check if temp is currently manually changed
         const temperatureIsManuallyChanged = this.groupState.setTemperature !== this.roomConfiguration.desiredTemperatureIdle;
+
         const currentTemperatureIsDefined = this.groupState.setTemperature !== undefined;
-        if (temperatureIsManuallyChanged && currentTemperatureIsDefined) throw new Error("Blocked");
+        if (temperatureIsManuallyChanged && currentTemperatureIsDefined) {
+            if (process.env.ENVIRONMENT === "production") {
+                throw new Error("Blocked");
+            } else if (process.env.ENVIRONMENT !== "production") {
+                if (this.groupState.setTemperature === desiredTemperature) {
+                    Logger.warn({message: "ATTENTION: Assumed no manual change, since setTemp === desiredTemp"})
+                } else {
+                    throw new Error("Blocked");
+                }
+            }
+        }
 
         await this.updateTemperature(desiredTemperature, event.name);
     }
@@ -55,9 +67,15 @@ class GroupManager {
         try {
             await this.homematicAPI.setTemperatureForGroup(this.roomConfiguration.homematicId, desiredTemperature);
 
-            Logger.debug({ tags, message: `Set temperature of ${this.roomConfiguration.homematicId} to ${desiredTemperature}` });
+            Logger.debug({
+                tags,
+                message: `Set temperature of ${this.roomConfiguration.homematicId} to ${desiredTemperature}`
+            });
         } catch (e) {
-            Logger.error({ tags, message: `Can't set temperature of ${this.roomConfiguration.homematicId} to ${desiredTemperature}: ${e}` });
+            Logger.error({
+                tags,
+                message: `Can't set temperature of ${this.roomConfiguration.homematicId} to ${desiredTemperature}: ${e}`
+            });
 
             // revert pending log
             pendingLogDb.delete(this.roomConfiguration.homematicId);
@@ -67,4 +85,4 @@ class GroupManager {
 
 }
 
-module.exports = { GroupManager };
+module.exports = {GroupManager};

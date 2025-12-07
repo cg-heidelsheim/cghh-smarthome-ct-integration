@@ -143,6 +143,11 @@ class EventLogger {
 
     }
 
+    /**
+     *
+     * @param {GroupState} currentState
+     * @param {GroupState} updatedState
+     */
     static groupUpdateEventToInflux(currentState, updatedState) {
         if (currentState.setTemperature !== updatedState.setTemperature) {
             const pendingLogsManager = new PendingLogDB();
@@ -169,7 +174,7 @@ class EventLogger {
             Logger.core({tags, message});
 
             // resolve pendig log
-            if (pendingObj) pendingLogsManager.delete(currentState.id);
+            if (pendingObj) pendingLogsManager.deleteById(currentState.id);
         }
     }
 
