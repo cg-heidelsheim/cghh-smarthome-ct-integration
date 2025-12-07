@@ -20,9 +20,15 @@ class EventLogger {
         Logger.core({tags, message});
     }
 
-    static resolveLock(groupState, desiredTemperature, lock) {
-        const tags = {module: "CRON", function: "EXECUTE", group: groupState.label.replace(/ /g, '_')};
-        const message = `[-] ${groupState.label} to ${desiredTemperature} for ${lock.eventName} ending at ${this.ft(lock.expiring)}`;
+    /**
+     *
+     * @param {string} name
+     * @param desiredTemperature
+     * @param lock
+     */
+    static resolveLock(name, desiredTemperature, lock) {
+        const tags = {module: "CRON", function: "EXECUTE", group: name.replace(/ /g, '_')};
+        const message = `[-] ${name} to ${desiredTemperature} for ${lock.eventName} ending at ${this.ft(lock.expiring)}`;
         Logger.core({tags, message});
     }
 
