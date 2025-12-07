@@ -28,7 +28,10 @@ function createFunctionalChannelFromJson(json) {
         case 'ACCESS_CONTROLLER_WIRED_CHANNEL':
             return HMIPWSAccessControllerWiredChannel.fromJson(json);
         default: {
-            const ignores = ["BLIND"];
+            const ignores = [
+                "BLIND", // Rolladen
+                "MULTI_MODE_INPUT_CHANNEL" // Multi Input for e.g. Rolladen
+            ];
             const matches = ignores.some(t => type.includes(t));
 
             if (matches) {
