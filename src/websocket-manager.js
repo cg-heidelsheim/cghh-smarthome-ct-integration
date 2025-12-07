@@ -39,8 +39,17 @@ class WebsocketManager {
         });
 
         this.websocket.on('message', (data) => {
-            Uptime.pingUptime("up", "GOT MESSAGE", "WS");
-            callback(data);
+            // On non prod mode, wait for 1s before WS process.
+            // This is bcs the prod change might cause a ws event BEFORE the test/feature even finished the automatic action itself.
+            if(process.env.ENVIRONMENT !== "production") {
+                setTimeout(() => {
+                    Uptime.pingUptime("up", "GOT MESSAGE", "WS");
+                    callback(data);
+                }, 2000)
+            } else {
+                Uptime.pingUptime("up", "GOT MESSAGE", "WS");
+                callback(data);
+            }
         });
 
         this.websocket.on('open', () => {

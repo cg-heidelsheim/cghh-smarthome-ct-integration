@@ -159,7 +159,6 @@ class EventLogger {
                 Logger.debug({message: "Pending Log not found: " + err.message});
             }
 
-
             let tags = {
                 module: "WS",
                 function: "GROUP_UPDATE",
