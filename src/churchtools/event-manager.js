@@ -35,17 +35,19 @@ class EventManager {
         const ctClient = new ChurchToolsApiClient();
         const events = await ctClient.getEvents();
 
-        Logger.info({tags: this.tags, message: "Start event handling - #ofEvents: " + events.length});
+
+        const tags = {...this.tags};
+        Logger.info({tags, message: "Start event handling - #ofEvents: " + events.length});
 
         const filteredEvents = filterCurrentAndUpcomingEvents(events);
 
-        Logger.info({tags: this.tags, message: "Active/Upcoming Events - #ofEvents: " + filteredEvents.length});
+        Logger.info({tags, message: "Active/Upcoming Events - #ofEvents: " + filteredEvents.length});
 
         for (const event of filteredEvents) {
             await this.handleEvent(event);
         }
 
-        Logger.info({tags: this.tags, message: "Finished event handling"});
+        Logger.info({tags, message: "Finished event handling"});
     };
 
 

@@ -29,8 +29,16 @@ function createGroupFromJson(json) {
             return HMIPWSMetaGroup.fromJson(json);
         case 'INDOOR_CLIMATE':
             return HMIPWSIndoorClimateGroup.fromJson(json);
-        default:
-            Logger.warn({tags: {module: "WS", function: "FACTORY" }, message: 'Unknown HMIPWSGroup.type: ' + type + " - " + JSON.stringify(json)})
+        default: {
+            const ignores = ["SHUTTER"];
+            const matches = ignores.some(t => type.includes(t));
+
+            if (matches) {
+                Logger.warn({tags: {module: "WS", function: "FACTORY" }, message: 'IGNORE HMIPWSGroup.type: ' + type})
+            } else {
+                Logger.warn({tags: {module: "WS", function: "FACTORY" }, message: 'Unknown HMIPWSGroup.type: ' + type + " - " + JSON.stringify(json)})
+            }
+        }
     }
 }
 

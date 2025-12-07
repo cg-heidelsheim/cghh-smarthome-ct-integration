@@ -23,8 +23,16 @@ function createDeviceFromJson(json) {
         case 'HEATING_THERMOSTAT':
             return HMIPWSHeatingThermostatDevice.fromJson({...json, functionalChannels});
 
-        default:
-            Logger.warn({tags: {module: "WS", function: "FACTORY" }, message: 'Unknown HMIPWSDevice.type: ' + type + " - " + JSON.stringify(json)})
+        default: {
+            const ignores = ["BLIND"];
+            const matches = ignores.some(t => type.includes(t));
+
+            if (matches) {
+                Logger.warn({tags: {module: "WS", function: "FACTORY" }, message: 'Unknown HMIPWSDevice.type: ' + type})
+            } else {
+                Logger.warn({tags: {module: "WS", function: "FACTORY" }, message: 'Unknown HMIPWSDevice.type: ' + type + " - " + JSON.stringify(json)})
+            }
+        }
     }
 }
 

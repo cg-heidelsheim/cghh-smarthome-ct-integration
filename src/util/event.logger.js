@@ -28,7 +28,7 @@ class EventLogger {
      */
     static resolveLock(name, desiredTemperature, lock) {
         const tags = {module: "CRON", function: "EXECUTE", group: name.replace(/ /g, '_')};
-        const message = `[-] ${name} to ${desiredTemperature} for ${lock.eventName} ending at ${this.ft(lock.expiring)}`;
+        const message = `[-] ${name} to ${desiredTemperature} for '${lock.eventName}' ending at ${this.ft(lock.expiring)}`;
         Logger.core({tags, message});
     }
 
