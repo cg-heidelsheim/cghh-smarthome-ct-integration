@@ -10,7 +10,6 @@ class HomematicApi {
     ACCESS_POINT_ID = process.env.HOMEMATIC_ACCESS_POINT_ID;
 
     AUTH_TOKEN = process.env.HOMEMATIC_API_AUTHTOKEN;
-    CLIENT_AUTH = process.env.HOMEMATIC_API_CLIENTAUTH;
 
     /**
      * Update the temperature for a group by its ID
@@ -67,8 +66,7 @@ class HomematicApi {
             "content-type": "application/json",
             "accept": "application/json",
             "version": "12",
-            "authtoken": this.AUTH_TOKEN,
-            "clientauth": this.CLIENT_AUTH,
+            "authtoken": this.AUTH_TOKEN
         };
 
         let response;

@@ -1,4 +1,7 @@
 # ChurchTools Integration for Homematic IP
+##
+Reverse Engineered API: https://homematicip-rest-api.readthedocs.io/en/latest/_modules/homematicip/group.html#HeatingGroup.set_point_temperature
+
 ## Core idea
 ### CRON-based Heating
 
