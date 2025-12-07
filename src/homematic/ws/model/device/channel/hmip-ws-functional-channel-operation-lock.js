@@ -9,11 +9,12 @@ class HMIPWSDeviceOperationLockChannel extends HMIPWSFunctionalChannel {
             'DEVICE_OPERATIONLOCK',
             params.deviceId,
             params.index,
-            params.groupIndex
+            params.groupIndex,
+            params.label,
+            params.groups,
+            params.supportedOptionalFeatures
         );
 
-        this.label = params.label;
-        this.groups = params.groups;
         this.unreach = params.unreach;
         this.lowBat = params.lowBat;
         this.routerModuleEnabled = params.routerModuleEnabled;
@@ -31,7 +32,6 @@ class HMIPWSDeviceOperationLockChannel extends HMIPWSFunctionalChannel {
         this.deviceOverheated = params.deviceOverheated;
         this.temperatureOutOfRange = params.temperatureOutOfRange;
         this.devicePowerFailureDetected = params.devicePowerFailureDetected;
-        this.supportedOptionalFeatures = params.supportedOptionalFeatures;
 
         // all the nullable / diagnostic flags explicitly:
         this.busConfigMismatch = params.busConfigMismatch;
@@ -86,11 +86,9 @@ class HMIPWSDeviceOperationLockChannel extends HMIPWSFunctionalChannel {
      */
     static fromJson(json) {
         const {
-            label,
             deviceId,
             index,
             groupIndex,
-            groups,
             unreach,
             lowBat,
             routerModuleEnabled,
@@ -108,7 +106,6 @@ class HMIPWSDeviceOperationLockChannel extends HMIPWSFunctionalChannel {
             deviceOverheated,
             temperatureOutOfRange,
             devicePowerFailureDetected,
-            supportedOptionalFeatures,
             busConfigMismatch,
             powerShortCircuit,
             shortCircuitDataLine,
@@ -152,11 +149,9 @@ class HMIPWSDeviceOperationLockChannel extends HMIPWSFunctionalChannel {
         } = json;
 
         return new HMIPWSDeviceOperationLockChannel({
-            label,
             deviceId,
             index,
             groupIndex,
-            groups,
             unreach,
             lowBat,
             routerModuleEnabled,
@@ -174,7 +169,6 @@ class HMIPWSDeviceOperationLockChannel extends HMIPWSFunctionalChannel {
             deviceOverheated,
             temperatureOutOfRange,
             devicePowerFailureDetected,
-            supportedOptionalFeatures,
 
             busConfigMismatch,
             powerShortCircuit,

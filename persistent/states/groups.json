@@ -19,5 +19,12 @@
     "temperature": null,
     "setTemperature": 16,
     "humidity": null
+  },
+  "372b1b15-42c1-4882-a36b-37b579e6abde": {
+    "id": "372b1b15-42c1-4882-a36b-37b579e6abde",
+    "label": "Jugendraum 2. OG",
+    "temperature": 16.1,
+    "setTemperature": 16,
+    "humidity": 60
   }
 }

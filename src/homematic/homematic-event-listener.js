@@ -52,8 +52,6 @@ const callback = (data) => {
     const rawBuffer = data.toString("utf8");
     const jsonData = JSON.parse(rawBuffer);
 
-    console.log(JSON.stringify(jsonData))
-
     const wsMessage = HMIPWSMessage.fromJson(jsonData);
     wsMessage.events.forEach(event => {
         handleElement(event);
@@ -94,10 +92,10 @@ const handleGroupChangeEvent = (event) => {
     let currentGroupState;
 
     try {
-        currentGroupState = groupStateDB.getById(group.data.id);
+        currentGroupState = groupStateDB.getById(group.id);
     } catch (error) {
         Logger.warn({message: "No group state could be loaded from disk: " + error});
-        currentGroupState = GroupStateBuilder.dummyState(group.data.id);
+        currentGroupState = GroupStateBuilder.dummyState(group.id);
     }
 
     const updatedGroupState = GroupStateBuilder.fromHomematicGroup(group);

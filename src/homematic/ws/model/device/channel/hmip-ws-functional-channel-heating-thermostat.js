@@ -9,13 +9,13 @@ class HMIPWSHeatingThermostatChannel extends HMIPWSFunctionalChannel {
             'HEATING_THERMOSTAT_CHANNEL',
             params.deviceId,
             params.index,
-            params.groupIndex
+            params.groupIndex,
+            params.label,
+            params.groups,
+            params.supportedOptionalFeatures
         );
 
-        this.label = params.label;
-        this.groups = params.groups;
         this.channelRole = params.channelRole;
-        this.supportedOptionalFeatures = params.supportedOptionalFeatures;
         this.temperatureOffset = params.temperatureOffset;
         this.valvePosition = params.valvePosition;
         this.setPointTemperature = params.setPointTemperature;
@@ -34,13 +34,10 @@ class HMIPWSHeatingThermostatChannel extends HMIPWSFunctionalChannel {
      */
     static fromJson(json) {
         const {
-            label,
             deviceId,
             index,
             groupIndex,
-            groups,
             channelRole,
-            supportedOptionalFeatures,
             temperatureOffset,
             valvePosition,
             setPointTemperature,
@@ -52,13 +49,10 @@ class HMIPWSHeatingThermostatChannel extends HMIPWSFunctionalChannel {
         } = json;
 
         return new HMIPWSHeatingThermostatChannel({
-            label,
             deviceId,
             index,
             groupIndex,
-            groups,
             channelRole,
-            supportedOptionalFeatures,
             temperatureOffset,
             valvePosition,
             setPointTemperature,
