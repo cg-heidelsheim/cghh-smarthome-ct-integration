@@ -44,36 +44,6 @@ pipeline {
             }
         }
 
-        stage('Publish to registry - main') {
-            when {
-                expression {
-                    return branch_name == 'main' || branch_name == 'master'
-                }
-            }
-            steps {
-                script {
-                    docker.withRegistry('http://localhost:34015') {
-                        image.push('latest')
-                    }
-                }
-            }
-        }
-
-        stage('Publish to registry - feature') {
-            when {
-                expression {
-                    return branch_name != 'main' && branch_name != 'master'
-                }
-            }
-            steps {
-                script {
-                    docker.withRegistry('http://localhost:34015') {
-                        image.push(tag_name)
-                    }
-                }
-            }
-        }
-
         stage('Start container - main') {
             when {
                 expression {
@@ -82,20 +52,18 @@ pipeline {
             }
             steps {
                 script {
-                    docker.withRegistry('http://localhost:34015') {
-                        try {
-                            sh "docker rm ${name} -f"
-                        } catch (err) {
-                            echo "cant remove container - it does not exist"
-                        }
-                        sh "docker run --name ${name} \
-                                -v /var/www/vhosts/cg-heidelsheim.de/ct-integration.smarthome.cg-heidelsheim.de/volumes/.env:/usr/src/app/.env \
-                                -v /var/www/vhosts/cg-heidelsheim.de/ct-integration.smarthome.cg-heidelsheim.de/volumes/config:/usr/src/app/config \
-                                -v /var/www/vhosts/cg-heidelsheim.de/ct-integration.smarthome.cg-heidelsheim.de/volumes/persistent:/usr/src/app/persistent \
-                                --network=cghh-smarthome \
-                                --restart unless-stopped \
-                                -d ${image_name}"
+                    try {
+                        sh "docker rm ${name} -f"
+                    } catch (err) {
+                        echo "cant remove container - it does not exist"
                     }
+                    sh "docker run --name ${name} \
+                            -v /var/www/vhosts/cg-heidelsheim.de/ct-integration.smarthome.cg-heidelsheim.de/volumes/.env:/usr/src/app/.env \
+                            -v /var/www/vhosts/cg-heidelsheim.de/ct-integration.smarthome.cg-heidelsheim.de/volumes/config:/usr/src/app/config \
+                            -v /var/www/vhosts/cg-heidelsheim.de/ct-integration.smarthome.cg-heidelsheim.de/volumes/persistent:/usr/src/app/persistent \
+                            --network=cghh-smarthome \
+                            --restart unless-stopped \
+                            -d ${image_name}"
                 }
             }
         }
@@ -108,20 +76,18 @@ pipeline {
             }
             steps {
                 script {
-                    docker.withRegistry('http://localhost:34015') {
-                        try {
-                            sh "docker rm ${name}-feature -f"
-                        } catch (err) {
-                            echo "cant remove container - it does not exist"
-                        }
-                        sh "docker run --name ${name}-feature \
-                                -v /var/www/vhosts/cg-heidelsheim.de/ct-integration.smarthome.cg-heidelsheim.de/volumes_feature/.env:/usr/src/app/.env \
-                                -v /var/www/vhosts/cg-heidelsheim.de/ct-integration.smarthome.cg-heidelsheim.de/volumes_feature/config:/usr/src/app/config \
-                                -v /var/www/vhosts/cg-heidelsheim.de/ct-integration.smarthome.cg-heidelsheim.de/volumes_feature/persistent:/usr/src/app/persistent \
-                                --network=cghh-smarthome \
-                                --restart unless-stopped \
-                                -d ${image_name}"
+                    try {
+                        sh "docker rm ${name}-feature -f"
+                    } catch (err) {
+                        echo "cant remove container - it does not exist"
                     }
+                    sh "docker run --name ${name}-feature \
+                            -v /var/www/vhosts/cg-heidelsheim.de/ct-integration.smarthome.cg-heidelsheim.de/volumes_feature/.env:/usr/src/app/.env \
+                            -v /var/www/vhosts/cg-heidelsheim.de/ct-integration.smarthome.cg-heidelsheim.de/volumes_feature/config:/usr/src/app/config \
+                            -v /var/www/vhosts/cg-heidelsheim.de/ct-integration.smarthome.cg-heidelsheim.de/volumes_feature/persistent:/usr/src/app/persistent \
+                            --network=cghh-smarthome \
+                            --restart unless-stopped \
+                            -d ${image_name}"
                 }
             }
         }
