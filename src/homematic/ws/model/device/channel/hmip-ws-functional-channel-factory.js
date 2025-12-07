@@ -24,11 +24,11 @@ function createFunctionalChannelFromJson(json) {
         case 'HEATING_THERMOSTAT_CHANNEL':
             return HMIPWSHeatingThermostatChannel.fromJson(json);
         case 'WALL_MOUNTED_THERMOSTAT_PRO_CHANNEL':
-            return HMIPWSWallMountedThermostatChannel.fromJSON(json);
+            return HMIPWSWallMountedThermostatChannel.fromJson(json);
         case 'ACCESS_CONTROLLER_WIRED_CHANNEL':
-            return HMIPWSAccessControllerWiredChannel.fromJSON(json);
+            return HMIPWSAccessControllerWiredChannel.fromJson(json);
         default:
-            Logger.error({tags: {module: "WS", function: "FACTORY" }, message: 'Unknown HMIPWSFunctionalChannel.functionalChannelType: ' + type}, {json: json});
+            Logger.error({tags: {module: "WS", function: "FACTORY" }, message: 'Unknown HMIPWSFunctionalChannel.functionalChannelType: ' + type + " - " + json});
     }
 }
 

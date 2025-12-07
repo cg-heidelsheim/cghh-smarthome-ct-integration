@@ -46,11 +46,11 @@ const parseDeviceStateChannelIntoInfluxDataObject = (state, channel) => {
  */
 const parseHeatingGroupDataIntoInfluxDataObject = (group) => {
     return {
-        label: group.data.label,
+        label: group.label,
         values: {
-            temperature: group.data.actualTemperature,
-            setTemperature: group.data.setPointTemperature,
-            humidity: group.data.humidity,
+            temperature: group.actualTemperature,
+            setTemperature: group.setPointTemperature,
+            humidity: group.humidity,
         }
     };
 };

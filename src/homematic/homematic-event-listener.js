@@ -1,18 +1,15 @@
 const {WebsocketManager} = require("../websocket-manager");
 
-const {Group} = require("./group/group");
 const {GroupState} = require("../db/model/group-state");
 const {GroupStateDB} = require("../db/group-state.db");
 const {GroupStateBuilder} = require("./group/group-state.builder");
 const {GroupDataSender} = require("../timeseries/group.data-sender");
 
-const {Device} = require("./device/device");
 const {DeviceState} = require("../db/model/device-state");
 const {DeviceStateDB} = require("../db/device-state.db");
 const {DeviceStateBuilder} = require("./device/device-state.builder");
 const {DeviceDataSender} = require("../timeseries/device.data-sender");
 
-const {Home} = require("./weather/home");
 const {WeatherState} = require("../db/model/weather-state");
 const {WeatherStateDB} = require("../db/weather-state.db");
 const {WeatherStateBuilder} = require("./weather/weather-state.builder");
@@ -36,8 +33,7 @@ require("dotenv").config();
 const startEventListener = () => {
     const websocketManager = new WebsocketManager(process.env.HOMEMATIC_WS_URL);
     const headers = {
-        'AUTHTOKEN': process.env.HOMEMATIC_API_AUTHTOKEN,
-        'CLIENTAUTH': process.env.HOMEMATIC_API_CLIENTAUTH,
+        'AUTHTOKEN': process.env.HOMEMATIC_API_AUTHTOKEN
     };
     websocketManager.setHeaders(headers);
     websocketManager.connect(callback).then(_ => console.log("WS Connected 1"));
@@ -121,10 +117,10 @@ const handleDeviceChanged = (event) => {
 
     let currentDeviceState;
     try {
-        currentDeviceState = deviceStateDb.getById(device.data.id);
+        currentDeviceState = deviceStateDb.getById(device.id);
     } catch (e) {
         Logger.error({message: "Device state not found in db. Error: " + e.message});
-        currentDeviceState = DeviceStateBuilder.dummyState(device.data.id);
+        currentDeviceState = DeviceStateBuilder.dummyState(device.id);
     }
 
     const updatedDeviceState = DeviceStateBuilder.fromHomematicDevice(device);
@@ -151,7 +147,7 @@ const handleHomeChangeEvent = (event) => {
 
     let currentWeatherState;
     try {
-        currentWeatherState = weatherStateDb.getById(home.data.location.city.split(",")[0]);
+        currentWeatherState = weatherStateDb.getById(home.location.city.split(",")[0]);
     } catch (e) {
         Logger.error({message: "Weather state not found in db. Error: " + e.message});
         currentWeatherState = WeatherStateBuilder.dummyState();

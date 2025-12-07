@@ -25,7 +25,7 @@ function createEventFromJson(json) {
         case 'HOME_CHANGED':
             return HMIPWSHomeChangedEvent.fromJson(json);
         default:
-            Logger.error({tags: {module: "WS", function: "FACTORY" }, message: 'Unknown HMIPWSEvent.pushEventType: ' + type}, {json: json})
+            Logger.error({tags: {module: "WS", function: "FACTORY" }, message: 'Unknown HMIPWSEvent.pushEventType: ' + type + " - " + json})
     }
 
 }

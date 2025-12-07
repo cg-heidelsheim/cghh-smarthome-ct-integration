@@ -24,7 +24,7 @@ function createDeviceFromJson(json) {
             return HMIPWSHeatingThermostatDevice.fromJson({...json, functionalChannels});
 
         default:
-            Logger.error({tags: {module: "WS", function: "FACTORY" }, message: 'Unknown HMIPWSDevice.type: ' + type}, {json: json})
+            Logger.error({tags: {module: "WS", function: "FACTORY" }, message: 'Unknown HMIPWSDevice.type: ' + type + " - " + json})
     }
 }
 

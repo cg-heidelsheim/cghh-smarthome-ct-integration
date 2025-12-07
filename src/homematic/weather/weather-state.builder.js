@@ -1,25 +1,24 @@
 const {WeatherState} = require("../../db/model/weather-state");
-const {Home} = require("./home");
 
 class WeatherStateBuilder {
     /**
      * Transform a HMIP home (weather) object into a weather state object for DB storage.
      *
-     * @param {Home} home Home object from HMIP
+     * @param {HMIPWSHome} home Home object from HMIP
      * @returns {WeatherState}
      */
     static fromHomematicHome(home) {
         const weatherState = new WeatherState();
 
-        weatherState.label = home.data.location.city.split(",")[0];
-        weatherState.temperature = home.data.weather.temperature;
-        weatherState.minTemperature = home.data.weather.minTemperature;
-        weatherState.maxTemperature = home.data.weather.maxTemperature;
-        weatherState.humidity = home.data.weather.humidity;
-        weatherState.windSpeed = home.data.weather.windSpeed;
-        weatherState.vaporAmount = home.data.weather.vaporAmount;
-        weatherState.weatherCondition = home.data.weather.weatherCondition;
-        weatherState.weatherDayTime = home.data.weather.weatherDayTime;
+        weatherState.label = home.location.city.split(",")[0];
+        weatherState.temperature = home.weather.temperature;
+        weatherState.minTemperature = home.weather.minTemperature;
+        weatherState.maxTemperature = home.weather.maxTemperature;
+        weatherState.humidity = home.weather.humidity;
+        weatherState.windSpeed = home.weather.windSpeed;
+        weatherState.vaporAmount = home.weather.vaporAmount;
+        weatherState.weatherCondition = home.weather.weatherCondition;
+        weatherState.weatherDayTime = home.weather.weatherDayTime;
 
         return weatherState;
     }

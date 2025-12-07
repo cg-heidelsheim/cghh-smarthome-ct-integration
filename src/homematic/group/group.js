@@ -14,7 +14,7 @@ class Group {
      * @returns boolean if is of type "HEATING"
      */
     isHeatingGroup() {
-        return this.data.type === "HEATING";
+        return this.type === "HEATING";
     }
 }
 

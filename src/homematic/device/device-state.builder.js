@@ -1,6 +1,5 @@
 const {ChannelState} = require("../../db/model/channel-state");
 const {DeviceState} = require("../../db/model/device-state");
-const {Device} = require("./device");
 const {HMIPWSHeatingThermostatChannel} = require("../ws/model/device/channel/hmip-ws-functional-channel-heating-thermostat");
 
 class DeviceStateBuilder {

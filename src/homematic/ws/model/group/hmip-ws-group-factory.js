@@ -30,7 +30,7 @@ function createGroupFromJson(json) {
         case 'INDOOR_CLIMATE':
             return HMIPWSIndoorClimateGroup.fromJson(json);
         default:
-            Logger.error({tags: {module: "WS", function: "FACTORY" }, message: 'Unknown HMIPWSGroup.type: ' + type}, {json: json})
+            Logger.error({tags: {module: "WS", function: "FACTORY" }, message: 'Unknown HMIPWSGroup.type: ' + type + " - " + json})
     }
 }
 
