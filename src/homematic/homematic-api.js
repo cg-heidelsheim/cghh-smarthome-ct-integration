@@ -23,7 +23,7 @@ class HomematicApi {
         const tags = {module: "API", function: "HOMEMATIC", group: groupId};
 
         if (process.env.ENVIRONMENT !== 'production') {
-            Logger.info({
+            Logger.core({
                 tags,
                 message: `[ENV - ${process.env.ENVIRONMENT}] Dry run: Would set temperature of ${groupId} to ${desiredTemperature}`
             });

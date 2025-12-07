@@ -3,7 +3,7 @@ const { Logger } = require("../../util/logger");
 const { HomematicApi } = require("../homematic-api");
 const { GroupState } = require("../../db/model/group-state");
 const {PendingLog} = require("../../db/model/pending-log");
-
+const {Event} = require("./../../churchtools/model/event");
 /**
  * TODO REFACTOR
  */
@@ -16,11 +16,11 @@ class GroupManager {
     /** @type {HomematicApi} */
     homematicAPI;
 
-    constructor(roomConfiguration, roomState) {
-        this.roomConfiguration = roomConfiguration;
-        this.groupState = roomState;
+    constructor(params) {
+        this.roomConfiguration = params.roomConfiguration;
+        this.groupState = params.roomState;
 
-        this.homematicAPI = new HomematicApi();
+        this.homematicAPI = params.homematicAPI;
     }
 
     async setToIdle(eventName) {
@@ -29,7 +29,7 @@ class GroupManager {
     }
 
     /**
-     * @param {*} event 
+     * @param {Event} event
      * @throws {Error} If room is currently heated (may happen if somebody changes temperature between events)
      */
     async heatForEvent(event) {
@@ -40,7 +40,7 @@ class GroupManager {
         const currentTemperatureIsDefined = this.groupState.setTemperature !== undefined;
         if (temperatureIsManuallyChanged && currentTemperatureIsDefined) throw new Error("Blocked");
 
-        await this.updateTemperature(desiredTemperature, event.bezeichnung);
+        await this.updateTemperature(desiredTemperature, event.name);
     }
 
     async updateTemperature(desiredTemperature, eventName) {

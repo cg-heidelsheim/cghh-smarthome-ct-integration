@@ -6,6 +6,7 @@ const {GroupStateBuilder} = require("../homematic/group/group-state.builder");
 const {GroupManagerFactory} = require("../homematic/group/group-manager.factory");
 const {EventLogger} = require("../util/event.logger");
 const {Event} = require("./model/event");
+const {Lock} = require("./../db/model/lock");
 const {Booking} = require("./model/booking");
 const moment = require("moment");
 
@@ -87,7 +88,7 @@ class EventManager {
         try {
             roomConfig = this.roomConfigDB.findByCTId(booking.resourceId);
         } catch (e) {
-            Logger.error({tags: this.tags, message: `${e.message}`});
+            Logger.error({tags: this.tags, message: `Error on handleBookingOfEventHeating ${e.message}`});
             return;
         }
 
@@ -126,10 +127,12 @@ class EventManager {
             lock.id = groupState.id;
             this.lockDB.save(lock);
         } catch (e) {
-            if (e.message !== "Blocked") Logger.error({tags: this.tags, message: e.message});
-
-            // blocked due to existing manual override
-            EventLogger.groupUpdatePreheatBlocked(event.name, groupState.label);
+            if (e.message !== "Blocked") {
+                Logger.error({tags: this.tags, message: `Error on executeHeatingSchedule ${e.message}`})
+            } else {
+                // blocked due to existing manual override
+                EventLogger.groupUpdatePreheatBlocked(event.name, groupState.label);
+            }
         }
     }
 

@@ -2,7 +2,7 @@
 
 require('dotenv').config();
 const axios = require('axios');
-const Event = require('./model/event');
+const {Event} = require('./model/event');
 
 class ChurchToolsApiClient {
     constructor() {

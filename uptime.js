@@ -1,5 +1,5 @@
 const axios = require('axios');
-const { Logger } = require('./src/util/logger');
+const {Logger} = require('./src/util/logger');
 
 class Uptime {
     static pingUptime = (status, message, subject) => {
@@ -10,16 +10,19 @@ class Uptime {
             const tags = {module: "HEALTH", function: "UPTIME", status, subject};
             axios.get(url)
                 .then((_) => {
-                    Logger.debug({ tags, message: "Ping sent to uptime" });
+                    Logger.debug({tags, message: "Ping sent to uptime"});
                 })
                 .catch((err) => {
-                    Logger.error({ tags, message: "Could not send status to Uptime: " + err });
+                    Logger.error({tags, message: "Could not send status to Uptime: " + err});
                 });
         } else {
             // Log that the operation is suppressed in local/test mode
-            Logger.info({ tags: {module: "HEALTH", function: "UPTIME"}, message: "Test/Local mode: Ping operation is suppressed." });
+            Logger.core({
+                tags: {module: "HEALTH", function: "UPTIME"},
+                message: `[ENV - ${process.env.ENVIRONMENT}] Dry run: Ping operation is suppressed.`
+            });
         }
     };
 }
 
-module.exports = { Uptime };
+module.exports = {Uptime};

@@ -1,6 +1,7 @@
 const moment = require('moment-timezone');
 const {PendingLogDB} = require('../db/pending-log.db');
 const {Logger} = require('./logger');
+const {Event} = require('./../churchtools/model/event');
 moment.tz.setDefault("Europe/Berlin");
 
 /**
@@ -15,7 +16,7 @@ class EventLogger {
      */
     static heatingTimeExpectancy(minutes, minPreOfBooking, groupState) {
         const tags = {module: "CRON", function: "EXECUTE", group: groupState.label.replace(/ /g, '_')};
-        const message = `[#] Preheating takes ~ ${Math.round(minutes)} min. (incl. ${minPreOfBooking} min. offset)}`;
+        const message = `[#] Preheating takes ~ ${Math.round(minutes)} min. (incl. ${minPreOfBooking || 0} min. offset)}`;
         Logger.core({tags, message});
     }
 
@@ -25,15 +26,21 @@ class EventLogger {
         Logger.core({tags, message});
     }
 
+    /**
+     *
+     * @param {string} roomName
+     * @param {number} desiredTemperature
+     * @param {Event} event
+     */
     static groupUpdatePreheat(roomName, desiredTemperature, event) {
         const tags = {module: "CRON", function: "EXECUTE", group: roomName.replace(/ /g, '_')};
-        const message = `[+] ${roomName} to ${desiredTemperature} for ${event.bezeichnung} starting ${this.ft(event.startdate)}`;
+        const message = `[+] ${roomName} to ${desiredTemperature} for '${event.name}' starting ${this.ft(event.startDate)}`;
         Logger.core({tags, message});
     }
 
     static groupUpdatePreheatBlocked(eventName, roomName) {
         const tags = {module: "CRON", function: "EXECUTE", group: roomName.replace(/ /g, '_')};
-        const message = `[#] ${roomName} preheating is blocked for event ${eventName} due to manual temperature override`;
+        const message = `[#] ${roomName} preheating is blocked for event '${eventName}' due to manual temperature override`;
         Logger.core({tags, message});
     }
 
