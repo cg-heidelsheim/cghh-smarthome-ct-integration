@@ -30,7 +30,9 @@ function createFunctionalChannelFromJson(json) {
         default: {
             const ignores = [
                 "BLIND", // Rolladen
-                "MULTI_MODE_INPUT_CHANNEL" // Multi Input for e.g. Rolladen
+                "MULTI_MODE_INPUT_CHANNEL", // Multi Input for e.g. Rolladen,
+                "FLOOR_TERMINAL_BLOCK_MECHANIC_CHANNEL", // IDK - eig der Actuator im Heizungsraum?
+                "SINGLE_KEY_CHANNEL" // no infos?
             ];
             const matches = ignores.some(t => type.includes(t));
 

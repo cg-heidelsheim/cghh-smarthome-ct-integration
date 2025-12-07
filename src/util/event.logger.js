@@ -172,7 +172,7 @@ class EventLogger {
             const message = `${currentState.label} - Changed setTemperature from ${currentState.setTemperature} to ${updatedState.setTemperature}`;
             Logger.core({tags, message});
 
-            // resolve pendig log
+            // resolve pending log
             if (pendingObj) pendingLogsManager.deleteById(currentState.id);
         }
     }

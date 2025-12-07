@@ -59,7 +59,7 @@ class EventManager {
     async handleEvent(event) {
         this.tags = {...this.tags, event: event.name};
 
-        Logger.debug({tags: this.tags, message: `Handling event ${event.name}`});
+        Logger.info({tags: this.tags, message: `Handling event ${event.name}`});
 
         const bookings = event.bookings;
 
@@ -68,7 +68,7 @@ class EventManager {
             return;
         }
 
-        Logger.debug({tags: this.tags, message: `Bookings: #${bookings.length}`});
+        Logger.info({tags: this.tags, message: `Bookings: #${bookings.length}`});
 
         for (const booking of bookings) {
             await this.handleBookingOfEventHeating(event, booking);
@@ -147,23 +147,23 @@ class EventManager {
         }
     }
 
-    #isAcceptedBooking(booking, tags) {
+    #isAcceptedBooking(booking) {
         // ONLY ALLOW ROOMS WITH STATUS "gebucht"
         if (booking.statusId !== "2") {
-            Logger.warn({tags: tags, message: `Booking for group is not in status "accepted"`});
+            Logger.warn({tags: this.tags, message: `Booking for group is not in status "accepted"`});
             return false;
         }
 
         return true;
     }
 
-    #isEventLocked(roomConfig, tags) {
+    #isEventLocked(roomConfig) {
         try {
             this.lockDB.getById(roomConfig.homematicId);
-            Logger.info({tags, message: `${roomConfig.name} is locked - SKIP`});
+            Logger.info({tags: this.tags, message: `${roomConfig.name} is locked - SKIP`});
             return true;
         } catch (err) {
-            Logger.debug({tags, message: `${roomConfig.name} is not locked`});
+            Logger.debug({tags: this.tags, message: `${roomConfig.name} is not locked`});
             return false;
         }
     }

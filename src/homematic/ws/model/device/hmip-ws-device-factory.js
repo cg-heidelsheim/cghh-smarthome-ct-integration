@@ -24,7 +24,7 @@ function createDeviceFromJson(json) {
             return HMIPWSHeatingThermostatDevice.fromJson({...json, functionalChannels});
 
         default: {
-            const ignores = ["BLIND"];
+            const ignores = ["BLIND", "SHUTTER", "ACCESS_POINT", "WALL_MOUNTED_THERMOSTAT_PRO"];
             const matches = ignores.some(t => type.includes(t));
 
             if (matches) {
