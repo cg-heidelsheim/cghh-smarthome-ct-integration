@@ -28,7 +28,7 @@ function createFunctionalChannelFromJson(json) {
         case 'ACCESS_CONTROLLER_WIRED_CHANNEL':
             return HMIPWSAccessControllerWiredChannel.fromJson(json);
         default:
-            Logger.error({tags: {module: "WS", function: "FACTORY" }, message: 'Unknown HMIPWSFunctionalChannel.functionalChannelType: ' + type + " - " + JSON.stringify(json)});
+            Logger.warn({tags: {module: "WS", function: "FACTORY" }, message: 'Unknown HMIPWSFunctionalChannel.functionalChannelType: ' + type + " - " + JSON.stringify(json)});
     }
 }
 

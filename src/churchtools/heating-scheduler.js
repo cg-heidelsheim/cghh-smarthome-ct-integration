@@ -47,4 +47,4 @@ class HeatingScheduler {
     }
 }
 
-exports.module = {HeatingScheduler}
+module.exports = {HeatingScheduler}

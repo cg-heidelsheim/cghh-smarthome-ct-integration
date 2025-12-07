@@ -19,4 +19,4 @@ class GroupManagerFactory {
     }
 }
 
-exports.module = {GroupManagerFactory}
+module.exports = {GroupManagerFactory}

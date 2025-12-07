@@ -23,14 +23,14 @@
   "372b1b15-42c1-4882-a36b-37b579e6abde": {
     "id": "372b1b15-42c1-4882-a36b-37b579e6abde",
     "label": "Jugendraum 2. OG",
-    "temperature": 16.1,
+    "temperature": 18.5,
     "setTemperature": 16,
-    "humidity": 60
+    "humidity": 65
   },
   "a04a824e-b5ae-4736-b1d8-55e9095c5d41": {
     "id": "a04a824e-b5ae-4736-b1d8-55e9095c5d41",
     "label": "Jugendraum EG",
-    "temperature": 18.3,
+    "temperature": 18.2,
     "setTemperature": 16,
     "humidity": 60
   }

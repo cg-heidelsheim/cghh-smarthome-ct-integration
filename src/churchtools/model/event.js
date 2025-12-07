@@ -1,4 +1,4 @@
-const {fromJSON} = require("./booking");
+const Booking = require("./booking");
 
 /**
  * Represents an Event with start and end dates, a name, category, and bookings.
@@ -27,13 +27,17 @@ class Event {
      * @returns {Event}
      */
     static fromJSON(json) {
+        const bookingsArray = json.bookings
+            ? Object.values(json.bookings).map(b => Booking.fromJSON(b))
+            : [];
+
         return new Event(
             json.startdate,
             json.enddate,
             json.bezeichnung,
             json.category_id,
             json.category_name,
-            json.bookings.map(/** @type {Object} */jsonBooking => fromJSON(jsonBooking)),
+            bookingsArray,
         );
     }
 }

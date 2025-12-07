@@ -19,8 +19,10 @@ class ChurchToolsApiClient {
 
             this.cookietoken = response.headers["set-cookie"] ? response.headers["set-cookie"][0].split(";")[0].split("=")[1] : "";
 
-            if (response.data && response.data.status !== "success") {
-                throw new Error("Login failed: " + JSON.stringify(response.data));
+            const data = response.data;
+
+            if (data && data.data.status !== "success") {
+                throw new Error("Login failed: " + JSON.stringify(data));
             }
         } catch (error) {
             throw new Error("Login Error: " + error.message);
@@ -46,15 +48,14 @@ class ChurchToolsApiClient {
                 },
             });
 
-            if (response.status === "error") {
+            if (response.data.status === "error") {
                 throw new Error(JSON.stringify(response.data));
             }
 
-            const rawEvents = response.data || [];
-
+            const rawEvents = response.data.data || [];
             return rawEvents.map((ev) => Event.fromJSON(ev));
         } catch (error) {
-            throw new Error(error.message);
+            throw new Error("Error fetching events: " + error);
         }
     }
 }

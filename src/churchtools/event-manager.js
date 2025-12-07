@@ -34,11 +34,11 @@ class EventManager {
         const ctClient = new ChurchToolsApiClient();
         const events = await ctClient.getEvents();
 
-        Logger.info({tags: this.tags, message: "Start event handling. Events: #" + events.length});
+        Logger.info({tags: this.tags, message: "Start event handling - #ofEvents: " + events.length});
 
         const filteredEvents = filterCurrentAndUpcomingEvents(events);
 
-        Logger.info({tags: this.tags, message: "Active/Upcoming Events: #" + filteredEvents.length});
+        Logger.info({tags: this.tags, message: "Active/Upcoming Events - #ofEvents: " + filteredEvents.length});
 
         for (const event of filteredEvents) {
             await this.handleEvent(event);
@@ -60,15 +60,14 @@ class EventManager {
 
         const bookings = event.bookings;
 
-        if (!bookings) {
+        if (bookings.length === 0) {
             Logger.info({tags: this.tags, message: `Event has no bookings`});
             return;
         }
 
-        const bookingValues = Object.values(bookings);
-        Logger.debug({tags: this.tags, message: `Bookings: #${bookingValues.length}`});
+        Logger.debug({tags: this.tags, message: `Bookings: #${bookings.length}`});
 
-        for (const booking of bookingValues) {
+        for (const booking of bookings) {
             await this.handleBookingOfEventHeating(event, booking);
         }
     };
@@ -108,7 +107,7 @@ class EventManager {
         } = HeatingScheduler.calculateHeatingSchedule(roomConfig, event, groupState, booking);
 
         if (!shouldStartHeating) {
-            const message = `Event ${event.name} lies too far in the future. Min. needed: ${minutesToReachTemp} - Preheat in approx. ${minutesUntilHeatingStart} min.`;
+            const message = `Event '${event.name}' lies too far in the future. Min. needed: ${minutesToReachTemp} - Preheat in approx. ${minutesUntilHeatingStart} min.`;
             Logger.debug({tags: this.tags, message});
 
             return;
@@ -165,4 +164,4 @@ class EventManager {
     }
 }
 
-exports.module = {EventManager}
+module.exports = {EventManager}
