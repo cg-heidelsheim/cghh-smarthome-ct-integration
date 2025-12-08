@@ -96,6 +96,7 @@ class EventManager {
                 tags: this.tags,
                 message: `Ignore booking of element with id ${booking.resourceId} aka. '${ignored[booking.resourceId]}'`
             });
+            return;
         }
 
         try {
