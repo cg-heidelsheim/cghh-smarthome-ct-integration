@@ -59,16 +59,15 @@ class EventManager {
     async handleEvent(event) {
         this.tags = {...this.tags, event: event.name};
 
-        Logger.info({tags: this.tags, message: `Handling event ${event.name}`});
+        Logger.info({tags: this.tags, message: `Event ${event.name}`});
 
         const bookings = event.bookings;
 
+        Logger.info({tags: this.tags, message: `Event ${event.name} - Bookings: #${bookings.length}`});
+
         if (bookings.length === 0) {
-            Logger.info({tags: this.tags, message: `Event has no bookings`});
             return;
         }
-
-        Logger.info({tags: this.tags, message: `Bookings: #${bookings.length}`});
 
         for (const booking of bookings) {
             await this.handleBookingOfEventHeating(event, booking);
@@ -94,7 +93,7 @@ class EventManager {
         if (ignored[booking.resourceId]) {
             Logger.info({
                 tags: this.tags,
-                message: `Ignore booking of element with id ${booking.resourceId} aka. '${ignored[booking.resourceId]}'`
+                message: `Event ${event.name} - Booking ${booking.resourceId} aka. '${ignored[booking.resourceId]} - IGNORE'`
             });
             return;
         }
@@ -122,7 +121,7 @@ class EventManager {
         } = HeatingScheduler.calculateHeatingSchedule(roomConfig, event, groupState, booking);
 
         if (!shouldStartHeating) {
-            const message = `Event '${event.name}' - Min. needed: ${minutesToReachTemp} - Starting in. ${minutesUntilHeatingStart} min.`;
+            const message = `Event '${event.name}' - Booking '${roomConfig.name}' - ΔT=${minutesToReachTemp}m | ⏱=${minutesUntilHeatingStart}m`;
             Logger.info({tags: this.tags, message});
 
             return;
@@ -159,10 +158,15 @@ class EventManager {
         }
     }
 
+    /**
+     *
+     * @param {Booking} booking
+     * @returns {boolean}
+     */
     #isAcceptedBooking(booking) {
         // ONLY ALLOW ROOMS WITH STATUS "gebucht"
         if (booking.statusId !== "2") {
-            Logger.warn({tags: this.tags, message: `Booking for group is not in status "accepted"`});
+            Logger.warn({tags: this.tags, message: `Booking ${booking.id} not in status "accepted"`});
             return false;
         }
 
