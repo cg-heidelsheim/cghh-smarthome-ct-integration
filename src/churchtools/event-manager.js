@@ -87,10 +87,21 @@ class EventManager {
         /** @type {RoomConfig} */
         let roomConfig;
 
+        const ignored = {
+            "4": "Küche"
+        }
+
+        if (ignored[booking.resourceId]) {
+            Logger.info({
+                tags: this.tags,
+                message: `Ignore booking of element with id ${booking.resourceId} aka. '${ignored[booking.resourceId]}'`
+            });
+        }
+
         try {
             roomConfig = this.roomConfigDB.findByCTId(booking.resourceId);
         } catch (e) {
-            Logger.error({tags: this.tags, message: `Error on handleBookingOfEventHeating ${e.message}`});
+            Logger.error({tags: this.tags, message: `Error on handleBookingOfEventHeating: ${e.message}`});
             return;
         }
 
