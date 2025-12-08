@@ -26,7 +26,7 @@ class InfluxDBManager {
 
         const point = new Point("Default Log");
         point.stringField("log", data.message)
-            .timestamp(Date.now() * 1_000_000);
+             .timestamp(new Date()); // <-- explicit timestamp
 
         if (Object.keys(info).length > 0) {
             point.stringField("info", JSON.stringify(info));
