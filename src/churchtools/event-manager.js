@@ -44,7 +44,6 @@ class EventManager {
         Logger.info({tags, message: "Active/Upcoming Events - #ofEvents: " + filteredEvents.length});
 
         for (const event of filteredEvents) {
-            Logger.info({tags: this.tags, message: `--- Event --- `});
             await this.handleEvent(event);
         }
 
@@ -61,7 +60,7 @@ class EventManager {
         this.tags = {...this.tags, event: event.name};
         delete this.tags.group;
 
-        Logger.info({tags: this.tags, message: `Event '${event.name}'`});
+        Logger.info({tags: this.tags, message: `--- Event '${event.name}' ---`});
 
         const bookings = event.bookings;
 
