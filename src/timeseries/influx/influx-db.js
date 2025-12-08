@@ -25,7 +25,9 @@ class InfluxDBManager {
         writeApi.useDefaultTags({environment: this.env, ...(data.tags ? data.tags : {})});
 
         const point = new Point("Default Log");
-        point.stringField("log", data.message);
+        point.stringField("log", data.message)
+            .timestamp(Date.now() * 1_000_000);
+
         if (Object.keys(info).length > 0) {
             point.stringField("info", JSON.stringify(info));
         }
