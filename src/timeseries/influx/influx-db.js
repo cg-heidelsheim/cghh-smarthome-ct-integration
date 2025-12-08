@@ -21,12 +21,13 @@ class InfluxDBManager {
     }
 
     sendLog(data, info = {}) {
+        const point = new Point("Default Log");
+        const ts = process.hrtime.bigint(); // monotonic ns time
+        point.stringField("log", data.message)
+            .timestamp(ts.toString());
+
         const writeApi = this.influx.getWriteApi(this.org, "logs");
         writeApi.useDefaultTags({environment: this.env, ...(data.tags ? data.tags : {})});
-
-        const point = new Point("Default Log");
-        point.stringField("log", data.message)
-             .timestamp(new Date()); // <-- explicit timestamp
 
         if (Object.keys(info).length > 0) {
             point.stringField("info", JSON.stringify(info));
