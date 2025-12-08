@@ -4,6 +4,8 @@ const moment = require('moment-timezone');
 moment.tz.setDefault("Europe/Berlin");
 require('dotenv').config();
 
+let logSeq = 0; // module-level counter
+
 const writeOptions = {
     // tune as you like
     batchSize: 100,
@@ -71,6 +73,7 @@ class InfluxDBManager {
 
         const point = new Point("Default Log");
         point.stringField("log", data.message);
+        point.intField("seq", logSeq++);
 
         if (data.tags) {
             Object.entries(data.tags).forEach(([key, val]) => {
