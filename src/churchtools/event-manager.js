@@ -44,6 +44,7 @@ class EventManager {
         Logger.info({tags, message: "Active/Upcoming Events - #ofEvents: " + filteredEvents.length});
 
         for (const event of filteredEvents) {
+            Logger.info({tags: this.tags, message: `--- Event --- `});
             await this.handleEvent(event);
         }
 
@@ -94,7 +95,7 @@ class EventManager {
         if (ignored[booking.resourceId]) {
             Logger.info({
                 tags: this.tags,
-                message: `Event ${event.name} - Booking ${booking.resourceId} aka. '${ignored[booking.resourceId]} - IGNORE'`
+                message: `Event '${event.name}' - Booking ${booking.resourceId} aka. '${ignored[booking.resourceId]}' - IGNORE`
             });
             return;
         }
