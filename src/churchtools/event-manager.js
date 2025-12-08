@@ -58,12 +58,13 @@ class EventManager {
      */
     async handleEvent(event) {
         this.tags = {...this.tags, event: event.name};
+        delete this.tags.group;
 
-        Logger.info({tags: this.tags, message: `Event ${event.name}`});
+        Logger.info({tags: this.tags, message: `Event '${event.name}'`});
 
         const bookings = event.bookings;
 
-        Logger.info({tags: this.tags, message: `Event ${event.name} - Bookings: #${bookings.length}`});
+        Logger.info({tags: this.tags, message: `Event '${event.name}' - Bookings: #${bookings.length}`});
 
         if (bookings.length === 0) {
             return;
