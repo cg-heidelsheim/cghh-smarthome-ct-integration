@@ -1,4 +1,4 @@
-const {InfluxDBManager} = require("./influx/influx-db");
+const influxDb = require('../timeseries/influx/influx-db'); // now the singleton
 
 /**
  * Abstract base class for data senders.
@@ -8,12 +8,10 @@ const {InfluxDBManager} = require("./influx/influx-db");
  */
 class DataSender {
 
-    influxDB;
     bucket;
 
     constructor(bucket) {
         this.bucket = bucket;
-        this.influxDB = new InfluxDBManager();
         if (!this.bucket) {
             throw new Error("Subclass must define a 'bucket' property representing the target InfluxDB bucket.");
         }
@@ -38,7 +36,7 @@ class DataSender {
      */
     sendData(...args) {
         const influxData = this.parseData(...args);
-        this.influxDB.sendGenericInformation(influxData, this.bucket);
+        influxDb.sendGenericInformation(influxData, this.bucket);
     }
 }
 
