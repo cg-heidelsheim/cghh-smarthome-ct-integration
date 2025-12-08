@@ -109,7 +109,7 @@ class EventManager {
         this.tags = {...this.tags, group: roomConfig.name.replace(/ /g, '_')};
 
         if (!this.#isAcceptedBooking(booking)) return;
-        if (this.#isEventLocked(roomConfig)) return;
+        if (this.#isRoomLocked(roomConfig)) return;
 
         let groupState = this.#getGroupState(roomConfig);
 
@@ -134,6 +134,9 @@ class EventManager {
 
             EventLogger.groupUpdatePreheat(groupState.label, roomConfig.getDesiredRoomTemperatureForEvent(event), event);
             EventLogger.heatingTimeExpectancy(minutesToReachTemp, minPreOfBooking, groupState);
+
+            const message = `Event '${event.name}' - Booking '${roomConfig.name}' Start heating`;
+            Logger.info({tags: this.tags, message});
 
             const lock = new Lock();
             lock.expiring = moment(event.endDate);
@@ -174,10 +177,10 @@ class EventManager {
         return true;
     }
 
-    #isEventLocked(roomConfig) {
+    #isRoomLocked(roomConfig) {
         try {
             this.lockDB.getById(roomConfig.homematicId);
-            Logger.info({tags: this.tags, message: `${roomConfig.name} is locked - SKIP`});
+            Logger.info({tags: this.tags, message: `${roomConfig.name} is locked`});
             return true;
         } catch (err) {
             Logger.debug({tags: this.tags, message: `${roomConfig.name} is not locked`});
