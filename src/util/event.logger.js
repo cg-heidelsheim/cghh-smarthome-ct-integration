@@ -40,7 +40,7 @@ class EventLogger {
      */
     static groupUpdatePreheat(roomName, desiredTemperature, event) {
         const tags = {module: "CRON", function: "EXECUTE", group: roomName.replace(/ /g, '_')};
-        const message = `[+] ${roomName} to ${desiredTemperature} for '${event.name}' starting ${this.ft(event.startDate)}`;
+        const message = `[+] '${roomName}' to ${desiredTemperature}°C for '${event.name}' starting ${this.ft(event.startDate)}`;
         Logger.core({tags, message});
     }
 

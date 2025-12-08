@@ -180,10 +180,10 @@ class EventManager {
     #isRoomLocked(roomConfig) {
         try {
             this.lockDB.getById(roomConfig.homematicId);
-            Logger.info({tags: this.tags, message: `${roomConfig.name} is locked`});
+            Logger.info({tags: this.tags, message: `Room '${roomConfig.name}' is locked`});
             return true;
         } catch (err) {
-            Logger.debug({tags: this.tags, message: `${roomConfig.name} is not locked`});
+            Logger.debug({tags: this.tags, message: `Room '${roomConfig.name}' is not locked`});
             return false;
         }
     }
