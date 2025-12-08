@@ -22,9 +22,8 @@ class InfluxDBManager {
 
     sendLog(data, info = {}) {
         const point = new Point("Default Log");
-        const ts = process.hrtime.bigint(); // monotonic ns time
         point.stringField("log", data.message)
-            .timestamp(ts.toString());
+            .timestamp(Date.now()); // <-- explicit timestamp
 
         const writeApi = this.influx.getWriteApi(this.org, "logs");
         writeApi.useDefaultTags({environment: this.env, ...(data.tags ? data.tags : {})});
