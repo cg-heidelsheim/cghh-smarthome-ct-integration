@@ -22,7 +22,7 @@ class LockManager {
      * @returns {Promise<void>}
      */
     async manageLocks() {
-        Logger.debug({tags: this.tags, message: "Starting lock resolving"});
+        Logger.info({tags: this.tags, message: "Starting lock resolving"});
 
         const locks = this.lockDB.getAll();
         Logger.info({tags: this.tags, message: "Number of locks: " + locks.length});
@@ -31,7 +31,7 @@ class LockManager {
             await this.#manageLock(lock);
         }
 
-        Logger.debug({tags: this.tags, message: "Finished lock resolving"});
+        Logger.info({tags: this.tags, message: "Finished lock resolving"});
     }
 
     /**
@@ -47,11 +47,11 @@ class LockManager {
         const tags = {...this.tags, group: roomConfig.name.replace(/ /g, "_")};
 
         if (!lock.isExpired()) {
-            Logger.debug({tags, message: "Lock not expired - SKIP"});
+            Logger.debug({tags, message: `Room '${roomConfig.name}' - Lock not expired`});
             return
         }
 
-        Logger.debug({tags, message: "Lock expired - Reset Group"});
+        Logger.info({tags, message: `Room '${roomConfig.name}' - Lock expired - Reset`});
 
         try {
             const groupManager = GroupManagerFactory.createGroupManager(lock.id);
@@ -59,12 +59,12 @@ class LockManager {
 
             this.lockDB.deleteById(lock.id);
 
-            Logger.debug({tags, message: "Lock resolve success"});
+            Logger.debug({tags, message: `Room '${roomConfig.name}' - Lock resolve success`});
 
             EventLogger.resolveLock(groupManager.groupState.label, roomConfig.desiredTemperatureIdle, lock);
         } catch (e) {
-            Logger.error({tags, message: "Lock resolve failed: " + e});
-            throw new Error("Cannot set room to idle");
+            Logger.error({tags, message: `Room '${roomConfig.name}' - Lock resolve failed: ${e}`});
+            // throw new Error("Cannot set room to idle");
         }
     }
 }

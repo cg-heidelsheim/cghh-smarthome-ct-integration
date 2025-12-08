@@ -37,7 +37,7 @@ class EnvironmentManager {
             const info = {response: e.response?.data};
             Logger.error({tags, message: "Could not execute API request: " + e}, info);
 
-            throw Error(e);
+            // throw Error(e);
         }
     }
 }

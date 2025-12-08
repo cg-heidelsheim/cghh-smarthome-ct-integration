@@ -169,13 +169,12 @@ const handleGroupStateChange = (currentState, updatedState) => {
     if (currentState.equalsValueAttributes(updatedState)) return;
 
     const dataSender = new GroupDataSender();
-    dataSender.sendData(currentState, updatedState);
+    dataSender.sendData(updatedState);
 
     const groupStateDB = new GroupStateDB();
     groupStateDB.save(updatedState);
 
-    EventLogger.groupUpdateEvent(currentState, updatedState);
-    EventLogger.groupUpdateEventToInflux(currentState, updatedState);
+    EventLogger.wsGroupChange(currentState, updatedState);
 };
 
 /**
@@ -197,7 +196,7 @@ const handleDeviceStateChange = (currentState, updatedState) => {
                 const dataSender = new DeviceDataSender();
                 dataSender.sendData(updatedState, channelIndex);
 
-                EventLogger.deviceUpdateEvent(currentState, updatedState, channelIndex);
+                EventLogger.wsDeviceUpdateDebug(currentState, updatedState, channelIndex);
             }
         );
 
@@ -218,7 +217,7 @@ const handleWeatherStateChange = (currentState, updatedState) => {
     const weatherStateDB = new WeatherStateDB();
     weatherStateDB.save(updatedState);
 
-    EventLogger.weatherUpdateEvent(currentState, updatedState);
+    EventLogger.weatherUpdateDebug(currentState, updatedState);
 };
 
 module.exports = {startEventListener};

@@ -5,7 +5,9 @@ const {Event} = require('./../churchtools/model/event');
 moment.tz.setDefault("Europe/Berlin");
 
 /**
- * TODO second class for non core messages
+ * This class is the main Logging Class for actions that the automated Script has made
+ *
+ * TODO MAKE 2
  */
 class EventLogger {
 
@@ -28,7 +30,7 @@ class EventLogger {
      */
     static resolveLock(name, desiredTemperature, lock) {
         const tags = {module: "CRON", function: "EXECUTE", group: name.replace(/ /g, '_')};
-        const message = `[-] ${name} to ${desiredTemperature} for '${lock.eventName}' ending at ${this.ft(lock.expiring)}`;
+        const message = `[-] '${name}' to ${desiredTemperature}°C for '${lock.eventName}' ending at ${this.ft(lock.expiring)}`;
         Logger.core({tags, message});
     }
 
@@ -46,8 +48,45 @@ class EventLogger {
 
     static groupUpdatePreheatBlocked(eventName, roomName) {
         const tags = {module: "CRON", function: "EXECUTE", group: roomName.replace(/ /g, '_')};
-        const message = `[#] ${roomName} preheating is blocked for event '${eventName}' due to manual temperature override`;
+        const message = `[#] '${roomName}' preheating is blocked for event '${eventName}' due to manual temperature override`;
         Logger.core({tags, message});
+    }
+
+
+    /**
+     *
+     * @param {GroupState} currentState
+     * @param {GroupState} updatedState
+     */
+    static wsGroupChangeCore(currentState, updatedState) {
+        if (currentState.setTemperature === updatedState.setTemperature) {
+            return;
+        }
+
+        const pendingLogsManager = new PendingLogDB();
+
+        let pendingObj;
+        try {
+            pendingObj = pendingLogsManager.getById(currentState.id);
+        } catch (err) {
+            Logger.debug({message: "Pending Log not found: " + err.message});
+        }
+
+        let tags = {
+            module: "WS",
+            function: "GROUP_UPDATE",
+            group: currentState.label.replace(/\s/g, ""),
+            type: (pendingObj ? "AUTO" : "MANU"),
+        };
+
+        if (pendingObj) {
+            tags = {...tags, event: pendingObj.eventName.replace(/\s/g, "")};
+        }
+        const message = `${currentState.label} - Changed setTemperature from ${currentState.setTemperature} to ${updatedState.setTemperature}`;
+        Logger.core({tags, message});
+
+        // resolve pending log
+        if (pendingObj) pendingLogsManager.deleteById(currentState.id);
     }
 
     /**
@@ -56,17 +95,45 @@ class EventLogger {
      * @param {GroupState} currentState
      * @param {GroupState} updatedState
      */
-    static groupUpdateEvent(currentState, updatedState) {
+    static wsGroupChange(currentState, updatedState) {
+        EventLogger.wsGroupChangeCore(currentState, updatedState);
+        EventLogger.wsGroupChangeDebug(currentState, updatedState);
+    }
+
+    static wsGroupChangeDebug(currentState, updatedState) {
         const isInitialUpdate = currentState.label === "INIT";
         if (!isInitialUpdate) {
-            this.groupUpdateEventString("PRE", currentState);
+            this.wsGroupStateToInfluxLog("PRE", currentState);
         }
 
         const fromTo = isInitialUpdate ? "INIT" : "POST";
-        this.groupUpdateEventString(fromTo, updatedState);
+        this.wsGroupStateToInfluxLog(fromTo, updatedState);
     }
 
-    static groupUpdateEventString(fromTo, groupState) {
+    static wsDeviceUpdateDebug(currentState, updatedState, channelIndex) {
+        const currentChannel = currentState.channels.find(channel => channel.index = channelIndex);
+        const updatedChannel = updatedState.channels.find(channel => channel.index = channelIndex);
+
+        const isInitialUpdate = currentState.label === "INIT";
+        if (!isInitialUpdate) {
+            this.wsDeviceStateToInfluxLog("PRE", currentState, currentChannel);
+        }
+
+        const fromTo = isInitialUpdate ? "INIT" : "POST";
+        this.wsDeviceStateToInfluxLog(fromTo, updatedState, updatedChannel);
+    }
+
+    static weatherUpdateDebug(currentState, updatedState) {
+        const isInitialUpdate = currentState.label === "INIT";
+        if (!isInitialUpdate) {
+            this.wsWeatherToInfluxLog("PRE", currentState);
+        }
+
+        const fromTo = isInitialUpdate ? "INIT" : "POST";
+        this.wsWeatherToInfluxLog(fromTo, updatedState);
+    }
+
+    static wsGroupStateToInfluxLog(fromTo, groupState) {
         let message = groupState.label;
 
         if (groupState.setTemperature) message += ` - SetTemp: ${groupState.setTemperature.toFixed(1)}`;
@@ -79,23 +146,11 @@ class EventLogger {
             group: groupState.label.replace(/ /g, '_'),
             snapshot: fromTo
         };
+
         Logger.debug({tags, message});
     }
 
-    static deviceUpdateEvent(currentState, updatedState, channelIndex) {
-        const currentChannel = currentState.channels.find(channel => channel.index = channelIndex);
-        const updatedChannel = updatedState.channels.find(channel => channel.index = channelIndex);
-
-        const isInitialUpdate = currentState.label === "INIT";
-        if (!isInitialUpdate) {
-            this.deviceUpdateEventString("PRE", currentState, currentChannel);
-        }
-
-        const fromTo = isInitialUpdate ? "INIT" : "POST";
-        this.deviceUpdateEventString(fromTo, updatedState, updatedChannel);
-    }
-
-    static deviceUpdateEventString(fromTo, deviceState, channel) {
+    static wsDeviceStateToInfluxLog(fromTo, deviceState, channel) {
         let message = deviceState.label;
 
         if (channel.setTemperature) message += ` - SetTemp: ${channel.setTemperature.toFixed(1)}`;
@@ -110,20 +165,11 @@ class EventLogger {
             snapshot: fromTo,
             channel: channel.index
         };
+
         Logger.debug({tags, message});
     }
 
-    static weatherUpdateEvent(currentState, updatedState) {
-        const isInitialUpdate = currentState.label === "INIT";
-        if (!isInitialUpdate) {
-            this.weatherUpdateEventString("PRE", currentState);
-        }
-
-        const fromTo = isInitialUpdate ? "INIT" : "POST";
-        this.weatherUpdateEventString(fromTo, updatedState);
-    }
-
-    static weatherUpdateEventString(fromTo, state) {
+    static wsWeatherToInfluxLog(fromTo, state) {
         let message = `${state.label} CurrTemp: ${state.temperature.toFixed(1)}`;
         message += ` - MinTemp: ${state.minTemperature.toFixed(1)}`;
         message += ` - MaxTemp: ${state.maxTemperature.toFixed(1)}`;
@@ -139,42 +185,8 @@ class EventLogger {
             location: state.label.replace(/ /g, '_'),
             snapshot: fromTo
         };
+
         Logger.debug({tags, message});
-
-    }
-
-    /**
-     *
-     * @param {GroupState} currentState
-     * @param {GroupState} updatedState
-     */
-    static groupUpdateEventToInflux(currentState, updatedState) {
-        if (currentState.setTemperature !== updatedState.setTemperature) {
-            const pendingLogsManager = new PendingLogDB();
-
-            let pendingObj;
-            try {
-                pendingObj = pendingLogsManager.getById(currentState.id);
-            } catch (err) {
-                Logger.debug({message: "Pending Log not found: " + err.message});
-            }
-
-            let tags = {
-                module: "WS",
-                function: "GROUP_UPDATE",
-                group: currentState.label.replace(/\s/g, ""),
-                type: (pendingObj ? "AUTO" : "MANU"),
-            };
-
-            if (pendingObj) {
-                tags = {...tags, event: pendingObj.eventName.replace(/\s/g, "")};
-            }
-            const message = `${currentState.label} - Changed setTemperature from ${currentState.setTemperature} to ${updatedState.setTemperature}`;
-            Logger.core({tags, message});
-
-            // resolve pending log
-            if (pendingObj) pendingLogsManager.deleteById(currentState.id);
-        }
     }
 
     static ft = (string) => {
