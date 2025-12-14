@@ -3,6 +3,8 @@ const {HMIPWSGroupChangedEvent} = require("./hmip-ws-event-group-changed");
 const {HMIPWSHomeChangedEvent} = require("./hmip-ws-event-home-changed");
 const {Logger} = require("../../../../util/logger");
 
+require('dotenv').config();
+
 /**
  * Factory function to create HMIPWSEvent instance from JSON.
  * Implements CommonJS synchronous style.
@@ -25,10 +27,12 @@ function createEventFromJson(json) {
         case 'HOME_CHANGED':
             return HMIPWSHomeChangedEvent.fromJson(json);
         default:
-            Logger.warn({
-                tags: {module: "WS", function: "FACTORY"},
-                message: 'Unknown HMIPWSEvent.pushEventType: ' + type + " - " + JSON.stringify(json)
-            })
+            if (process.env.ENVIRONMENT === "production") {
+                Logger.warn({
+                    tags: {module: "WS", function: "FACTORY"},
+                    message: 'Unknown HMIPWSEvent.pushEventType: ' + type + " - " + JSON.stringify(json)
+                })
+            }
     }
 
 }

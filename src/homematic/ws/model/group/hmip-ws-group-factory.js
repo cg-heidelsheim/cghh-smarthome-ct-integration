@@ -4,6 +4,8 @@ const {HMIPWSMetaGroup} = require("./hmip-ws-group-meta");
 const {HMIPWSIndoorClimateGroup} = require("./hmip-ws-group-indoor-climate");
 const {Logger} = require("../../../../util/logger");
 
+require('dotenv').config();
+
 /**
  * Factory function to create HMIPWSFunctionalChannel instance from JSON.
  * Implements CommonJS synchronous style.
@@ -30,16 +32,21 @@ function createGroupFromJson(json) {
         case 'INDOOR_CLIMATE':
             return HMIPWSIndoorClimateGroup.fromJson(json);
         default: {
-            const ignores = ["SHUTTER"];
-            const matches = ignores.some(t => type.includes(t));
+            if (process.env.ENVIRONMENT !== "production") {
+                const ignores = ["SHUTTER"];
+                const matches = ignores.some(t => type.includes(t));
 
-            if (matches) {
-                Logger.warn({tags: {module: "WS", function: "FACTORY"}, message: 'IGNORE HMIPWSGroup.type: ' + type})
-            } else {
-                Logger.warn({
-                    tags: {module: "WS", function: "FACTORY"},
-                    message: 'Unknown HMIPWSGroup.type: ' + type + " - " + JSON.stringify(json)
-                })
+                if (matches) {
+                    Logger.warn({
+                        tags: {module: "WS", function: "FACTORY"},
+                        message: 'IGNORE HMIPWSGroup.type: ' + type
+                    })
+                } else {
+                    Logger.warn({
+                        tags: {module: "WS", function: "FACTORY"},
+                        message: 'Unknown HMIPWSGroup.type: ' + type + " - " + JSON.stringify(json)
+                    })
+                }
             }
         }
     }
