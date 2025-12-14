@@ -42,8 +42,7 @@ class HeatingScheduler {
             shouldStartHeating,
             minutesUntilHeatingStart,
             minutesToReachTemp,
-            minutesPreOfBooking,
-            heatingStartTime,
+            minutesPreOfBooking
         };
     }
 }

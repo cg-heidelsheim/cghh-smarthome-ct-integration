@@ -118,7 +118,7 @@ class EventManager {
 
     async #executeHeatingSchedule(roomConfig, event, groupState, booking) {
         const {
-            shouldStartHeating, minutesUntilHeatingStart, minutesToReachTemp, minPreOfBooking
+            shouldStartHeating, minutesUntilHeatingStart, minutesToReachTemp, minutesPreOfBooking
         } = HeatingScheduler.calculateHeatingSchedule(roomConfig, event, groupState, booking);
 
         if (!shouldStartHeating) {
@@ -133,7 +133,7 @@ class EventManager {
             await groupManager.heatForEvent(event);
 
             EventLogger.groupUpdatePreheat(groupState.label, roomConfig.getDesiredRoomTemperatureForEvent(event), event);
-            EventLogger.heatingTimeExpectancy(minutesToReachTemp, minPreOfBooking, groupState);
+            EventLogger.heatingTimeExpectancy(minutesToReachTemp, minutesPreOfBooking, groupState);
 
             const message = `Event '${event.name}' - Booking '${roomConfig.name}' Start heating`;
             Logger.info({tags: this.tags, message});
