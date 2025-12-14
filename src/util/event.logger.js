@@ -1,98 +1,176 @@
 const moment = require('moment-timezone');
-const { InfluxDBManager } = require('../influx/influx-db');
-const { PendingLogsManager } = require('../pending-logs.manager');
-const { Logger } = require('./logger');
+const {PendingLogDB} = require('../db/pending-log.db');
+const {Logger} = require('./logger');
+const {Event} = require('./../churchtools/model/event');
 moment.tz.setDefault("Europe/Berlin");
 
+/**
+ * This class is the main Logging Class for actions that the automated Script has made
+ *
+ * TODO MAKE 2
+ */
 class EventLogger {
 
     /**
-     * @param {string} minutes 
+     * @param {number} minutes
+     * @param {number} minPreOfBooking
+     * @param {GroupState} groupState
      */
-    static heatingTimeExpectancy(minutes, minpreOfBooking) {
-        console.log(`[${this.t()}] [CRON] [ROOM UPDATE] [+] Preheating takes ~ ${Math.round(minutes)} minutes (incl. ${minpreOfBooking} min booking offset)`);
-    }
-
-    static resolveLock(groupState, desiredTemperature, lock) {
-        const tags = { module: "CRON", function: "EXECUTE", group: groupState.label.replace(/ /g, '_') };
-        const message = `[-] ${groupState.label} to ${desiredTemperature} for ${lock.eventName} ending at ${this.ft(lock.expiring)}`;
-        Logger.core({ tags, message });
-    }
-
-    static groupUpdatePreheat(roomName, desiredTemperature, event) {
-        const tags = { module: "CRON", function: "EXECUTE", group: roomName.replace(/ /g, '_') };
-        const message = `[+] ${roomName} to ${desiredTemperature} for ${event.bezeichnung} ending at ${this.ft(event.startdate)}`;
-        Logger.core({ tags, message });
-    }
-
-    static groupUpdatePreheatBlocked(eventName, roomName) {
-        const tags = { module: "CRON", function: "EXECUTE", group: roomName.replace(/ /g, '_') };
-        const message = `[#] ${roomName} preheating is blocked for event ${eventName} due to current manual override`;
-        Logger.core({ tags, message });
+    static heatingTimeExpectancy(minutes, minPreOfBooking, groupState) {
+        const tags = {module: "CRON", function: "EXECUTE", group: groupState.label.replace(/ /g, '_')};
+        const message = `[#] Preheating takes ~ ${Math.round(minutes)} min. (incl. ${minPreOfBooking || 0} min. offset)}`;
+        Logger.core({tags, message});
     }
 
     /**
-     * @param {GroupState} currentState 
-     * @param {GroupState} updatedState 
+     *
+     * @param {string} name
+     * @param desiredTemperature
+     * @param lock
      */
-    static groupUpdateEvent(currentState, updatedState) {
+    static resolveLock(name, desiredTemperature, lock) {
+        const tags = {module: "CRON", function: "EXECUTE", group: name.replace(/ /g, '_')};
+        const message = `[-] '${name}' to ${desiredTemperature}°C for '${lock.eventName}' ending at ${this.ft(lock.expiring)}`;
+        Logger.core({tags, message});
+    }
+
+    /**
+     *
+     * @param {string} roomName
+     * @param {number} desiredTemperature
+     * @param {Event} event
+     */
+    static groupUpdatePreheat(roomName, desiredTemperature, event) {
+        const tags = {module: "CRON", function: "EXECUTE", group: roomName.replace(/ /g, '_')};
+        const message = `[+] '${roomName}' to ${desiredTemperature}°C for '${event.name}' starting ${this.ft(event.startDate)}`;
+        Logger.core({tags, message});
+    }
+
+    static groupUpdatePreheatBlocked(eventName, roomName) {
+        const tags = {module: "CRON", function: "EXECUTE", group: roomName.replace(/ /g, '_')};
+        const message = `[#] '${roomName}' preheating is blocked for event '${eventName}' due to manual temperature override`;
+        Logger.core({tags, message});
+    }
+
+
+    /**
+     *
+     * @param {GroupState} currentState
+     * @param {GroupState} updatedState
+     */
+    static wsGroupChangeCore(currentState, updatedState) {
+        if (currentState.setTemperature === updatedState.setTemperature) {
+            return;
+        }
+
+        const pendingLogsManager = new PendingLogDB();
+
+        let pendingObj;
+        try {
+            pendingObj = pendingLogsManager.getById(currentState.id);
+        } catch (err) {
+            Logger.debug({message: "Pending Log not found: " + err.message});
+        }
+
+        let tags = {
+            module: "WS",
+            function: "GROUP_UPDATE",
+            group: currentState.label.replace(/\s/g, ""),
+            type: (pendingObj ? "AUTO" : "MANU"),
+        };
+
+        if (pendingObj) {
+            tags = {...tags, event: pendingObj.eventName.replace(/\s/g, "")};
+        }
+        const message = `${currentState.label} - Changed setTemperature from ${currentState.setTemperature} to ${updatedState.setTemperature}`;
+        Logger.core({tags, message});
+
+        // resolve pending log
+        if (pendingObj) pendingLogsManager.deleteById(currentState.id);
+    }
+
+    /**
+     * For an update, first send the current state with the label "PRE", and then the new state with the label "POST"
+     *
+     * @param {GroupState} currentState
+     * @param {GroupState} updatedState
+     */
+    static wsGroupChange(currentState, updatedState) {
+        EventLogger.wsGroupChangeCore(currentState, updatedState);
+        EventLogger.wsGroupChangeDebug(currentState, updatedState);
+    }
+
+    static wsGroupChangeDebug(currentState, updatedState) {
         const isInitialUpdate = currentState.label === "INIT";
         if (!isInitialUpdate) {
-            this.groupUpdateEventString("PRE", currentState);
+            this.wsGroupStateToInfluxLog("PRE", currentState);
         }
 
         const fromTo = isInitialUpdate ? "INIT" : "POST";
-        this.groupUpdateEventString(fromTo, updatedState);
+        this.wsGroupStateToInfluxLog(fromTo, updatedState);
     }
 
-    static groupUpdateEventString(fromTo, groupState) {
-        var message = groupState.label;
-
-        if (groupState.setTemperature) message += ` - SetTemp: ${groupState.setTemperature.toFixed(1)}`;
-        if (groupState.temperature) message += ` - CurrTemp: ${groupState.temperature.toFixed(1)}`;
-        if (groupState.humidity) message += ` - Humidity: ${groupState.humidity.toFixed(1)}`;
-
-        const tags = { module: "WS", function: "GROUP_UPDATE", group: groupState.label.replace(/ /g, '_'), snapshot: fromTo };
-        Logger.debug({ tags, message });
-    }
-
-    static deviceUpdateEvent(currentState, updatedState, channelIndex) {
+    static wsDeviceUpdateDebug(currentState, updatedState, channelIndex) {
         const currentChannel = currentState.channels.find(channel => channel.index = channelIndex);
         const updatedChannel = updatedState.channels.find(channel => channel.index = channelIndex);
 
         const isInitialUpdate = currentState.label === "INIT";
         if (!isInitialUpdate) {
-            this.deviceUpdateEventString("PRE", currentState, currentChannel);
+            this.wsDeviceStateToInfluxLog("PRE", currentState, currentChannel);
         }
 
         const fromTo = isInitialUpdate ? "INIT" : "POST";
-        this.deviceUpdateEventString(fromTo, updatedState, updatedChannel);
+        this.wsDeviceStateToInfluxLog(fromTo, updatedState, updatedChannel);
     }
 
-    static deviceUpdateEventString(fromTo, deviceState, channel) {
-        var message = deviceState.label;
+    static weatherUpdateDebug(currentState, updatedState) {
+        const isInitialUpdate = currentState.label === "INIT";
+        if (!isInitialUpdate) {
+            this.wsWeatherToInfluxLog("PRE", currentState);
+        }
+
+        const fromTo = isInitialUpdate ? "INIT" : "POST";
+        this.wsWeatherToInfluxLog(fromTo, updatedState);
+    }
+
+    static wsGroupStateToInfluxLog(fromTo, groupState) {
+        let message = groupState.label;
+
+        if (groupState.setTemperature) message += ` - SetTemp: ${groupState.setTemperature.toFixed(1)}`;
+        if (groupState.temperature) message += ` - CurrTemp: ${groupState.temperature.toFixed(1)}`;
+        if (groupState.humidity) message += ` - Humidity: ${groupState.humidity.toFixed(1)}`;
+
+        const tags = {
+            module: "WS",
+            function: "GROUP_UPDATE",
+            group: groupState.label.replace(/ /g, '_'),
+            snapshot: fromTo
+        };
+
+        Logger.debug({tags, message});
+    }
+
+    static wsDeviceStateToInfluxLog(fromTo, deviceState, channel) {
+        let message = deviceState.label;
 
         if (channel.setTemperature) message += ` - SetTemp: ${channel.setTemperature.toFixed(1)}`;
         if (channel.temperature) message += ` - CurrTemp: ${channel.temperature.toFixed(1)}`;
         if (channel.valvePosition) message += ` - ValvePos: ${channel.valvePosition.toFixed(1)}`;
         if (channel.index) message += ` - Index: ${channel.index}`;
 
-        const tags = { module: "WS", function: "DEVICE_UPDATE", device: deviceState.label.replace(/ /g, '_'), snapshot: fromTo, channel: channel.index };
-        Logger.debug({ tags, message });
+        const tags = {
+            module: "WS",
+            function: "DEVICE_UPDATE",
+            device: deviceState.label.replace(/ /g, '_'),
+            snapshot: fromTo,
+            channel: channel.index
+        };
+
+        Logger.debug({tags, message});
     }
 
-    static weatherUpdateEvent(currentState, updatedState) {
-        const isInitialUpdate = currentState.label === "INIT";
-        if (!isInitialUpdate) {
-            this.weatherUpdateEventString("PRE", currentState);
-        }
-
-        const fromTo = isInitialUpdate ? "INIT" : "POST";
-        this.weatherUpdateEventString(fromTo, updatedState);
-    }
-
-    static weatherUpdateEventString(fromTo, state) {
-        var message = `${state.label} CurrTemp: ${state.temperature.toFixed(1)}`;
+    static wsWeatherToInfluxLog(fromTo, state) {
+        let message = `${state.label} CurrTemp: ${state.temperature.toFixed(1)}`;
         message += ` - MinTemp: ${state.minTemperature.toFixed(1)}`;
         message += ` - MaxTemp: ${state.maxTemperature.toFixed(1)}`;
         message += ` - Humidity: ${state.humidity.toFixed(1)}`;
@@ -101,34 +179,14 @@ class EventLogger {
         message += ` - WeatherCond: ${state.weatherCondition}`;
         message += ` - Time: ${state.weatherDayTime}`;
 
-        const tags = { module: "WS", function: "WEATHER_UPDATE", location: state.label.replace(/ /g, '_'), snapshot: fromTo };
-        Logger.debug({ tags, message });
+        const tags = {
+            module: "WS",
+            function: "WEATHER_UPDATE",
+            location: state.label.replace(/ /g, '_'),
+            snapshot: fromTo
+        };
 
-    }
-
-    static groupUpdateEventToInflux(currentState, updatedState) {
-        if (currentState.setTemperature !== updatedState.setTemperature) {
-            const pendingLogsManager = new PendingLogsManager();
-
-            const pendigObj = pendingLogsManager.getPendingObjectByGroupId(currentState.id);
-            const isPending = pendigObj?.pending;
-
-            var tags = {
-                module: "WS",
-                function: "GROUP_UPDATE",
-                group: currentState.label.replace(/\s/g, ""),
-                type: (isPending ? "AUTO" : "MANU"),
-            };
-
-            if (isPending) {
-                tags = { ...tags, event: pendigObj.eventName.replace(/\s/g, "") };
-            }
-            const message = `${currentState.label} - Changed setTemperature from ${currentState.setTemperature} to ${updatedState.setTemperature}`;
-            Logger.core({ tags, message });
-
-            // resolve pendig log
-            if (isPending) pendingLogsManager.setPendingForGroupId(currentState.id, false, null);
-        }
+        Logger.debug({tags, message});
     }
 
     static ft = (string) => {
@@ -141,4 +199,4 @@ class EventLogger {
 
 }
 
-module.exports = { EventLogger };
+module.exports = {EventLogger};

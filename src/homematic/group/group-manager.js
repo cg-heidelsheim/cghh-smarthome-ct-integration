@@ -1,67 +1,88 @@
-const { PendingLogsManager } = require("../../pending-logs.manager");
-const { Logger } = require("../../util/logger");
-const { HomematicApi } = require("../homematic-api");
-const { GroupState } = require("./group-state");
+const {PendingLogDB} = require("../../db/pending-log.db");
+const {Logger} = require("../../util/logger");
+const {HomematicApi} = require("../homematic-api");
+const {GroupState} = require("../../db/model/group-state");
+const {PendingLog} = require("../../db/model/pending-log");
+const {Event} = require("./../../churchtools/model/event");
 
+/**
+ * TODO REFACTOR
+ */
 class GroupManager {
 
-    /** @type {String} */
-    groupId;
-    /** @type {RoomConfiguration} */
+    /** @type {RoomConfig} */
     roomConfiguration;
     /** @type {GroupState} */
-    roomState;
+    groupState;
     /** @type {HomematicApi} */
     homematicAPI;
 
-    constructor(id, roomConfiguration, roomState) {
-        this.groupId = id;
+    constructor(params) {
+        this.roomConfiguration = params.roomConfiguration;
+        this.groupState = params.roomState;
 
-        this.roomConfiguration = roomConfiguration;
-        this.roomState = roomState;
-
-        this.homematicAPI = new HomematicApi();
+        this.homematicAPI = params.homematicAPI;
     }
 
     async setToIdle(eventName) {
         const desiredTemperature = this.roomConfiguration.desiredTemperatureIdle;
-        await this.updateTemperature(desiredTemperature, eventName, true);
+        await this.updateTemperature(desiredTemperature, eventName);
     }
 
     /**
-     * @param {*} event 
+     * @param {Event} event
      * @throws {Error} If room is currently heated (may happen if somebody changes temperature between events)
      */
     async heatForEvent(event) {
-        const desiredTemperature = this.roomConfiguration.getDesiredRoomTemepratureForEvent(event);
+        const desiredTemperature = this.roomConfiguration.getDesiredRoomTemperatureForEvent(event);
 
         // check if temp is currently manually changed
-        const temperatureIsManuallyChanged = this.roomState.setTemperature !== this.roomConfiguration.desiredTemperatureIdle;
-        const currentTemperatureIsDefined = this.roomState.setTemperature !== undefined;
-        if (temperatureIsManuallyChanged && currentTemperatureIsDefined) throw new Error("Blocked");
+        const temperatureIsManuallyChanged = this.groupState.setTemperature !== this.roomConfiguration.desiredTemperatureIdle;
 
-        await this.updateTemperature(desiredTemperature, event.bezeichnung, true);
+        const currentTemperatureIsDefined = this.groupState.setTemperature !== undefined;
+        if (temperatureIsManuallyChanged && currentTemperatureIsDefined) {
+            if (process.env.ENVIRONMENT === "production") {
+                throw new Error("Blocked");
+            } else if (process.env.ENVIRONMENT !== "production") {
+                if (this.groupState.setTemperature === desiredTemperature) {
+                    Logger.warn({message: "ATTENTION: Assumed no manual change, since setTemp === desiredTemp"})
+                } else {
+                    throw new Error("Blocked");
+                }
+            }
+        }
+
+        await this.updateTemperature(desiredTemperature, event.name);
     }
 
-    async updateTemperature(desiredTemperature, eventName, isIdle = false) {
-        var tags = { module: "CRON", function: "EVENT", group: this.groupId };
+    async updateTemperature(desiredTemperature, eventName) {
+        const tags = {module: "CRON", function: "EVENT", group: this.roomConfiguration.homematicId};
         // set before data send, otherwise websocket might trigger before lock is set
-        const pendingLogsManager = new PendingLogsManager();
-        pendingLogsManager.setPendingForGroupId(this.groupId, true, eventName);
+        const pendingLogDb = new PendingLogDB();
+        const pendingLog = new PendingLog();
+        pendingLog.id = this.roomConfiguration.homematicId;
+        pendingLog.eventName = eventName;
+        pendingLogDb.save(pendingLog);
 
         try {
-            await this.homematicAPI.setTemperatureForGroup(this.groupId, desiredTemperature);
+            await this.homematicAPI.setTemperatureForGroup(this.roomConfiguration.homematicId, desiredTemperature);
 
-            Logger.debug({ tags, message: `Set temperature of ${this.groupId} to ${desiredTemperature}` });
+            Logger.debug({
+                tags,
+                message: `Set temperature of ${this.roomConfiguration.homematicId} to ${desiredTemperature}`
+            });
         } catch (e) {
-            Logger.error({ tags, message: `Can't set temperature of ${this.groupId} to ${desiredTemperature}: ${e}` });
+            Logger.error({
+                tags,
+                message: `Can't set temperature of ${this.roomConfiguration.homematicId} to ${desiredTemperature}: ${e}`
+            });
 
-            // revert pending
-            pendingLogsManager.setPendingForGroupId(this.groupId, false, null);
+            // revert pending log
+            pendingLogDb.delete(this.roomConfiguration.homematicId);
             throw new Error("Cannot set Temperature to idle");
         }
     }
 
 }
 
-module.exports = { GroupManager };
+module.exports = {GroupManager};

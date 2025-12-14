@@ -1,0 +1,26 @@
+{
+  "Gottesdienst": {
+    "id": "Gottesdienst",
+    "desiredTemperature": 18
+  },
+  "Jungschar": {
+    "id": "Jungschar",
+    "desiredTemperature": 18
+  },
+  "Frauenevent": {
+    "id": "Frauenevent",
+    "desiredTemperature": 20
+  },
+  "Gebet": {
+    "id": "Gebet",
+    "desiredTemperature": 20
+  },
+  "GenerationPlus": {
+    "id": "GenerationPlus",
+    "desiredTemperature": 20
+  },
+  "SpielSpass": {
+    "id": "SpielSpass",
+    "desiredTemperature": 19
+  }
+}

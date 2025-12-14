@@ -1,3 +1,7 @@
+/**
+ * TODO: find out what fields the HMIP sends for a group on a WebSocket message. Update this class respectively
+ */
+
 class Group {
 
     data;
@@ -7,19 +11,11 @@ class Group {
     }
 
     /**
-     * Only groups with a wallthermostat or wall temperature/humidity sensor have an "actualTemperature" attribute
-     * @returns boolean if actual temperature is set
-     */
-    containsThermostat() {
-        return this.data.actualTemperature !== null;
-    }
-
-    /**
      * @returns boolean if is of type "HEATING"
      */
     isHeatingGroup() {
-        return this.data.type === "HEATING";
+        return this.type === "HEATING";
     }
 }
 
-module.exports = { Group };
+module.exports = {Group};

@@ -1,29 +1,32 @@
-const { WebsocketManager } = require("../websocket-manager");
+const {WebsocketManager} = require("../websocket-manager");
 
-const { Group } = require("./group/group");
-const { GroupState } = require("./group/group-state");
-const { GroupStateDB } = require("./group/group-state.db");
-const { GroupStateBuilder } = require("./group/group-state.builder");
-const { GroupStateAnlyzer } = require("./group/group-state.analyzer");
-const { GroupDataSender } = require("./group/group.data-sender");
+const {GroupState} = require("../db/model/group-state");
+const {GroupStateDB} = require("../db/group-state.db");
+const {GroupStateBuilder} = require("./group/group-state.builder");
+const {GroupDataSender} = require("../timeseries/group.data-sender");
 
-const { Device } = require("./device/device");
-const { DeviceState } = require("./device/device-state");
-const { DeviceStateDB } = require("./device/device-state.db");
-const { DeviceStateBuilder } = require("./device/device-state.builder");
-const { DeviceStateAnalyzer } = require("./device/device-state.analyzer");
-const { DeviceDataSender } = require("./device/device.data-sender");
+const {DeviceState} = require("../db/model/device-state");
+const {DeviceStateDB} = require("../db/device-state.db");
+const {DeviceStateBuilder} = require("./device/device-state.builder");
+const {DeviceDataSender} = require("../timeseries/device.data-sender");
 
-const { Home } = require("./weather/home");
-const { WeatherState } = require("./weather/weather-state");
-const { WeatherStateDB } = require("./weather/weather-state.db");
-const { WeatherStateBuilder } = require("./weather/weather-state.builder");
-const { WeatherStateAnlyzer } = require("./weather/weather-state.analyzer");
-const { WeatherDataSender } = require("./weather/weather.data-sender");
+const {WeatherState} = require("../db/model/weather-state");
+const {WeatherStateDB} = require("../db/weather-state.db");
+const {WeatherStateBuilder} = require("./weather/weather-state.builder");
+const {WeatherDataSender} = require("../timeseries/weather.data-sender");
 
-const { EventLogger } = require("../util/event.logger");
+const {EventLogger} = require("../util/event.logger");
+const {Logger} = require("../util/logger");
 
 const moment = require('moment-timezone');
+const {HMIPWSMessage} = require("./ws/model/hmip-ws-message");
+const {HMIPWSGroupChangedEvent} = require("./ws/model/event/hmip-ws-event-group-changed");
+const {HMIPWSDeviceChangedEvent} = require("./ws/model/event/hmip-ws-event-device-changed");
+const {HMIPWSHomeChangedEvent} = require("./ws/model/event/hmip-ws-event-home-changed");
+const {HMIPWSHeatingGroup} = require("./ws/model/group/hmip-ws-group-heating");
+const {HMIPWSHeatingThermostatDevice} = require("./ws/model/device/hmip-ws-device-heating-thermostat");
+const {HMIPWSHome} = require("./ws/model/home/hmip-ws-home");
+
 moment.tz.setDefault("Europe/Berlin");
 
 require("dotenv").config();
@@ -31,43 +34,38 @@ require("dotenv").config();
 const startEventListener = () => {
     const websocketManager = new WebsocketManager(process.env.HOMEMATIC_WS_URL);
     const headers = {
-        'AUTHTOKEN': process.env.HOMEMATIC_API_AUTHTOKEN,
-        'CLIENTAUTH': process.env.HOMEMATIC_API_CLIENTAUTH,
+        'AUTHTOKEN': process.env.HOMEMATIC_API_AUTHTOKEN
     };
     websocketManager.setHeaders(headers);
-    websocketManager.connect(callback);
+    websocketManager.connect(callback).then(_ => console.log("WS Connected 1"));
 };
 
 /**
  * Callback function that gets executed when the websocket receives a new event
- * 
- * @param {*} data 
+ *
+ * @param {*} data
  */
 const callback = (data) => {
     const rawBuffer = data.toString("utf8");
     const jsonData = JSON.parse(rawBuffer);
 
-    const events = jsonData.events; // note: element is no array but an object with id's as identifier for each event 
-    const eventIds = Object.keys(events);
-
-    eventIds
-        .forEach(eventId => {
-            const event = events[eventId];
-            handleElement(event);
-        });
+    const wsMessage = HMIPWSMessage.fromJson(jsonData);
+    wsMessage.events.forEach(event => {
+        handleElement(event);
+    });
 };
 
 /**
  * Handle event data send over websocket connection
- * 
- * @param {*} event 
+ *
+ * @param {HMIPWSEvent} event
  */
 const handleElement = (event) => {
-    if (event.pushEventType === "GROUP_CHANGED") {
+    if (event instanceof HMIPWSGroupChangedEvent) {
         handleGroupChangeEvent(event);
-    } else if (event.pushEventType === "DEVICE_CHANGED") {
+    } else if (event instanceof HMIPWSDeviceChangedEvent) {
         handleDeviceChanged(event);
-    } else if (event.pushEventType === "HOME_CHANGED") {
+    } else if (event instanceof HMIPWSHomeChangedEvent) {
         handleHomeChangeEvent(event);
     }
 };
@@ -76,32 +74,28 @@ const handleElement = (event) => {
  * Parse update group data object.
  * Determine if is heating group.
  * Determine if values did change.
- * 
+ *
  * Initialize data send
- * 
- * @param {*} event 
+ *
+ * @param {HMIPWSGroupChangedEvent} event
  */
 const handleGroupChangeEvent = (event) => {
-    const rawGroup = event.group;
+    const group = event.group;
 
-    if (!rawGroup) return;
+    if (!(group instanceof HMIPWSHeatingGroup)) return;
 
-    const group = new Group(rawGroup);
-
-    if (!group.isHeatingGroup()) return;
-
-    const groupStateBuilder = new GroupStateBuilder();
     const groupStateDB = new GroupStateDB();
 
-    var currentGroupState;
+    let currentGroupState;
 
     try {
-        currentGroupState = groupStateDB.getById(group.data.id);
-    } catch (e) {
-        currentGroupState = groupStateBuilder.buildInitGroupState(group.data.id);
+        currentGroupState = groupStateDB.getById(group.id);
+    } catch (error) {
+        Logger.warn({message: "No group state could be loaded from disk: " + error});
+        currentGroupState = GroupStateBuilder.dummyState(group.id);
     }
 
-    const updatedGroupState = groupStateBuilder.groupStateFromHomematicGroup(group);
+    const updatedGroupState = GroupStateBuilder.fromHomematicGroup(group);
 
     updatedGroupState.lock = currentGroupState.lock;
     handleGroupStateChange(currentGroupState, updatedGroupState);
@@ -110,24 +104,27 @@ const handleGroupChangeEvent = (event) => {
 /**
  * Parse update device data object.
  * Determine if is heating thermostat.
- * 
+ *
  * Initialize data send
  *
- * @param {*} event
+ * @param {HMIPWSDeviceChangedEvent} event
  */
 const handleDeviceChanged = (event) => {
-    const rawDevice = event.device;
+    const device = event.device;
 
-    if (!rawDevice) return;
+    if (!(device instanceof HMIPWSHeatingThermostatDevice)) return;
 
-    const device = new Device(rawDevice);
+    const deviceStateDb = new DeviceStateDB();
 
-    if (!device.isHeatingThermostat()) return;
+    let currentDeviceState;
+    try {
+        currentDeviceState = deviceStateDb.getById(device.id);
+    } catch (e) {
+        Logger.error({message: "Device state not found in db. Error: " + e.message});
+        currentDeviceState = DeviceStateBuilder.dummyState(device.id);
+    }
 
-    const deviceStateBuilder = new DeviceStateBuilder();
-
-    const currentDeviceState = deviceStateBuilder.deviceStateFromFile(device.data.id);
-    const updatedDeviceState = deviceStateBuilder.deviceStateFromHomematicDevice(device);
+    const updatedDeviceState = DeviceStateBuilder.fromHomematicDevice(device);
 
     handleDeviceStateChange(currentDeviceState, updatedDeviceState);
 };
@@ -137,43 +134,47 @@ const handleDeviceChanged = (event) => {
  * Determine if weather information is present.
  *
  * Initialize data send
- * 
- * @param {*} event 
+ *
+ * @param {*} event
  */
 const handleHomeChangeEvent = (event) => {
     const rawHome = event.home;
 
     if (!rawHome) return;
 
-    const home = new Home(rawHome);
+    const home = HMIPWSHome.fromJson(rawHome);
 
-    const weatherStateBuilder = new WeatherStateBuilder();
+    const weatherStateDb = new WeatherStateDB();
 
-    const currentWeatherState = weatherStateBuilder.weatherStateFromFile(home.data.location.city.split(",")[0]);
-    const updatedWeatherState = weatherStateBuilder.weatherStateFromHomematicHome(home);
+    let currentWeatherState;
+    try {
+        currentWeatherState = weatherStateDb.getById(home.location.city.split(",")[0]);
+    } catch (e) {
+        Logger.error({message: "Weather state not found in db. Error: " + e.message});
+        currentWeatherState = WeatherStateBuilder.dummyState();
+    }
+
+    const updatedWeatherState = WeatherStateBuilder.fromHomematicHome(home);
 
     handleWeatherStateChange(currentWeatherState, updatedWeatherState);
 };
 
 /**
- * 
- * @param {GroupState} currentState 
+ *
+ * @param {GroupState} currentState
  * @param {GroupState} updatedState
- * @returns 
+ * @returns
  */
 const handleGroupStateChange = (currentState, updatedState) => {
-    const groupStateAnalyzer = new GroupStateAnlyzer(currentState, updatedState);
-
-    if (groupStateAnalyzer.statesAreIdentical()) return;
+    if (currentState.equalsValueAttributes(updatedState)) return;
 
     const dataSender = new GroupDataSender();
-    dataSender.sendData(currentState, updatedState);
+    dataSender.sendData(updatedState);
 
     const groupStateDB = new GroupStateDB();
     groupStateDB.save(updatedState);
 
-    EventLogger.groupUpdateEvent(currentState, updatedState);
-    EventLogger.groupUpdateEventToInflux(currentState, updatedState);
+    EventLogger.wsGroupChange(currentState, updatedState);
 };
 
 /**
@@ -182,18 +183,20 @@ const handleGroupStateChange = (currentState, updatedState) => {
  * @returns
  */
 const handleDeviceStateChange = (currentState, updatedState) => {
-    const deviceStateAnalyzer = new DeviceStateAnalyzer(currentState, updatedState);
     const deviceStateDB = new DeviceStateDB();
 
     updatedState.channels
         .forEach(
             (updatedChannel) => {
-                if (deviceStateAnalyzer.channelsAreIdentical(updatedChannel.index)) return;
+                const channelIndex = updatedChannel.index;
+                const currentChannel = currentState.getChannelByIndex(channelIndex);
+
+                if (updatedChannel.equalsValueAttributes(currentChannel)) return;
 
                 const dataSender = new DeviceDataSender();
-                dataSender.sendChannelData(currentState, updatedState, updatedChannel.index);
+                dataSender.sendData(updatedState, channelIndex);
 
-                EventLogger.deviceUpdateEvent(currentState, updatedState, updatedChannel.index);
+                EventLogger.wsDeviceUpdateDebug(currentState, updatedState, channelIndex);
             }
         );
 
@@ -201,14 +204,12 @@ const handleDeviceStateChange = (currentState, updatedState) => {
 };
 
 /**
- * @param {WeatherState} currentState 
+ * @param {WeatherState} currentState
  * @param {WeatherState} updatedState
- * @returns 
+ * @returns
  */
 const handleWeatherStateChange = (currentState, updatedState) => {
-    const weatherStateAnalyzer = new WeatherStateAnlyzer(currentState, updatedState);
-
-    if (weatherStateAnalyzer.statesAreIdentical()) return;
+    if (currentState.equalsValueAttributes(updatedState)) return;
 
     const dataSender = new WeatherDataSender();
     dataSender.sendData(currentState, updatedState);
@@ -216,7 +217,7 @@ const handleWeatherStateChange = (currentState, updatedState) => {
     const weatherStateDB = new WeatherStateDB();
     weatherStateDB.save(updatedState);
 
-    EventLogger.weatherUpdateEvent(currentState, updatedState);
+    EventLogger.weatherUpdateDebug(currentState, updatedState);
 };
 
-module.exports = { startEventListener };
+module.exports = {startEventListener};

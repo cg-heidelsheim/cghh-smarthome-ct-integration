@@ -1,12 +1,11 @@
-const { WeatherState } = require("../homematic/weather/weather-state");
-const { WeatherStateAnlyzer } = require("../homematic/weather/weather-state.analyzer");
+const {WeatherState} = require("../db/model/weather-state");
 
 /**
- * Take information of a {@link GroupState} and parse it into a influx usable DB object 
- * 
- * @param {GroupState} group 
- * 
- * @returns void
+ * Take information of a {@link GroupState} and parse it into an influx usable DB object
+ *
+ * @param {GroupState} state
+ *
+ * @returns object
  */
 const parseGroupStateIntoInfluxDataObject = (state) => {
     return {
@@ -42,7 +41,7 @@ const parseDeviceStateChannelIntoInfluxDataObjectState = (state, channel) => {
     return {
         label: "sensoric",
         values: {
-            valvePosition: channel.valvePosition * 100,
+            valvePosition: channel.valvePosition ? channel.valvePosition * 100 : 0
         },
         tags: {
             channel: channel.index,
@@ -52,52 +51,29 @@ const parseDeviceStateChannelIntoInfluxDataObjectState = (state, channel) => {
     };
 };
 
-
 /**
- * Take information of heating group and parse it into a influx parsable DB object 
- * 
- * @param {*} group 
- * @returns 
+ * Take information of heating group and parse it into an influx parsable DB object
+ *
+ * @param {*} group
+ * @returns
  */
 const parseHeatingGroupDataIntoInfluxDataObject = (group) => {
     return {
-        label: group.data.label,
+        label: group.label,
         values: {
-            temperature: group.data.actualTemperature,
-            setTemperature: group.data.setPointTemperature,
-            humidity: group.data.humidity,
+            temperature: group.actualTemperature,
+            setTemperature: group.setPointTemperature,
+            humidity: group.humidity,
         }
     };
 };
 
 /**
- * Take information of heating group and parse it into a influx parsable DB object 
- * 
- * @param {*} group 
- * @returns 
- */
-const parseHeatingThermostatChannelDataIntoInfluxDataObject = (device, channel) => {
-    const deviceSetPointTemperature = channel.setPointTemperature;
-    const deviceActualValveTemperature = channel.valveActualTemperature;
-
-    return {
-        label: device.data.label,
-        values: {
-            temperature: deviceActualValveTemperature,
-            setTemperature: deviceSetPointTemperature
-        },
-        tags: {
-            channel: channel.index
-        }
-    };
-};
-
-/**
- * Take information of a {@link WeatherState} and parse it into a influx usable DB object
+ * Take information of a {@link WeatherState} and parse it into an influx usable DB object
  *
- * @param {WeatherState} group
+ * @param {WeatherState} state
  *
- * @returns void
+ * @returns object
  */
 const parseWeatherStateIntoInfluxDataObject = (state) => {
     const temperature = state.temperature;
@@ -130,6 +106,5 @@ module.exports = {
     parseDeviceStateChannelIntoInfluxDataObject,
     parseDeviceStateChannelIntoInfluxDataObjectState,
     parseHeatingGroupDataIntoInfluxDataObject,
-    parseHeatingThermostatChannelDataIntoInfluxDataObject,
     parseWeatherStateIntoInfluxDataObject
 };

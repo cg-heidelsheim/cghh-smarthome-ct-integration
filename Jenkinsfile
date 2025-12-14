@@ -44,38 +44,50 @@ pipeline {
             }
         }
 
-        stage('Publish to registry - main') {
+        stage('Start container - main') {
             when {
                 expression {
-                    return branch_name =~ "main"
+                    return branch_name == 'main' || branch_name == 'master'
                 }
             }
             steps {
                 script {
-                    docker.withRegistry('http://localhost:34015') {
-                        image.push('latest')
+                    try {
+                        sh "docker rm ${name} -f"
+                    } catch (err) {
+                        echo "cant remove container - it does not exist"
                     }
+                    sh "docker run --name ${name} \
+                            -v /var/www/vhosts/cg-heidelsheim.de/ct-integration.smarthome.cg-heidelsheim.de/volumes/.env:/usr/src/app/.env \
+                            -v /var/www/vhosts/cg-heidelsheim.de/ct-integration.smarthome.cg-heidelsheim.de/volumes/config:/usr/src/app/config \
+                            -v /var/www/vhosts/cg-heidelsheim.de/ct-integration.smarthome.cg-heidelsheim.de/volumes/persistent:/usr/src/app/persistent \
+                            --network=cghh-smarthome \
+                            --restart unless-stopped \
+                            -d ${image_name}"
                 }
             }
         }
 
-        stage('Start container') {
+        stage('Start container - feature') {
+            when {
+                expression {
+                    return branch_name != 'main' && branch_name != 'master'
+                }
+            }
             steps {
                 script {
-                    docker.withRegistry('http://localhost:34015') {
-                        try {
-                            sh "docker rm ${name} -f"
-                        } catch (err) {
-                            echo "cant remove container - it does not exist"
-                        }
-                        sh "docker run --name ${name} \
-                                -v /var/www/vhosts/cg-heidelsheim.de/ct-integration.smarthome.cg-heidelsheim.de/volumes/.env:/usr/src/app/.env \
-                                -v /var/www/vhosts/cg-heidelsheim.de/ct-integration.smarthome.cg-heidelsheim.de/volumes/config:/usr/src/app/config \
-                                -v /var/www/vhosts/cg-heidelsheim.de/ct-integration.smarthome.cg-heidelsheim.de/volumes/persistent:/usr/src/app/persistent \
-                                --network=cghh-smarthome \
-                                --restart unless-stopped \
-                                -d ${image_name}"
+                    try {
+                        sh "docker rm ${name}-feature -f"
+                    } catch (err) {
+                        echo "cant remove container - it does not exist"
                     }
+                    sh "docker run --name ${name}-feature \
+                            -v /var/www/vhosts/cg-heidelsheim.de/ct-integration.smarthome.cg-heidelsheim.de/volumes_feature/.env:/usr/src/app/.env \
+                            -v /var/www/vhosts/cg-heidelsheim.de/ct-integration.smarthome.cg-heidelsheim.de/volumes_feature/config:/usr/src/app/config \
+                            -v /var/www/vhosts/cg-heidelsheim.de/ct-integration.smarthome.cg-heidelsheim.de/volumes_feature/persistent:/usr/src/app/persistent \
+                            --network=cghh-smarthome \
+                            --restart unless-stopped \
+                            -d ${image_name}"
                 }
             }
         }
@@ -109,10 +121,18 @@ pipeline {
 }
 
 void updateStatus(String value) {
-    sh 'curl -s "https://api.github.com/repos/sebamomann/cghh-smarthome-ct-integration/statuses/$GIT_COMMIT" \\\n' +
-            '  -H "Content-Type: application/json" \\\n' +
-            '  -H "Authorization: token $GITHUB_STATUS_ACCESS_TOKEN_SEBAMOMANN" \\\n' +
-            '  -X POST \\\n' +
-            '  -d "{\\"state\\": \\"' + value + '\\", \\"description\\": \\"Jenkins\\", \\"context\\": \\"continuous-integration/jenkins\\", \\"target_url\\": \\"https://jenkins.dankoe.de/job/cghh-smarthome-ct-integration/job/$BRANCH_NAME/$BUILD_NUMBER/console\\"}" \\\n' +
-            ' '
+    withCredentials([string(credentialsId: 'GITHUB_STATUS_ACCESS_TOKEN_SEBAMOMANN', variable: 'GITHUB_STATUS_ACCESS_TOKEN_SEBAMOMANN')]) {
+        sh """
+            curl -s "https://api.github.com/repos/cg-heidelsheim/cghh-smarthome-ct-integration/statuses/$GIT_COMMIT" \
+              -H "Content-Type: application/json" \
+              -H "Authorization: token $GITHUB_STATUS_ACCESS_TOKEN_SEBAMOMANN" \
+              -X POST \
+              -d '{
+                "state": "${value}",
+                "description": "Jenkins",
+                "context": "continuous-integration/jenkins",
+                "target_url": "https://jenkins.dankoe.de/job/cghh-smarthome-ct-integration/job/$BRANCH_NAME/$BUILD_NUMBER/console"
+              }'
+        """
+    }
 }

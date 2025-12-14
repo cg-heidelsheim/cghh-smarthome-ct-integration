@@ -1,81 +1,45 @@
-const { DeviceState } = require("./device-state");
-const { Device } = require("./device");
-
-const fs = require("fs");
-
-const FILE_NAME = process.cwd() + "/persistent/states/devices.json";
+const {ChannelState} = require("../../db/model/channel-state");
+const {DeviceState} = require("../../db/model/device-state");
+const {HMIPWSHeatingThermostatChannel} = require("../ws/model/device/channel/hmip-ws-functional-channel-heating-thermostat");
 
 class DeviceStateBuilder {
-    constructor() {
 
-    }
-
-    deviceStateFromFile(deviceId) {
-        var dataRaw;
-
-        try {
-            dataRaw = fs.readFileSync(FILE_NAME, 'utf8');
-        } catch (e) {
-            dataRaw = "{}";
-        }
-
-        const json_data = JSON.parse(dataRaw);
-
-        const deviceStateRaw = json_data[deviceId];
-
-        if (!deviceStateRaw) {
-            return this.buildInitDeviceState();
-        }
-
+    /**
+     * Transform a HMIP device object into a device state object for DB storage.
+     *
+     * @param {HMIPWSHeatingThermostatDevice} device Device object from HMIP
+     * @returns {DeviceState}
+     */
+    static fromHomematicDevice(device) {
         const deviceState = new DeviceState();
-        Object.assign(deviceState, deviceStateRaw);
+
+        deviceState.id = device.id;
+        deviceState.label = device.label;
+        deviceState.channels = (device.functionalChannels || [])
+            .filter(ch => ch instanceof HMIPWSHeatingThermostatChannel)
+            .map(ch => {
+                const outputChannel = new ChannelState();
+                outputChannel.index = ch.index;
+                outputChannel.valvePosition = ch.valvePosition;
+                outputChannel.temperature = ch.valveActualTemperature;
+                outputChannel.setTemperature = ch.setPointTemperature;
+                return outputChannel;
+            });
 
         return deviceState;
     }
 
     /**
-     * 
-     * @param {Device} device 
-     * @returns 
+     * Built a dummy object, representing a placeholder for the first save.
+     * Contains a label with the value "INIT" that can later be checked for different logging and processing
+     *
+     * @param {string} id HMIP device id
+     * @returns {DeviceState}
      */
-    deviceStateFromHomematicDevice(device) {
+    static dummyState(id) {
         const deviceState = new DeviceState();
 
-        deviceState.id = device.data.id;
-        deviceState.label = device.data.label;
-
-        const channels = [];
-
-        device
-            .getRelevantFunctionalChannels()
-            .forEach(
-                (channel) => {
-                    const outputChannel = {
-                        index: channel.index,
-                        valvePosition: channel.valvePosition,
-                        temperature: channel.valveActualTemperature,
-                        setTemperature: channel.setPointTemperature
-                    };
-
-                    channels.push(outputChannel);
-                }
-            );
-
-        deviceState.channels = channels;
-
-        return deviceState;
-    }
-
-    /**
-     * @param {DeviceState} state 
-     */
-    deviceStateFromDeviceState(state) {
-        return JSON.parse(JSON.stringify(state));
-    }
-
-    buildInitDeviceState() {
-        const deviceState = new DeviceState();
-
+        deviceState.id = id;
         deviceState.label = "INIT";
         deviceState.channels = [];
 
@@ -83,4 +47,4 @@ class DeviceStateBuilder {
     }
 }
 
-module.exports = { DeviceStateBuilder };
+module.exports = {DeviceStateBuilder};

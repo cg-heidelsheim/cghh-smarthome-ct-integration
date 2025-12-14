@@ -1,12 +1,26 @@
-FROM node:14
+# Stage 1 - build and test
+FROM node:20 AS builder
 
 WORKDIR /usr/src/app
 
 COPY package*.json ./
 
-RUN npm install
+RUN npm install --include=dev
 
-COPY . .
+COPY . ./
+
+# Run tests, fail build if tests fail
+RUN npm run test:ci
+
+# Stage 2 - production image
+FROM node:20-alpine
+
+WORKDIR /usr/src/app
+
+# Copy only the production node_modules and app files from builder
+COPY --from=builder /usr/src/app/node_modules ./node_modules
+COPY --from=builder /usr/src/app ./
 
 EXPOSE 8080
-CMD npm run-script start
+
+CMD ["npm", "run-script", "start"]

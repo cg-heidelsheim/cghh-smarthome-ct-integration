@@ -1,0 +1,52 @@
+{
+  "ea032b00-75c4-4505-83bc-3d10bab34933": {
+    "id": "3",
+    "name": "Godi-Saal",
+    "desiredTemperature": 19,
+    "desiredTemperatureIdle": 16,
+    "homematicName": "Godi-Saal",
+    "homematicId": "ea032b00-75c4-4505-83bc-3d10bab34933",
+    "heatingRate": 90,
+    "spinUpTime": 20
+  },
+  "a04a824e-b5ae-4736-b1d8-55e9095c5d41": {
+    "id": "8",
+    "name": "Jugendraum EG",
+    "homematicName": "Jugendraum EG",
+    "homematicId": "a04a824e-b5ae-4736-b1d8-55e9095c5d41",
+    "desiredTemperature": 19,
+    "desiredTemperatureIdle": 16,
+    "heatingRate": 70,
+    "spinUpTime": 20
+  },
+  "372b1b15-42c1-4882-a36b-37b579e6abde": {
+    "id": "9",
+    "name": "Jugendraum 2. OG",
+    "homematicName": "Jugendraum 2. OG",
+    "homematicId": "372b1b15-42c1-4882-a36b-37b579e6abde",
+    "desiredTemperature": 19,
+    "desiredTemperatureIdle": 16,
+    "heatingRate": 60,
+    "spinUpTime": 20
+  },
+  "e5afe1c4-8da3-4b86-b32e-6e1e0e06ba26": {
+    "id": "11",
+    "name": "Foyer",
+    "homematicName": "Foyer",
+    "homematicId": "e5afe1c4-8da3-4b86-b32e-6e1e0e06ba26",
+    "desiredTemperature": 19,
+    "desiredTemperatureIdle": 16,
+    "heatingRate": 60,
+    "spinUpTime": 20
+  },
+  "f6a2bda-d2e8-4b83-aa9d-4f07fd7a1e91": {
+    "id": "12",
+    "name": "Kleinkindbereich",
+    "homematicName": "Kleinkindbereich",
+    "homematicId": "df6a2bda-d2e8-4b83-aa9d-4f07fd7a1e91",
+    "desiredTemperature": 19,
+    "desiredTemperatureIdle": 16,
+    "heatingRate": 30,
+    "spinUpTime": 20
+  }
+}
