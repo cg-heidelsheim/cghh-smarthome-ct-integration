@@ -1,4 +1,5 @@
 const {WeatherState} = require("../db/model/weather-state");
+const {EventDataPoint} = require("../model/EventDataPoint");
 
 /**
  * Take information of a {@link GroupState} and parse it into an influx usable DB object
@@ -101,10 +102,32 @@ const parseWeatherStateIntoInfluxDataObject = (state) => {
     };
 };
 
+/**
+ * Take information of a {@link EventDataPoint} and parse it into an influx usable DB object
+ *
+ * @param {EventDataPoint} eventDataPoint
+ *
+ * @returns object
+ */
+const parseEventDataPointIntoInfluxDataObject = (eventDataPoint) => {
+    return {
+        label: "info",
+        values: {
+            isActive: eventDataPoint.isActive ? 1 : 0,
+        },
+        tags: {
+            name: eventDataPoint.resourceName.replace(/\s/g, "_"),
+            type: eventDataPoint.type
+        },
+        timestamp: eventDataPoint.timestamp
+    };
+};
+
 module.exports = {
     parseGroupStateIntoInfluxDataObject,
     parseDeviceStateChannelIntoInfluxDataObject,
     parseDeviceStateChannelIntoInfluxDataObjectState,
     parseHeatingGroupDataIntoInfluxDataObject,
-    parseWeatherStateIntoInfluxDataObject
+    parseWeatherStateIntoInfluxDataObject,
+    parseEventDataPointIntoInfluxDataObject
 };

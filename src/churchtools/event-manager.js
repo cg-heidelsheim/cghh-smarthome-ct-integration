@@ -9,6 +9,8 @@ const {Event} = require("./model/event");
 const {Lock} = require("./../db/model/lock");
 const {Booking} = require("./model/booking");
 const moment = require("moment");
+const {EventDataSender} = require("../timeseries/event.data-sender");
+const {EventDataPoint} = require("../model/EventDataPoint");
 
 
 class EventManager {
@@ -128,6 +130,18 @@ class EventManager {
             return;
         }
 
+        const eventDataSender = new EventDataSender();
+        const roomName = roomConfig.name.replace(/ /g, '_');
+
+        const bookingStart = moment(event.startDate).subtract(booking.minPre, 'minutes').toString();
+        const bookingEnd = moment(event.endDate).add(booking.minPost, 'minutes').toString();
+
+        eventDataSender.sendData(new EventDataPoint(roomName, true, event.startDate, "event"));
+        eventDataSender.sendData(new EventDataPoint(roomName, false, event.endDate, "event"));
+
+        eventDataSender.sendData(new EventDataPoint(roomName, true, bookingStart, "booking"));
+        eventDataSender.sendData(new EventDataPoint(roomName, false, bookingEnd, "booking"));
+        
         try {
             const groupManager = GroupManagerFactory.createGroupManager(groupState.id);
             await groupManager.heatForEvent(event);

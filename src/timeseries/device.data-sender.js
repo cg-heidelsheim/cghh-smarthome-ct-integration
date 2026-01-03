@@ -14,7 +14,7 @@ class DeviceDataSender extends DataSender {
 
     /**
      * @param args
-     * @param {GroupState}      args[0] state
+     * @param {DeviceState}     args[0] state
      * @param {number}          args[1] channelIndex
      */
     parseData(...args) {
