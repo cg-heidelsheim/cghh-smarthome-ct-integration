@@ -8,7 +8,8 @@ const {EventLogger} = require("../util/event.logger");
 const {Event} = require("./model/event");
 const {Lock} = require("./../db/model/lock");
 const {Booking} = require("./model/booking");
-const moment = require("moment");
+const moment = require('moment-timezone');
+moment.tz.setDefault("Europe/Berlin");
 const {EventDataSender} = require("../timeseries/event.data-sender");
 const {EventDataPoint} = require("../model/EventDataPoint");
 
@@ -136,8 +137,8 @@ class EventManager {
         const bookingStart = moment(event.startDate).subtract(booking.minPre, 'minutes').toString();
         const bookingEnd = moment(event.endDate).add(booking.minPost, 'minutes').toString();
 
-        eventDataSender.sendData(new EventDataPoint(roomName, true, event.startDate, "event"));
-        eventDataSender.sendData(new EventDataPoint(roomName, false, event.endDate, "event"));
+        eventDataSender.sendData(new EventDataPoint(roomName, true, moment(event.startDate).toString(), "event"));
+        eventDataSender.sendData(new EventDataPoint(roomName, false, moment(event.endDate).toString(), "event"));
 
         eventDataSender.sendData(new EventDataPoint(roomName, true, bookingStart, "booking"));
         eventDataSender.sendData(new EventDataPoint(roomName, false, bookingEnd, "booking"));
