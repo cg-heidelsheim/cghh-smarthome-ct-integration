@@ -137,9 +137,11 @@ class EventManager {
         const bookingStart = moment(event.startDate).subtract(booking.minPre, 'minutes').toString();
         const bookingEnd = moment(event.endDate).add(booking.minPost, 'minutes').toString();
 
+        eventDataSender.sendData(new EventDataPoint(roomName, false, moment(event.startDate).subtract(1, 'minutes').toString(), "event"));
         eventDataSender.sendData(new EventDataPoint(roomName, true, moment(event.startDate).toString(), "event"));
         eventDataSender.sendData(new EventDataPoint(roomName, false, moment(event.endDate).toString(), "event"));
 
+        eventDataSender.sendData(new EventDataPoint(roomName, false, moment(bookingStart).subtract(1, 'minutes').toString(), "booking"));
         eventDataSender.sendData(new EventDataPoint(roomName, true, bookingStart, "booking"));
         eventDataSender.sendData(new EventDataPoint(roomName, false, bookingEnd, "booking"));
         
