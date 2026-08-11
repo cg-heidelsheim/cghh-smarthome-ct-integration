@@ -99,6 +99,10 @@ class InfluxDBManager {
             });
         }
 
+        if (data.timestamp) {
+            point.timestamp(new Date(data.timestamp));
+        }
+
         const dataValues = data.values;
         const dataValueKeys = Object.keys(dataValues);
 
