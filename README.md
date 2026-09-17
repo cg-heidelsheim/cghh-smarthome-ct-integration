@@ -1,4 +1,9 @@
 # ChurchTools Integration for Homematic IP
+
+> Working in this codebase (as a contributor or an agent)? Start with [`AGENTS.md`](AGENTS.md)
+> and [`docs/architecture.md`](docs/architecture.md) — this README is the product-level
+> explanation and operator FAQ.
+
 ##
 Reverse Engineered API: https://homematicip-rest-api.readthedocs.io/en/latest/_modules/homematicip/group.html#HeatingGroup.set_point_temperature
 
@@ -110,13 +115,4 @@ If differences are found, updated data is sent to InfluxDB, and the new state is
 - Is the room booking status accepted `status_id = 2`
 - Is the room common, or is there a room that doesn't exist in Homematic? 
 
-# Best Practices (Coding)
-## Logging
-### Core Messages
-A core message describes any action or state of the application that is absolutely relevant do directly view an action that the system made, or that prevented an action from taking place. Core actions are
-Core messages should just be sent from within the `EventLogger` Class
-- 
-- Heating started
-- Heating ended
-- Manual change
-- Room is blocked (manual override)
+For coding conventions (logging, layering, TypeScript notes), see [`AGENTS.md`](AGENTS.md).
