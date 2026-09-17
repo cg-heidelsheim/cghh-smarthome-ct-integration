@@ -1,11 +1,11 @@
-const axios = require('axios');
-const {Logger} = require('../util/logger');
+import axios from 'axios';
+import {Logger} from '../util/logger';
 
 require('dotenv').config();
 
-class HomematicApi {
-    LOOKUP_URL = process.env.HOMEMATIC_LOOKUP_URL;
-    API_URL = process.env.HOMEMATIC_API_URL;
+export class HomematicApi {
+    LOOKUP_URL = process.env.HOMEMATIC_LOOKUP_URL ?? '';
+    API_URL = process.env.HOMEMATIC_API_URL ?? '';
 
     ACCESS_POINT_ID = process.env.HOMEMATIC_ACCESS_POINT_ID;
 
@@ -13,12 +13,8 @@ class HomematicApi {
 
     /**
      * Update the temperature for a group by its ID
-     *
-     * @param {string} groupId
-     * @param {number} desiredTemperature
-     * @returns
      */
-    async setTemperatureForGroup(groupId, desiredTemperature) {
+    async setTemperatureForGroup(groupId: string, desiredTemperature: number) {
         const tags = {module: 'API', function: 'HOMEMATIC', group: groupId};
 
         if (process.env.ENVIRONMENT !== 'production') {
@@ -62,7 +58,9 @@ class HomematicApi {
     static RETRY_BASE_MS = 5000;
     static RETRY_MAX_MS = 60000;
 
-    async callRest(url, payload, attempt = 1, id = null) {
+    // Recursive fn needs an explicit return type; response payload is genuinely dynamic external API data.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    async callRest(url: string, payload: unknown, attempt = 1, id: string | null = null): Promise<any> {
         if (id == null) {
             id = (Math.random() + 1).toString(36).substring(7);
         }
@@ -72,11 +70,11 @@ class HomematicApi {
             'content-type': 'application/json',
             'accept': 'application/json',
             'version': '12',
-            'authtoken': this.AUTH_TOKEN
+            'authtoken': this.AUTH_TOKEN ?? ''
         };
 
         const tags = {module: 'API', function: 'HOMEMATIC', attempt, identifier: id, url};
-        const info = {request: payload};
+        const info: {request: unknown; response?: unknown} = {request: payload};
 
         try {
             Logger.debug({tags, message: 'Calling ' + url});
@@ -112,5 +110,3 @@ class HomematicApi {
         }
     }
 }
-
-module.exports = {HomematicApi};

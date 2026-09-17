@@ -1,26 +1,26 @@
-const {HMIPWSGroupChannelRef} = require('./hmip-ws-group-channel-ref');
-const {HMIPWSHeatingGroup} = require('./hmip-ws-group-heating');
-const {HMIPWSMetaGroup} = require('./hmip-ws-group-meta');
-const {HMIPWSIndoorClimateGroup} = require('./hmip-ws-group-indoor-climate');
-const {Logger} = require('../../../../util/logger');
+import {HMIPWSGroupChannelRef} from './hmip-ws-group-channel-ref';
+import {HMIPWSHeatingGroup} from './hmip-ws-group-heating';
+import {HMIPWSMetaGroup} from './hmip-ws-group-meta';
+import {HMIPWSIndoorClimateGroup} from './hmip-ws-group-indoor-climate';
+import {Logger} from '../../../../util/logger';
+import type {HMIPWSGroup} from './hmip-ws-group';
 
 require('dotenv').config();
 
 /**
  * Factory function to create HMIPWSFunctionalChannel instance from JSON.
  * Implements CommonJS synchronous style.
- *
- * @param {any} json
- * @returns {HMIPWSGroup}
  */
-function createGroupFromJson(json) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- raw external WS protocol JSON boundary
+export function createGroupFromJson(json: Record<string, any>): HMIPWSGroup | undefined {
     if (!json) {
         throw new Error('createGroupFromJson: group json missing');
     }
 
-    json.channels = (json.channels || []).map(c =>
-        HMIPWSGroupChannelRef.fromJson(c)
-    );
+    json.channels = (json.channels || []).map((
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- raw external WS protocol JSON boundary
+        c: Record<string, any>
+    ) => HMIPWSGroupChannelRef.fromJson(c));
 
     const type = json.type;
 
@@ -48,8 +48,7 @@ function createGroupFromJson(json) {
                     });
                 }
             }
+            return undefined;
         }
     }
 }
-
-module.exports = {createGroupFromJson};

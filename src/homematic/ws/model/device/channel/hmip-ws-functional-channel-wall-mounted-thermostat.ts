@@ -1,10 +1,34 @@
-const {HMIPWSFunctionalChannel} = require('./hmip-ws-functional-channel');
+import {HMIPWSFunctionalChannel} from './hmip-ws-functional-channel';
+
+interface HMIPWSWallMountedThermostatChannelParams {
+    deviceId: string;
+    index: number;
+    groupIndex: number;
+    label: string;
+    groups: string[];
+    supportedOptionalFeatures: Record<string, unknown>;
+    channelRole?: string;
+    temperatureOffset?: number;
+    setPointTemperature?: number;
+    actualTemperature?: number;
+    humidity?: number;
+    display?: string;
+    vaporAmount?: number;
+}
 
 /**
  * WALL_MOUNTED_THERMOSTAT_PRO_CHANNEL
  */
-class HMIPWSWallMountedThermostatChannel extends HMIPWSFunctionalChannel {
-    constructor(params) {
+export class HMIPWSWallMountedThermostatChannel extends HMIPWSFunctionalChannel {
+    channelRole?: string;
+    temperatureOffset?: number;
+    setPointTemperature?: number;
+    actualTemperature?: number;
+    humidity?: number;
+    display?: string;
+    vaporAmount?: number;
+
+    constructor(params: HMIPWSWallMountedThermostatChannelParams) {
         super(
             'WALL_MOUNTED_THERMOSTAT_PRO_CHANNEL',
             params.deviceId,
@@ -24,11 +48,8 @@ class HMIPWSWallMountedThermostatChannel extends HMIPWSFunctionalChannel {
         this.vaporAmount = params.vaporAmount;
     }
 
-    /**
-     * @param {any} json
-     * @returns {HMIPWSWallMountedThermostatChannel}
-     */
-    static fromJson(json) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- raw external WS protocol JSON boundary
+    static fromJson(json: Record<string, any>): HMIPWSWallMountedThermostatChannel {
         const {
             deviceId,
             index,
@@ -62,5 +83,3 @@ class HMIPWSWallMountedThermostatChannel extends HMIPWSFunctionalChannel {
         });
     }
 }
-
-module.exports = {HMIPWSWallMountedThermostatChannel};

@@ -1,10 +1,121 @@
-const {HMIPWSGroup} = require('./hmip-ws-group');
+import {HMIPWSGroup} from './hmip-ws-group';
+import type {HMIPWSGroupChannelRef} from './hmip-ws-group-channel-ref';
+
+// Most of these diagnostic/config fields are raw external protocol data never branched on
+// elsewhere in this codebase - `unknown` rather than guessing at a precise shape. The three
+// consumed downstream (by homematic/group/group-state.builder.ts) are typed as `number`.
+interface HMIPWSHeatingGroupParams {
+    id: string;
+    homeId: string;
+    metaGroupId?: unknown;
+    label: string;
+    lastStatusUpdate: number;
+    unreach?: unknown;
+    lowBat?: unknown;
+    dutyCycle?: unknown;
+    channels: HMIPWSGroupChannelRef[];
+    sabotage?: unknown;
+    processing?: unknown;
+    ventilationState?: unknown;
+    ventilationLevel?: unknown;
+    windowOpenTemperature?: unknown;
+    setPointTemperature?: number;
+    minTemperature?: unknown;
+    maxTemperature?: unknown;
+    windowState?: unknown;
+    cooling?: unknown;
+    partyMode?: unknown;
+    controlMode?: unknown;
+    controlDifferantialTemperature?: unknown;
+    duration?: unknown;
+    profiles?: unknown;
+    activeProfile?: unknown;
+    boostMode?: unknown;
+    boostDuration?: unknown;
+    actualTemperature?: number;
+    humidity?: number;
+    coolingAllowed?: unknown;
+    coolingIgnored?: unknown;
+    ecoAllowed?: unknown;
+    ecoIgnored?: unknown;
+    controllable?: unknown;
+    boostAllowed?: unknown;
+    floorHeatingMode?: unknown;
+    humidityLimitEnabled?: unknown;
+    humidityLimitValue?: unknown;
+    humidityLimiterAlarm?: unknown;
+    humidityLimitPreEnabled?: unknown;
+    humidityLimitPreValue?: unknown;
+    humidityLimiterPreAlarm?: unknown;
+    externalClockEnabled?: unknown;
+    externalClockHeatingTemperature?: unknown;
+    externalClockCoolingTemperature?: unknown;
+    valvePosition?: unknown;
+    valveSilentModeSupported?: unknown;
+    valveSilentModeEnabled?: unknown;
+    lastSetPointReachedTimestamp?: unknown;
+    lastSetPointUpdatedTimestamp?: unknown;
+    heatingFailureSupported?: unknown;
+    switchClimateFunction?: unknown;
+    supportedOptionalFeatures?: unknown;
+    switchClimateCoolingEnable?: unknown;
+    switchClimateHeatingEnable?: unknown;
+    windowOpenTemperatureCooling?: unknown;
+    valveActualTemperature?: unknown;
+}
 
 /**
  * HEATING group
  */
-class HMIPWSHeatingGroup extends HMIPWSGroup {
-    constructor(params) {
+export class HMIPWSHeatingGroup extends HMIPWSGroup {
+    ventilationState?: unknown;
+    ventilationLevel?: unknown;
+    windowOpenTemperature?: unknown;
+    setPointTemperature?: number;
+    minTemperature?: unknown;
+    maxTemperature?: unknown;
+    windowState?: unknown;
+    cooling?: unknown;
+    partyMode?: unknown;
+    controlMode?: unknown;
+    controlDifferantialTemperature?: unknown;
+    duration?: unknown;
+    profiles?: unknown;
+    activeProfile?: unknown;
+    boostMode?: unknown;
+    boostDuration?: unknown;
+    actualTemperature?: number;
+    humidity?: number;
+    coolingAllowed?: unknown;
+    coolingIgnored?: unknown;
+    ecoAllowed?: unknown;
+    ecoIgnored?: unknown;
+    controllable?: unknown;
+    boostAllowed?: unknown;
+    floorHeatingMode?: unknown;
+    humidityLimitEnabled?: unknown;
+    humidityLimitValue?: unknown;
+    humidityLimiterAlarm?: unknown;
+    humidityLimitPreEnabled?: unknown;
+    humidityLimitPreValue?: unknown;
+    humidityLimiterPreAlarm?: unknown;
+    externalClockEnabled?: unknown;
+    externalClockHeatingTemperature?: unknown;
+    externalClockCoolingTemperature?: unknown;
+    valvePosition?: unknown;
+    valveSilentModeSupported?: unknown;
+    valveSilentModeEnabled?: unknown;
+    lastSetPointReachedTimestamp?: unknown;
+    lastSetPointUpdatedTimestamp?: unknown;
+    heatingFailureSupported?: unknown;
+    switchClimateFunction?: unknown;
+    supportedOptionalFeatures?: unknown;
+    switchClimateCoolingEnable?: unknown;
+    switchClimateHeatingEnable?: unknown;
+    windowOpenTemperatureCooling?: unknown;
+    valveActualTemperature?: unknown;
+
+    constructor(params: HMIPWSHeatingGroupParams) {
         super({
             id: params.id,
             homeId: params.homeId,
@@ -68,11 +179,8 @@ class HMIPWSHeatingGroup extends HMIPWSGroup {
         this.valveActualTemperature = params.valveActualTemperature;
     }
 
-    /**
-     * @param {any} json
-     * @returns {HMIPWSHeatingGroup}
-     */
-    static fromJson(json) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- raw external WS protocol JSON boundary
+    static fromJson(json: Record<string, any>): HMIPWSHeatingGroup {
         return new HMIPWSHeatingGroup({
             id: json.id,
             homeId: json.homeId,
@@ -138,5 +246,3 @@ class HMIPWSHeatingGroup extends HMIPWSGroup {
         });
     }
 }
-
-module.exports = {HMIPWSHeatingGroup};

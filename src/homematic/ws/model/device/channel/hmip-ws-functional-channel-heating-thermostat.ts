@@ -1,10 +1,38 @@
-const {HMIPWSFunctionalChannel} = require('./hmip-ws-functional-channel');
+import {HMIPWSFunctionalChannel} from './hmip-ws-functional-channel';
+
+interface HMIPWSHeatingThermostatChannelParams {
+    deviceId: string;
+    index: number;
+    groupIndex: number;
+    label: string;
+    groups: string[];
+    supportedOptionalFeatures: Record<string, unknown>;
+    channelRole?: string;
+    temperatureOffset?: number;
+    valvePosition?: number;
+    setPointTemperature?: number;
+    valveState?: string;
+    valveActualTemperature?: number;
+    boostSignalHue?: number;
+    boostSignalSaturation?: number;
+    boostSignalLevel?: number;
+}
 
 /**
  * HEATING_THERMOSTAT_CHANNEL
  */
-class HMIPWSHeatingThermostatChannel extends HMIPWSFunctionalChannel {
-    constructor(params) {
+export class HMIPWSHeatingThermostatChannel extends HMIPWSFunctionalChannel {
+    channelRole?: string;
+    temperatureOffset?: number;
+    valvePosition?: number;
+    setPointTemperature?: number;
+    valveState?: string;
+    valveActualTemperature?: number;
+    boostSignalHue?: number;
+    boostSignalSaturation?: number;
+    boostSignalLevel?: number;
+
+    constructor(params: HMIPWSHeatingThermostatChannelParams) {
         super(
             'HEATING_THERMOSTAT_CHANNEL',
             params.deviceId,
@@ -28,11 +56,8 @@ class HMIPWSHeatingThermostatChannel extends HMIPWSFunctionalChannel {
         this.boostSignalLevel = params.boostSignalLevel;
     }
 
-    /**
-     * @param {any} json
-     * @returns {HMIPWSHeatingThermostatChannel}
-     */
-    static fromJson(json) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- raw external WS protocol JSON boundary
+    static fromJson(json: Record<string, any>): HMIPWSHeatingThermostatChannel {
         const {
             deviceId,
             index,
@@ -70,5 +95,3 @@ class HMIPWSHeatingThermostatChannel extends HMIPWSFunctionalChannel {
         });
     }
 }
-
-module.exports = {HMIPWSHeatingThermostatChannel};

@@ -1,10 +1,33 @@
-const {HMIPWSGroup} = require('./hmip-ws-group');
+import {HMIPWSGroup} from './hmip-ws-group';
+import type {HMIPWSGroupChannelRef} from './hmip-ws-group-channel-ref';
+
+interface HMIPWSIndoorClimateGroupParams {
+    id: string;
+    homeId: string;
+    metaGroupId?: unknown;
+    label: string;
+    lastStatusUpdate: number;
+    unreach?: unknown;
+    lowBat?: unknown;
+    dutyCycle?: unknown;
+    channels: HMIPWSGroupChannelRef[];
+    sabotage?: unknown;
+    processing?: unknown;
+    ventilationState?: unknown;
+    ventilationLevel?: unknown;
+    windowState?: unknown;
+}
 
 /**
  * INDOOR_CLIMATE group
  */
-class HMIPWSIndoorClimateGroup extends HMIPWSGroup {
-    constructor(params) {
+export class HMIPWSIndoorClimateGroup extends HMIPWSGroup {
+    processing?: unknown;
+    ventilationState?: unknown;
+    ventilationLevel?: unknown;
+    windowState?: unknown;
+
+    constructor(params: HMIPWSIndoorClimateGroupParams) {
         super({
             id: params.id,
             homeId: params.homeId,
@@ -25,11 +48,8 @@ class HMIPWSIndoorClimateGroup extends HMIPWSGroup {
         this.windowState = params.windowState;
     }
 
-    /**
-     * @param {any} json
-     * @returns {HMIPWSIndoorClimateGroup}
-     */
-    static fromJson(json) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- raw external WS protocol JSON boundary
+    static fromJson(json: Record<string, any>): HMIPWSIndoorClimateGroup {
         return new HMIPWSIndoorClimateGroup({
             id: json.id,
             homeId: json.homeId,
@@ -48,5 +68,3 @@ class HMIPWSIndoorClimateGroup extends HMIPWSGroup {
         });
     }
 }
-
-module.exports = {HMIPWSIndoorClimateGroup};

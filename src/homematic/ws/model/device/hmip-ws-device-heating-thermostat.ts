@@ -1,13 +1,53 @@
-const {HMIPWSDevice} = require('./hmip-ws-device');
+import {HMIPWSDevice} from './hmip-ws-device';
+import type {HMIPWSFunctionalChannel} from './channel/hmip-ws-functional-channel';
+
+interface HMIPWSHeatingThermostatDeviceParams {
+    id: string;
+    type: string;
+    homeId: string;
+    lastStatusUpdate: number;
+    label: string;
+    functionalChannels: HMIPWSFunctionalChannel[];
+    deviceArchetype?: unknown;
+    manuallyUpdateForced?: unknown;
+    automaticValveAdaptionNeeded?: unknown;
+    updateState?: unknown;
+    firmwareVersion?: unknown;
+    modelType?: unknown;
+    permanentlyReachable?: unknown;
+    connectionType?: unknown;
+    manufacturerCode?: unknown;
+    oem?: unknown;
+    measuredAttributes?: unknown;
+    modelId?: unknown;
+    liveUpdateState?: unknown;
+    availableFirmwareVersion?: unknown;
+    firmwareVersionInteger?: unknown;
+    serializedGlobalTradeItemNumber?: unknown;
+}
 
 /**
  * HEATING_THERMOSTAT device
  */
-class HMIPWSHeatingThermostatDevice extends HMIPWSDevice {
-    /**
-     * @param {object} params
-     */
-    constructor(params) {
+export class HMIPWSHeatingThermostatDevice extends HMIPWSDevice {
+    deviceArchetype?: unknown;
+    manuallyUpdateForced?: unknown;
+    automaticValveAdaptionNeeded?: unknown;
+    updateState?: unknown;
+    firmwareVersion?: unknown;
+    modelType?: unknown;
+    permanentlyReachable?: unknown;
+    connectionType?: unknown;
+    manufacturerCode?: unknown;
+    oem?: unknown;
+    measuredAttributes?: unknown;
+    modelId?: unknown;
+    liveUpdateState?: unknown;
+    availableFirmwareVersion?: unknown;
+    firmwareVersionInteger?: unknown;
+    serializedGlobalTradeItemNumber?: unknown;
+
+    constructor(params: HMIPWSHeatingThermostatDeviceParams) {
         super(
             params.id,
             params.type,
@@ -36,11 +76,8 @@ class HMIPWSHeatingThermostatDevice extends HMIPWSDevice {
         this.serializedGlobalTradeItemNumber = params.serializedGlobalTradeItemNumber;
     }
 
-    /**
-     * @param {any} json
-     * @returns {HMIPWSHeatingThermostatDevice}
-     */
-    static fromJson(json) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- raw external WS protocol JSON boundary
+    static fromJson(json: Record<string, any>): HMIPWSHeatingThermostatDevice {
         return new HMIPWSHeatingThermostatDevice({
             id: json.id,
             type: json.type,
@@ -67,5 +104,3 @@ class HMIPWSHeatingThermostatDevice extends HMIPWSDevice {
         });
     }
 }
-
-module.exports = {HMIPWSHeatingThermostatDevice};

@@ -1,10 +1,33 @@
-const {HMIPWSGroup} = require('./hmip-ws-group');
+import {HMIPWSGroup} from './hmip-ws-group';
+import type {HMIPWSGroupChannelRef} from './hmip-ws-group-channel-ref';
+
+interface HMIPWSMetaGroupParams {
+    id: string;
+    homeId: string;
+    metaGroupId?: unknown;
+    label: string;
+    lastStatusUpdate: number;
+    unreach?: unknown;
+    lowBat?: unknown;
+    dutyCycle?: unknown;
+    channels: HMIPWSGroupChannelRef[];
+    sabotage?: unknown;
+    groups?: unknown;
+    configPending?: unknown;
+    incorrectPositioned?: unknown;
+    groupIcon?: unknown;
+}
 
 /**
  * META group
  */
-class HMIPWSMetaGroup extends HMIPWSGroup {
-    constructor(params) {
+export class HMIPWSMetaGroup extends HMIPWSGroup {
+    groups?: unknown;
+    configPending?: unknown;
+    incorrectPositioned?: unknown;
+    groupIcon?: unknown;
+
+    constructor(params: HMIPWSMetaGroupParams) {
         super({
             id: params.id,
             homeId: params.homeId,
@@ -26,11 +49,8 @@ class HMIPWSMetaGroup extends HMIPWSGroup {
         this.groupIcon = params.groupIcon;
     }
 
-    /**
-     * @param {any} json
-     * @returns {HMIPWSMetaGroup}
-     */
-    static fromJson(json) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- raw external WS protocol JSON boundary
+    static fromJson(json: Record<string, any>): HMIPWSMetaGroup {
         return new HMIPWSMetaGroup({
             id: json.id,
             homeId: json.homeId,
@@ -49,5 +69,3 @@ class HMIPWSMetaGroup extends HMIPWSGroup {
         });
     }
 }
-
-module.exports = {HMIPWSMetaGroup};

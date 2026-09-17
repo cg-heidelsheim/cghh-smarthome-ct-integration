@@ -1,19 +1,18 @@
-const {HMIPWSWallMountedThermostatChannel} = require('./hmip-ws-functional-channel-wall-mounted-thermostat');
-const {HMIPWSAccessControllerWiredChannel} = require('./hmip-ws-functional-channel-access-controller-wired');
-const {Logger} = require('../../../../../util/logger');
-const HMIPWSDeviceOperationLockChannel = require('./hmip-ws-functional-channel-operation-lock').HMIPWSDeviceOperationLockChannel;
-const HMIPWSHeatingThermostatChannel = require('./hmip-ws-functional-channel-heating-thermostat').HMIPWSHeatingThermostatChannel;
+import {HMIPWSWallMountedThermostatChannel} from './hmip-ws-functional-channel-wall-mounted-thermostat';
+import {HMIPWSAccessControllerWiredChannel} from './hmip-ws-functional-channel-access-controller-wired';
+import {Logger} from '../../../../../util/logger';
+import {HMIPWSDeviceOperationLockChannel} from './hmip-ws-functional-channel-operation-lock';
+import {HMIPWSHeatingThermostatChannel} from './hmip-ws-functional-channel-heating-thermostat';
+import type {HMIPWSFunctionalChannel} from './hmip-ws-functional-channel';
 
 require('dotenv').config();
 
 /**
  * Factory function to create HMIPWSFunctionalChannel instance from JSON.
  * Implements CommonJS synchronous style.
- *
- * @param {any} json
- * @returns {HMIPWSFunctionalChannel}
  */
-function createFunctionalChannelFromJson(json) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- raw external WS protocol JSON boundary
+export function createFunctionalChannelFromJson(json: Record<string, any>): HMIPWSFunctionalChannel | undefined {
     if (!json) {
         throw new Error('createFunctionalChannelFromJson: missing json');
     }
@@ -52,8 +51,7 @@ function createFunctionalChannelFromJson(json) {
                     });
                 }
             }
+            return undefined;
         }
     }
 }
-
-module.exports = {createFunctionalChannelFromJson};

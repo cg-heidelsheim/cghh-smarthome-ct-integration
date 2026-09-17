@@ -1,15 +1,15 @@
-const {createFunctionalChannelFromJson} = require('./channel/hmip-ws-functional-channel-factory');
-const {HMIPWSHeatingThermostatDevice} = require('./hmip-ws-device-heating-thermostat');
-const {Logger} = require('../../../../util/logger');
+import {createFunctionalChannelFromJson} from './channel/hmip-ws-functional-channel-factory';
+import {HMIPWSHeatingThermostatDevice} from './hmip-ws-device-heating-thermostat';
+import {Logger} from '../../../../util/logger';
+import type {HMIPWSDevice} from './hmip-ws-device';
 
 require('dotenv').config();
 
 /**
  * Device factory (switches based on device.type)
- * @param {any} json
- * @returns {HMIPWSDevice}
  */
-function createDeviceFromJson(json) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- raw external WS protocol JSON boundary
+export function createDeviceFromJson(json: Record<string, any>): HMIPWSDevice | undefined {
     if (!json) {
         throw new Error('createDeviceFromJson: device json missing');
     }
@@ -17,8 +17,9 @@ function createDeviceFromJson(json) {
     const {type} = json;
 
     const functionalChannelsObj = json.functionalChannels || {};
-    const functionalChannels = Object.values(functionalChannelsObj).map(fc =>
-        createFunctionalChannelFromJson(fc)
+    const functionalChannels = Object.values(functionalChannelsObj).map((fc) =>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- raw external WS protocol JSON boundary
+        createFunctionalChannelFromJson(fc as Record<string, any>)
     );
 
     switch (type) {
@@ -42,8 +43,7 @@ function createDeviceFromJson(json) {
                     });
                 }
             }
+            return undefined;
         }
     }
 }
-
-module.exports = {createDeviceFromJson};

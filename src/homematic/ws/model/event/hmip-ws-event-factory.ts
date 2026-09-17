@@ -1,18 +1,17 @@
-const {HMIPWSDeviceChangedEvent} = require('./hmip-ws-event-device-changed');
-const {HMIPWSGroupChangedEvent} = require('./hmip-ws-event-group-changed');
-const {HMIPWSHomeChangedEvent} = require('./hmip-ws-event-home-changed');
-const {Logger} = require('../../../../util/logger');
+import {HMIPWSDeviceChangedEvent} from './hmip-ws-event-device-changed';
+import {HMIPWSGroupChangedEvent} from './hmip-ws-event-group-changed';
+import {HMIPWSHomeChangedEvent} from './hmip-ws-event-home-changed';
+import {Logger} from '../../../../util/logger';
+import type {HMIPWSEvent} from './hmip-ws-event';
 
 require('dotenv').config();
 
 /**
  * Factory function to create HMIPWSEvent instance from JSON.
  * Implements CommonJS synchronous style.
- *
- * @param {any} json
- * @returns {HMIPWSEvent}
  */
-function createEventFromJson(json) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- raw external WS protocol JSON boundary
+export function createEventFromJson(json: Record<string, any>): HMIPWSEvent | undefined {
     if (!json || typeof json !== 'object') {
         throw new Error('createEventFromJson: invalid event json');
     }
@@ -33,8 +32,6 @@ function createEventFromJson(json) {
                     message: 'Unknown HMIPWSEvent.pushEventType: ' + type + ' - ' + JSON.stringify(json)
                 });
             }
+            return undefined;
     }
-
 }
-
-module.exports = {createEventFromJson};

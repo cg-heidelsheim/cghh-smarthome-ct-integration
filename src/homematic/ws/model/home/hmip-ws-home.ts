@@ -1,12 +1,126 @@
-const {HMIPWSHomeWeather} = require('./hmip-ws-weather');
-const {HMIPWSHomeLocation} = require('./hmip-ws-home-location');
+import {HMIPWSHomeWeather} from './hmip-ws-weather';
+import {HMIPWSHomeLocation} from './hmip-ws-home-location';
+
+// Almost all of these are raw external protocol fields never branched on elsewhere in this
+// codebase - `unknown` rather than guessing at a precise shape. `weather`/`location`/`id`
+// ARE consumed downstream (by homematic-event-listener.ts and weather-state.builder.ts),
+// so those get real types.
+interface HMIPWSHomeParams {
+    weather: HMIPWSHomeWeather | null;
+    metaGroups: unknown[];
+    clients: unknown[];
+    connected?: unknown;
+    currentAPVersion?: unknown;
+    availableAPVersion?: unknown;
+    timeZoneId?: unknown;
+    location: HMIPWSHomeLocation | null;
+    pinAssigned?: unknown;
+    pinChangeTimestamp?: unknown;
+    pinChangeClientLabel?: unknown;
+    userRightsManagementActive?: unknown;
+    liveUpdateSupported?: unknown;
+    dutyCycle?: unknown;
+    carrierSense?: unknown;
+    updateState?: unknown;
+    powerMeterUnitPrice?: unknown;
+    powerMeterCurrency?: unknown;
+    deviceUpdateStrategy?: unknown;
+    lastReadyForUpdateTimestamp?: unknown;
+    functionalHomes?: unknown;
+    inboxGroup?: unknown;
+    apExchangeClientId?: unknown;
+    apExchangeState?: unknown;
+    voiceControlSettings?: unknown;
+    ruleGroups?: unknown;
+    ruleMetaDatas?: unknown;
+    liveOTAUStatus?: unknown;
+    accessPointUpdateStates?: unknown;
+    accountLinkingStatus?: unknown;
+    userRightsManagementActiveChangeStatus?: unknown;
+    accountLinkingStatuses?: unknown;
+    linkedExternalServices?: unknown;
+    accountLinkingStatusSet?: unknown;
+    externalServiceAccountLinkings?: unknown;
+    pluginInformationMap?: unknown;
+    pendingDeviceExchanges?: unknown;
+    deviceExchangeErrors?: unknown;
+    deviceExchangeHistoryEntries?: unknown;
+    notEntireExcludedAccessPoints?: unknown;
+    homeExtension?: unknown;
+    exchangeTimestamp?: unknown;
+    fixedDefaultGroups?: unknown;
+    deviceDebugLoggingAllowed?: unknown;
+    residentGroups?: unknown;
+    geofenceLocations?: unknown;
+    conciergeAvatarIcon?: unknown;
+    supportedOptionalFeatures?: unknown;
+    userRightsManagementSupported?: unknown;
+    hueLinkingSupported?: unknown;
+    externalServiceSupportingMap?: unknown;
+    measuringBaseURL?: unknown;
+    id: string;
+}
 
 /**
  * HOME object for HOME_CHANGED
  * (This is large; we keep some nested maps as-is but it’s structurally sound)
  */
-class HMIPWSHome {
-    constructor(params) {
+export class HMIPWSHome {
+    weather: HMIPWSHomeWeather | null;
+    metaGroups: unknown[];
+    clients: unknown[];
+    connected?: unknown;
+    currentAPVersion?: unknown;
+    availableAPVersion?: unknown;
+    timeZoneId?: unknown;
+    location: HMIPWSHomeLocation | null;
+    pinAssigned?: unknown;
+    pinChangeTimestamp?: unknown;
+    pinChangeClientLabel?: unknown;
+    userRightsManagementActive?: unknown;
+    liveUpdateSupported?: unknown;
+    dutyCycle?: unknown;
+    carrierSense?: unknown;
+    updateState?: unknown;
+    powerMeterUnitPrice?: unknown;
+    powerMeterCurrency?: unknown;
+    deviceUpdateStrategy?: unknown;
+    lastReadyForUpdateTimestamp?: unknown;
+    functionalHomes?: unknown;
+    inboxGroup?: unknown;
+    apExchangeClientId?: unknown;
+    apExchangeState?: unknown;
+    voiceControlSettings?: unknown;
+    ruleGroups?: unknown;
+    ruleMetaDatas?: unknown;
+    liveOTAUStatus?: unknown;
+    accessPointUpdateStates?: unknown;
+    accountLinkingStatus?: unknown;
+    userRightsManagementActiveChangeStatus?: unknown;
+    accountLinkingStatuses?: unknown;
+    linkedExternalServices?: unknown;
+    accountLinkingStatusSet?: unknown;
+    externalServiceAccountLinkings?: unknown;
+    pluginInformationMap?: unknown;
+    pendingDeviceExchanges?: unknown;
+    deviceExchangeErrors?: unknown;
+    deviceExchangeHistoryEntries?: unknown;
+    notEntireExcludedAccessPoints?: unknown;
+    homeExtension?: unknown;
+    exchangeTimestamp?: unknown;
+    fixedDefaultGroups?: unknown;
+    deviceDebugLoggingAllowed?: unknown;
+    residentGroups?: unknown;
+    geofenceLocations?: unknown;
+    conciergeAvatarIcon?: unknown;
+    supportedOptionalFeatures?: unknown;
+    userRightsManagementSupported?: unknown;
+    hueLinkingSupported?: unknown;
+    externalServiceSupportingMap?: unknown;
+    measuringBaseURL?: unknown;
+    id: string;
+
+    constructor(params: HMIPWSHomeParams) {
         this.weather = params.weather;
         this.metaGroups = params.metaGroups;
         this.clients = params.clients;
@@ -69,11 +183,8 @@ class HMIPWSHome {
         this.id = params.id;
     }
 
-    /**
-     * @param {any} json
-     * @returns {HMIPWSHome}
-     */
-    static fromJson(json) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- raw external WS protocol JSON boundary
+    static fromJson(json: Record<string, any> | undefined | null): HMIPWSHome {
         if (!json) {
             throw new Error('HMIPWSHome.fromJson: home json missing');
         }
@@ -151,5 +262,3 @@ class HMIPWSHome {
         });
     }
 }
-
-module.exports = {HMIPWSHome};

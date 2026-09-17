@@ -1,23 +1,26 @@
-'use strict';
+import axios from 'axios';
+import {Event} from './model/event';
 
 require('dotenv').config();
-const axios = require('axios');
-const {Event} = require('./model/event');
 
 class ChurchToolsApiClient {
+    baseUrl: string;
+    cookietoken: string;
+
     constructor() {
-        this.baseUrl = process.env.CT_API_URL;
+        this.baseUrl = process.env.CT_API_URL ?? '';
         if (!this.baseUrl) {throw new Error('CT_API_URL environment variable is not set.');}
         this.cookietoken = '';
     }
 
-    async login() {
+    async login(): Promise<void> {
         try {
             const response = await axios.post(`${this.baseUrl}/api/login`, {
                 username: process.env.CT_USERNAME, password: process.env.CT_PASSWORD,
             }, {withCredentials: true});
 
-            this.cookietoken = response.headers['set-cookie'] ? response.headers['set-cookie'][0].split(';')[0].split('=')[1] : '';
+            const setCookie = response.headers['set-cookie'];
+            this.cookietoken = setCookie ? setCookie[0].split(';')[0].split('=')[1] : '';
 
             const data = response.data;
 
@@ -29,7 +32,7 @@ class ChurchToolsApiClient {
         }
     }
 
-    async getEvents() {
+    async getEvents(): Promise<Event[]> {
         await this.login();
 
         let url = `${this.baseUrl}/index.php?q=churchcal/ajax&func=getCalendarEvents&from=-1&to=1`;
@@ -53,11 +56,12 @@ class ChurchToolsApiClient {
             }
 
             const rawEvents = response.data.data || [];
-            return rawEvents.map((ev) => Event.fromJSON(ev));
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- raw external API payload
+            return rawEvents.map((ev: any) => Event.fromJSON(ev));
         } catch (error) {
             throw new Error('Error fetching events: ' + error);
         }
     }
 }
 
-module.exports = ChurchToolsApiClient;
+export = ChurchToolsApiClient;

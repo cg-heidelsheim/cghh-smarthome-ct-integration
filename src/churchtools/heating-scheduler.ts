@@ -1,24 +1,20 @@
-const moment = require('moment');
+import moment from 'moment';
+import type {RoomConfig} from '../db/model/room-config';
+import type {Event} from './model/event';
+import type {GroupState} from '../db/model/group-state';
+import type Booking = require('./model/booking');
+import type {EventRoomConfig} from '../db/model/event-room-config.model';
 
-class HeatingScheduler {
+export class HeatingScheduler {
     /**
      * Calculates when heating for a room should start for a given event/booking.
-     *
-     * @param {RoomConfig} roomConfig
-     * @param {Event} event
-     * @param {GroupState} groupState
-     * @param {Booking} booking
-     * @param {import('../db/model/event-room-config.model').EventRoomConfig[]} eventRoomConfigs
-     *
-     * @returns {{
-     *   shouldStartHeating: boolean,
-     *   minutesUntilHeatingStart: number,
-     *   minutesToReachTemp: number,
-     *   minutesPreOfBooking: number,
-     *   heatingStartTime: import('moment').Moment
-     * }}
      */
-    static calculateHeatingSchedule(roomConfig, event, groupState, booking, eventRoomConfigs) {
+    static calculateHeatingSchedule(roomConfig: RoomConfig, event: Event, groupState: GroupState, booking: Booking, eventRoomConfigs: EventRoomConfig[]): {
+        shouldStartHeating: boolean;
+        minutesUntilHeatingStart: number;
+        minutesToReachTemp: number;
+        minutesPreOfBooking: number;
+    } {
         const now = moment();
         const eventStart = moment(event.startDate);
 
@@ -48,5 +44,3 @@ class HeatingScheduler {
         };
     }
 }
-
-module.exports = {HeatingScheduler};

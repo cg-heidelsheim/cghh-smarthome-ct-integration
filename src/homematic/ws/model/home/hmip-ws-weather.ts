@@ -1,5 +1,16 @@
-class HMIPWSHomeWeather {
-    constructor(json) {
+export class HMIPWSHomeWeather {
+    temperature: number;
+    weatherCondition: string;
+    weatherDayTime: string;
+    minTemperature: number;
+    maxTemperature: number;
+    humidity: number;
+    windSpeed: number;
+    windDirection?: number;
+    vaporAmount: number;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- raw external WS protocol JSON boundary
+    constructor(json: Record<string, any>) {
         this.temperature = json.temperature;
         this.weatherCondition = json.weatherCondition;
         this.weatherDayTime = json.weatherDayTime;
@@ -11,5 +22,3 @@ class HMIPWSHomeWeather {
         this.vaporAmount = json.vaporAmount;
     }
 }
-
-module.exports = {HMIPWSHomeWeather};
