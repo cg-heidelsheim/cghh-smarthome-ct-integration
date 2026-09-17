@@ -1,62 +1,52 @@
-const moment = require('./timezone.bootstrap');
-const {PendingLogDB} = require('../db/pending-log.db');
-const {Logger} = require('./logger');
+import moment from './timezone.bootstrap';
+import {PendingLogDB} from '../db/pending-log.db';
+import {Logger} from './logger';
+import type {GroupState} from '../db/model/group-state';
+import type {DeviceState} from '../db/model/device-state';
+import type {WeatherState} from '../db/model/weather-state';
+import type {ChannelState} from '../db/model/channel-state';
+import type {Lock} from '../db/model/lock';
+import type {Event} from '../churchtools/model/event';
+
+// `state` is `any` rather than a shared narrow type: the three real logFn implementations
+// (group/device/weather) each take a different concrete *State type, and passing them by
+// reference here is contravariant in their parameter types - a shared supertype would need
+// to be at least as wide as the narrowest of the three, which isn't useful to express.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type PrePostLogFn = (fromTo: string, state: any, ...extra: any[]) => void;
 
 /**
  * This class is the main Logging Class for actions that the automated Script has made
  *
  * TODO MAKE 2
  */
-class EventLogger {
+export class EventLogger {
 
-    /**
-     * @param {number} minutes
-     * @param {number} minPreOfBooking
-     * @param {GroupState} groupState
-     */
-    static heatingTimeExpectancy(minutes, minPreOfBooking, groupState) {
+    static heatingTimeExpectancy(minutes: number, minPreOfBooking: number, groupState: GroupState) {
         const tags = {module: 'CRON', function: 'EXECUTE', group: groupState.label.replace(/ /g, '_')};
         const message = `[#] Preheating takes ~ ${Math.round(minutes)} min. (incl. ${minPreOfBooking || 0} min. offset)}`;
         Logger.core({tags, message});
     }
 
-    /**
-     *
-     * @param {string} name
-     * @param desiredTemperature
-     * @param lock
-     */
-    static resolveLock(name, desiredTemperature, lock) {
+    static resolveLock(name: string, desiredTemperature: number, lock: Lock) {
         const tags = {module: 'CRON', function: 'EXECUTE', group: name.replace(/ /g, '_')};
         const message = `[-] '${name}' to ${desiredTemperature}°C for '${lock.eventName}' ending at ${this.ft(lock.expiring)}`;
         Logger.core({tags, message});
     }
 
-    /**
-     *
-     * @param {string} roomName
-     * @param {number} desiredTemperature
-     * @param {import('./../churchtools/model/event').Event} event
-     */
-    static groupUpdatePreheat(roomName, desiredTemperature, event) {
+    static groupUpdatePreheat(roomName: string, desiredTemperature: number, event: Event) {
         const tags = {module: 'CRON', function: 'EXECUTE', group: roomName.replace(/ /g, '_')};
         const message = `[+] '${roomName}' to ${desiredTemperature}°C for '${event.name}' starting ${this.ft(event.startDate)}`;
         Logger.core({tags, message});
     }
 
-    static groupUpdatePreheatBlocked(eventName, roomName) {
+    static groupUpdatePreheatBlocked(eventName: string, roomName: string) {
         const tags = {module: 'CRON', function: 'EXECUTE', group: roomName.replace(/ /g, '_')};
         const message = `[#] '${roomName}' preheating is blocked for event '${eventName}' due to manual temperature override`;
         Logger.core({tags, message});
     }
 
-
-    /**
-     *
-     * @param {GroupState} currentState
-     * @param {GroupState} updatedState
-     */
-    static wsGroupChangeCore(currentState, updatedState) {
+    static wsGroupChangeCore(currentState: GroupState, updatedState: GroupState) {
         if (currentState.setTemperature === updatedState.setTemperature) {
             return;
         }
@@ -74,7 +64,7 @@ class EventLogger {
             Logger.debug({message: 'Pending Log DB read failed: ' + err.message});
         }
 
-        let tags = {
+        let tags: Record<string, unknown> = {
             module: 'WS',
             function: 'GROUP_UPDATE',
             group: currentState.label.replace(/\s/g, ''),
@@ -93,11 +83,8 @@ class EventLogger {
 
     /**
      * For an update, first send the current state with the label "PRE", and then the new state with the label "POST"
-     *
-     * @param {GroupState} currentState
-     * @param {GroupState} updatedState
      */
-    static wsGroupChange(currentState, updatedState) {
+    static wsGroupChange(currentState: GroupState, updatedState: GroupState) {
         EventLogger.wsGroupChangeCore(currentState, updatedState);
         EventLogger.wsGroupChangeDebug(currentState, updatedState);
     }
@@ -107,14 +94,15 @@ class EventLogger {
      * wsGroupChangeDebug/wsDeviceUpdateDebug/weatherUpdateDebug, previously three
      * independent copies of the same isInitialUpdate branching.
      *
-     * @param {{label: string}} currentState
-     * @param {{label: string}} updatedState
-     * @param {(fromTo: string, state: object, ...extra: any[]) => void} logFn
-     * @param {any[]} preExtraArgs   extra args to append after `currentState` for the PRE call
-     * @param {any[]} postExtraArgs  extra args to append after `updatedState` for the POST/INIT call
-     * @param {boolean} skipPre      force-skip the PRE call even for a non-initial update
+     * @param preExtraArgs   extra args to append after `currentState` for the PRE call
+     * @param postExtraArgs  extra args to append after `updatedState` for the POST/INIT call
+     * @param skipPre        force-skip the PRE call even for a non-initial update
      */
-    static #logPrePost(currentState, updatedState, logFn, preExtraArgs = [], postExtraArgs = [], skipPre = false) {
+    static #logPrePost(
+        currentState: {label: string}, updatedState: {label: string}, logFn: PrePostLogFn,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- heterogeneous extra args, see PrePostLogFn above
+        preExtraArgs: any[] = [], postExtraArgs: any[] = [], skipPre = false
+    ) {
         const isInitialUpdate = currentState.label === 'INIT';
         if (!isInitialUpdate && !skipPre) {
             logFn('PRE', currentState, ...preExtraArgs);
@@ -124,11 +112,11 @@ class EventLogger {
         logFn(fromTo, updatedState, ...postExtraArgs);
     }
 
-    static wsGroupChangeDebug(currentState, updatedState) {
+    static wsGroupChangeDebug(currentState: GroupState, updatedState: GroupState) {
         this.#logPrePost(currentState, updatedState, this.wsGroupStateToInfluxLog);
     }
 
-    static wsDeviceUpdateDebug(currentState, updatedState, channelIndex) {
+    static wsDeviceUpdateDebug(currentState: DeviceState, updatedState: DeviceState, channelIndex: number) {
         const currentChannel = currentState.channels.find(channel => channel.index === channelIndex);
         const updatedChannel = updatedState.channels.find(channel => channel.index === channelIndex);
 
@@ -141,11 +129,11 @@ class EventLogger {
         );
     }
 
-    static weatherUpdateDebug(currentState, updatedState) {
+    static weatherUpdateDebug(currentState: WeatherState, updatedState: WeatherState) {
         this.#logPrePost(currentState, updatedState, this.wsWeatherToInfluxLog);
     }
 
-    static wsGroupStateToInfluxLog(fromTo, groupState) {
+    static wsGroupStateToInfluxLog(fromTo: string, groupState: GroupState) {
         let message = groupState.label;
 
         if (groupState.setTemperature) {message += ` - SetTemp: ${groupState.setTemperature.toFixed(1)}`;}
@@ -162,7 +150,7 @@ class EventLogger {
         Logger.debug({tags, message});
     }
 
-    static wsDeviceStateToInfluxLog(fromTo, deviceState, channel) {
+    static wsDeviceStateToInfluxLog(fromTo: string, deviceState: DeviceState, channel: ChannelState) {
         let message = deviceState.label;
 
         if (channel.setTemperature) {message += ` - SetTemp: ${channel.setTemperature.toFixed(1)}`;}
@@ -181,7 +169,7 @@ class EventLogger {
         Logger.debug({tags, message});
     }
 
-    static wsWeatherToInfluxLog(fromTo, state) {
+    static wsWeatherToInfluxLog(fromTo: string, state: WeatherState) {
         let message = `${state.label} CurrTemp: ${state.temperature.toFixed(1)}`;
         message += ` - MinTemp: ${state.minTemperature.toFixed(1)}`;
         message += ` - MaxTemp: ${state.maxTemperature.toFixed(1)}`;
@@ -201,8 +189,8 @@ class EventLogger {
         Logger.debug({tags, message});
     }
 
-    static ft = (string) => {
-        return moment(string).format('YYYY-MM-DD HH:mm:ss');
+    static ft = (dateString: string) => {
+        return moment(dateString).format('YYYY-MM-DD HH:mm:ss');
     };
 
     static t = () => {
@@ -210,5 +198,3 @@ class EventLogger {
     };
 
 }
-
-module.exports = {EventLogger};

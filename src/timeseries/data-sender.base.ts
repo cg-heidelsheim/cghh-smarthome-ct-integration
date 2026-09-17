@@ -1,4 +1,5 @@
-const influxDb = require('../timeseries/influx/influx-db'); // now the singleton
+import influxDb from './influx/influx-db';
+import type {InfluxDataPoint} from './influx/influx-data-point';
 
 /**
  * Abstract base class for data senders.
@@ -6,11 +7,11 @@ const influxDb = require('../timeseries/influx/influx-db'); // now the singleton
  * Implements common functionality for sending data to InfluxDB.
  * Subclasses must implement parseData and tag property.
  */
-class DataSender {
+export class DataSender {
 
-    bucket;
+    bucket: string;
 
-    constructor(bucket) {
+    constructor(bucket: string) {
         this.bucket = bucket;
         if (!this.bucket) {
             throw new Error("Subclass must define a 'bucket' property representing the target InfluxDB bucket.");
@@ -20,23 +21,16 @@ class DataSender {
     /**
      * Parse the data into the InfluxDB data format.
      * This method must be overridden by subclasses.
-     *
-     * @param  {...any} args - Arguments needed for parsing
-     * @returns {Object} Data formatted for InfluxDB
      */
-    parseData(..._args) {
+    parseData(..._args: unknown[]): InfluxDataPoint {
         throw new Error('parseData() must be implemented by subclass.');
     }
 
     /**
      * Send the parsed data to InfluxDB.
-     *
-     * @param  {...any} args - Arguments needed for parseData
      */
-    sendData(...args) {
+    sendData(...args: unknown[]) {
         const influxData = this.parseData(...args);
         influxDb.sendGenericInformation(influxData, this.bucket);
     }
 }
-
-module.exports = {DataSender};

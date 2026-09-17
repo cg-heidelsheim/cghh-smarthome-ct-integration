@@ -5,11 +5,7 @@ require('dotenv').config();
 
 let logSeq = 0; // module-level counter
 
-interface InfluxDataPoint {
-    label: string;
-    values: Record<string, number | undefined | null>;
-    tags?: Record<string, unknown>;
-}
+import type {InfluxDataPoint} from './influx-data-point';
 
 const writeOptions = {
     // tune as you like

@@ -7,6 +7,12 @@
     "allowJs": true,
     "checkJs": false,
     "strict": true,
+    // This codebase's existing catch-block style (throughout, pre-dating the TS migration)
+    // does `e.message`, `+ e`, `e.response?.data` directly on the caught error with no
+    // narrowing. Under strict mode's default `useUnknownInCatchVariables`, every one of
+    // those would need an `instanceof`/cast just to compile, for no real safety gain here -
+    // this restores the pre-TS-4.4 implicit-any catch behavior the code already assumed.
+    "useUnknownInCatchVariables": false,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,

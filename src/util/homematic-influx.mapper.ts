@@ -1,11 +1,12 @@
+import type {GroupState} from '../db/model/group-state';
+import type {ChannelState} from '../db/model/channel-state';
+import type {WeatherState} from '../db/model/weather-state';
+import type {InfluxDataPoint} from '../timeseries/influx/influx-data-point';
+
 /**
  * Take information of a {@link GroupState} and parse it into an influx usable DB object
- *
- * @param {import('../db/model/group-state').GroupState} state
- *
- * @returns object
  */
-const parseGroupStateIntoInfluxDataObject = (state) => {
+export const parseGroupStateIntoInfluxDataObject = (state: GroupState): InfluxDataPoint => {
     return {
         label: 'sensoric',
         values: {
@@ -20,7 +21,7 @@ const parseGroupStateIntoInfluxDataObject = (state) => {
     };
 };
 
-const parseDeviceStateChannelIntoInfluxDataObject = (state, channel) => {
+export const parseDeviceStateChannelIntoInfluxDataObject = (state: {label: string}, channel: ChannelState): InfluxDataPoint => {
     return {
         label: 'sensoric',
         values: {
@@ -37,11 +38,13 @@ const parseDeviceStateChannelIntoInfluxDataObject = (state, channel) => {
 
 /**
  * Take information of heating group and parse it into an influx parsable DB object
- *
- * @param {*} group
- * @returns
  */
-const parseHeatingGroupDataIntoInfluxDataObject = (group) => {
+export const parseHeatingGroupDataIntoInfluxDataObject = (group: {
+    label: string;
+    actualTemperature: number;
+    setPointTemperature: number;
+    humidity: number;
+}): InfluxDataPoint => {
     return {
         label: group.label,
         values: {
@@ -54,12 +57,8 @@ const parseHeatingGroupDataIntoInfluxDataObject = (group) => {
 
 /**
  * Take information of a {@link WeatherState} and parse it into an influx usable DB object
- *
- * @param {import('../db/model/weather-state').WeatherState} state
- *
- * @returns object
  */
-const parseWeatherStateIntoInfluxDataObject = (state) => {
+export const parseWeatherStateIntoInfluxDataObject = (state: WeatherState): InfluxDataPoint => {
     const temperature = state.temperature;
     const minTemperature = state.minTemperature;
     const maxTemperature = state.maxTemperature;
@@ -83,11 +82,4 @@ const parseWeatherStateIntoInfluxDataObject = (state) => {
         //     tag: "ALL"
         // }
     };
-};
-
-module.exports = {
-    parseGroupStateIntoInfluxDataObject,
-    parseDeviceStateChannelIntoInfluxDataObject,
-    parseHeatingGroupDataIntoInfluxDataObject,
-    parseWeatherStateIntoInfluxDataObject
 };

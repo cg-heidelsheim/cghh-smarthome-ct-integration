@@ -1,15 +1,13 @@
-const {HomematicApi} = require('../homematic/homematic-api');
-const {Logger} = require('./logger');
+import {HomematicApi} from '../homematic/homematic-api';
+import {Logger} from './logger';
 
-class EnvironmentManager {
+export class EnvironmentManager {
 
     /**
      * Lookup the current server URLs from the Homematic Lookup Endpoint
-     *
-     * @returns {Promise<void>}
      */
-    static async updateServerVariables() {
-        let tags = {module: 'API', function: 'HOMEMATIC_LOOKUP'};
+    static async updateServerVariables(): Promise<void> {
+        let tags: Record<string, unknown> = {module: 'API', function: 'HOMEMATIC_LOOKUP'};
 
         const homematicAPI = new HomematicApi();
         const response = await homematicAPI.getServerUrls();
@@ -41,5 +39,3 @@ class EnvironmentManager {
         }
     }
 }
-
-module.exports = {EnvironmentManager};

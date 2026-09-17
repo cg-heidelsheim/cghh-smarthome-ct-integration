@@ -1,22 +1,26 @@
 const fs = require('fs');
 const fse = require('fs-extra');
-const {Logger} = require('../util/logger');
+import {Logger} from '../util/logger';
 
+type ModelCtor<T> = new () => T;
 
 /**
  * Generic JSON file database base class for simple key-value storage.
  * Manages a JSON file storing objects keyed by ids.
  * Handles file existence, reading, writing, and error management.
  */
-class JsonFileDB {
+export class JsonFileDB<T extends object> {
+    filePath: string;
+    ModelClass: ModelCtor<T> | null;
+
     /**
      * Creates a JsonFileDB instance associated with a JSON file.
      * Ensures the file exists on disk, creates empty JSON if missing.
      *
-     * @param {string} filePath Absolute path to the JSON file to use.
-     * @param ModelClass JS Class that en entry is converted into
+     * @param filePath Absolute path to the JSON file to use.
+     * @param ModelClass JS Class that an entry is converted into
      */
-    constructor(filePath, ModelClass = null) {
+    constructor(filePath: string, ModelClass: ModelCtor<T> | null = null) {
         this.filePath = filePath;
         this.ModelClass = ModelClass;
         this.ensureFileExists();
@@ -26,52 +30,53 @@ class JsonFileDB {
      * Reads and parses the JSON file contents.
      * Throws an error if file read or JSON parse fails.
      *
-     * @returns {Object} Parsed JSON contents of the DB file.
-     * @throws {Error} If unable to read or parse the file.
+     * @throws Error If unable to read or parse the file.
      */
-    _readFile() {
+    _readFile(): Record<string, unknown> {
         try {
             const raw = fs.readFileSync(this.filePath, 'utf8');
             return raw ? JSON.parse(raw) : {};
         } catch (err) {
-            throw new Error(`Failed to read or parse DB file ${this.filePath}: ${err.message}`);
+            throw new Error(`Failed to read or parse DB file ${this.filePath}: ${(err as Error).message}`);
         }
     }
 
     /**
      * Ensures the JSON file exists. Creates empty JSON if not.
      */
-    ensureFileExists() {
+    ensureFileExists(): void {
         if (!fs.existsSync(this.filePath)) {
             fse.outputFileSync(this.filePath, JSON.stringify({}, null, 2));
-            Logger.info({tags: ['json-file-db'], message: `Created new DB file at ${this.filePath}`});
+            // TODO(ts-migration): was `tags: ['json-file-db']` (an array) - TS caught that
+            // this doesn't match Logger's Record<string,unknown> tags shape used everywhere
+            // else. An array here also silently drops the `level` tag JSON.stringify adds in
+            // Logger.log (arrays ignore non-index properties), so this wasn't just a type
+            // mismatch, it was already a minor logging bug. No test covers this exact call.
+            Logger.info({tags: {source: 'json-file-db'}, message: `Created new DB file at ${this.filePath}`});
         }
     }
 
     /**
      * Saves or updates a record by its "id" field in the JSON file.
      * On file read error, starts fresh with empty data.
-     *
-     * @param {any} state The data object to save.
      */
-    save(state) {
+    save(state: T & {id: string}): void {
         this.saveById(state.id, state);
     }
 
     /**
      * Saves or updates a record by id in the JSON file.
      * On file read error, starts fresh with empty data.
-     *
-     * @param {string} id Key for the record.
-     * @param {*} data The data object to save.
      */
-    saveById(id, data) {
-        let allData;
+    saveById(id: string, data: unknown): void {
+        let allData: Record<string, unknown>;
         try {
             allData = this._readFile();
         } catch (err) {
+            // TODO(ts-migration): see the matching note in ensureFileExists() above -
+            // was `tags: ['json-file-db']`, changed to an object to match Logger's shape.
             Logger.warn({
-                tags: ['json-file-db'], message: `Loading DB file failed: ${err.message}. Starting fresh.`,
+                tags: {source: 'json-file-db'}, message: `Loading DB file failed: ${(err as Error).message}. Starting fresh.`,
             });
             allData = {};
         }
@@ -81,10 +86,8 @@ class JsonFileDB {
 
     /**
      * Deletes a record by id in the JSON file.
-     *
-     * @param {string} id Key for the record.
      */
-    deleteById(id) {
+    deleteById(id: string): void {
         const allData = this._readFile();
         delete allData[id];
 
@@ -93,29 +96,24 @@ class JsonFileDB {
 
     /**
      * Wraps a raw stored record in `this.ModelClass`, if one was configured.
-     *
-     * @param {*} data
-     * @returns {*}
      */
-    #toModel(data) {
+    #toModel(data: unknown): T {
         if (this.ModelClass) {
             return Object.assign(new this.ModelClass(), data);
         }
-        return data;
+        return data as T;
     }
 
     /**
      * Retrieves a record by id from the JSON file.
      * Throws error if no record found.
      *
-     * @param {string} id Key of the record to get.
-     * @returns {*} The data object stored under the id.
-     * @throws {Error} When record does not exist.
+     * @throws Error When record does not exist.
      */
-    getById(id) {
+    getById(id: string): T {
         const data = this.tryGetById(id);
         if (!data) {
-            throw new Error(`Entry with id "${id}" not found in "${this.ModelClass.name}" DB.`);
+            throw new Error(`Entry with id "${id}" not found in "${this.ModelClass!.name}" DB.`);
         }
         return data;
     }
@@ -126,11 +124,8 @@ class JsonFileDB {
      * error, so callers don't need exception-as-control-flow to check for absence.
      * A real read/parse failure (a corrupt DB file) still throws, since that's a
      * different failure mode than "not found" and callers should handle it distinctly.
-     *
-     * @param {string} id Key of the record to get.
-     * @returns {*|null}
      */
-    tryGetById(id) {
+    tryGetById(id: string): T | null {
         const allData = this._readFile();
         const data = allData[id];
         if (!data) {return null;}
@@ -142,12 +137,9 @@ class JsonFileDB {
      * The attribute name is passed as attributeName, and the exact match is searched.
      * Returns the first matching record found, or throws if none found.
      *
-     * @param {string} attributeName The attribute key to search by (e.g. 'id' or 'homematicId').
-     * @param {any} value The exact value to look for in the attribute.
-     * @returns {any} The first matching data object found.
-     * @throws {Error} When no matching record is found.
+     * @throws Error When no matching record is found.
      */
-    findByAttribute(attributeName, value) {
+    findByAttribute(attributeName: string, value: unknown): T {
         const found = this.tryFindByAttribute(attributeName, value);
         if (!found) {
             throw new Error(`Entry with ${attributeName} = ${value} not found in DB.`);
@@ -158,14 +150,10 @@ class JsonFileDB {
     /**
      * Same as `findByAttribute`, but returns `null` instead of throwing when no
      * matching record is found. See `tryGetById` for why this distinction matters.
-     *
-     * @param {string} attributeName
-     * @param {any} value
-     * @returns {any|null}
      */
-    tryFindByAttribute(attributeName, value) {
+    tryFindByAttribute(attributeName: string, value: unknown): T | null {
         const allData = this._readFile();
-        const allEntries = Object.values(allData);
+        const allEntries = Object.values(allData) as Record<string, unknown>[];
         const found = allEntries.find(entry => entry[attributeName] === value);
         if (!found) {return null;}
         return this.#toModel(found);
@@ -175,10 +163,8 @@ class JsonFileDB {
      * Returns all stored objects as an array.
      * The underlying JSON is assumed to be a key-value object
      * where each value is a stored record.
-     *
-     * @returns {Array} Array of stored data objects.
      */
-    getAll() {
+    getAll(): T[] {
         const allData = this._readFile();
 
         if (this.ModelClass) {
@@ -188,9 +174,6 @@ class JsonFileDB {
             });
         }
 
-
-        return Object.values(allData);
+        return Object.values(allData) as T[];
     }
 }
-
-module.exports = {JsonFileDB};
