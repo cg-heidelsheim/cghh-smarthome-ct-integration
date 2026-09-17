@@ -37,9 +37,44 @@ pipeline {
         }
 
 
+        stage('Reports') {
+            // Always-succeeding report generation (lint JSON, jscpd JSON/HTML, coverage
+            // HTML/lcov), built and archived BEFORE the quality-gates stage below, so a
+            // failing gate still leaves a report behind explaining why - a failed
+            // `docker build` produces no image to extract from.
+            steps {
+                script {
+                    sh "docker build --target reports -t ${img_name}-reports:${tag_name} ."
+                    def reportsContainer = sh(returnStdout: true, script: "docker create ${img_name}-reports:${tag_name}").trim()
+                    sh "rm -rf reports coverage && mkdir -p reports coverage"
+                    sh "docker cp ${reportsContainer}:/usr/src/app/reports/. reports/ || true"
+                    sh "docker cp ${reportsContainer}:/usr/src/app/coverage/. coverage/ || true"
+                    sh "docker rm ${reportsContainer} || true"
+                    sh "docker rmi ${img_name}-reports:${tag_name} || true"
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'reports/**, coverage/**', allowEmptyArchive: true
+                }
+            }
+        }
+
+        stage('Quality Gates') {
+            // lint, typecheck, knip, jscpd, tests - each fails this stage (and the whole
+            // build) on a real violation, exactly like `npm run check` locally. Reuses the
+            // `deps` layer cached by the Reports stage above, so this doesn't re-run
+            // `npm install` from scratch.
+            steps {
+                sh "docker build --target builder -t ${img_name}-builder:${tag_name} ."
+            }
+        }
+
         stage('Build Docker image') {
             steps {
                 script {
+                    // Reuses the already-built (and already-passing) `builder` target's
+                    // cached layers from the Quality Gates stage above.
                     image = docker.build(image_name)
                 }
             }
@@ -95,6 +130,16 @@ pipeline {
     }
 
     post {
+        always {
+            script {
+                try {
+                    sh "docker rmi ${img_name}-builder:${tag_name} || true"
+                } catch (err) {
+                    echo err.getMessage()
+                }
+            }
+        }
+
         success {
             script {
                 updateStatus("success")

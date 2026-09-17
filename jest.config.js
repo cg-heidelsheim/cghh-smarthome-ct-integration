@@ -11,19 +11,19 @@ module.exports = {
   setupFilesAfterEnv: ['<rootDir>/jest-logger-mock.js'],
   collectCoverageFrom: [
     'src/**/*.{js,ts}',
-    'index.js',
-    'uptime.js',
-    '!src/**/model/**', // plain DTOs, covered indirectly via their owning module's tests
+    'index.ts',
+    'uptime.ts',
   ],
   coverageThreshold: {
-    // Start modest — this ratchets up as Phase 1/2 of the refactor plan lands
-    // characterization tests for the currently-untested modules. Raising the floor
-    // is a deliberate, tracked step, not a one-off tweak.
+    // Raised once characterization tests + the TypeScript migration landed real coverage
+    // in the low-90s; set a few points below actual so routine work has some headroom
+    // without silently regressing. Raising the floor is a deliberate, tracked step (see
+    // AGENTS.md) — never lower it to make a failing build pass.
     global: {
-      statements: 40,
-      branches: 30,
-      functions: 40,
-      lines: 40,
+      statements: 85,
+      branches: 75,
+      functions: 80,
+      lines: 85,
     },
   },
 };
