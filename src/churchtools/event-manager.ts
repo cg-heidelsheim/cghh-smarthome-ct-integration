@@ -1,24 +1,30 @@
-const ChurchToolsApiClient = require('./ct-api');
-const {Logger} = require('../util/logger');
-const {HeatingScheduler} = require('../churchtools/heating-scheduler');
-const {filterCurrentAndUpcomingEvents} = require('../util/event-filter.util');
-const {GroupStateBuilder} = require('../homematic/group/group-state.builder');
-const {GroupManagerFactory} = require('../homematic/group/group-manager.factory');
-const {EventLogger} = require('../util/event.logger');
-const {Lock} = require('./../db/model/lock');
-const moment = require('moment');
+import ChurchToolsApiClient from './ct-api';
+import {Logger} from '../util/logger';
+import {HeatingScheduler} from '../churchtools/heating-scheduler';
+import {filterCurrentAndUpcomingEvents} from '../util/event-filter.util';
+import {GroupStateBuilder} from '../homematic/group/group-state.builder';
+import {GroupManagerFactory} from '../homematic/group/group-manager.factory';
+import {EventLogger} from '../util/event.logger';
+import {Lock} from './../db/model/lock';
+import moment from 'moment';
+import type {LockDB} from '../db/lock.db';
+import type {RoomConfigDB} from '../db/room-config.db';
+import type {GroupStateDB} from '../db/group-state.db';
+import type {EventRoomConfigDB} from '../db/event-room-configuration.db';
+import type {Event} from './model/event';
+import Booking = require('./model/booking');
+import type {EventRoomConfig} from '../db/model/event-room-config.model';
+import type {RoomConfig} from '../db/model/room-config';
+import type {GroupState} from '../db/model/group-state';
 
+export class EventManager {
+    tags: Record<string, unknown> = {module: 'CRON', function: 'EVENT'};
+    lockDB: LockDB;
+    roomConfigDB: RoomConfigDB;
+    groupStateDB: GroupStateDB;
+    eventRoomConfigDB: EventRoomConfigDB;
 
-class EventManager {
-    tags = {module: 'CRON', function: 'EVENT'};
-
-    /**
-     * @param {import('../db/lock.db').LockDB} lockDB
-     * @param {import('../db/room-config.db').RoomConfigDB} roomConfigDB
-     * @param {import('../db/group-state.db').GroupStateDB} groupStateDB
-     * @param {import('../db/event-room-configuration.db').EventRoomConfigDB} eventRoomConfigDB
-     */
-    constructor(lockDB, roomConfigDB, groupStateDB, eventRoomConfigDB) {
+    constructor(lockDB: LockDB, roomConfigDB: RoomConfigDB, groupStateDB: GroupStateDB, eventRoomConfigDB: EventRoomConfigDB) {
         this.lockDB = lockDB;
         this.roomConfigDB = roomConfigDB;
         this.groupStateDB = groupStateDB;
@@ -28,10 +34,8 @@ class EventManager {
     /**
      * Filter relevant HEATING events and execute event handling.
      * Relevant events are events that did not start yet.
-     *
-     * @returns void
      */
-    async handleEvents() {
+    async handleEvents(): Promise<void> {
         const ctClient = new ChurchToolsApiClient();
         const events = await ctClient.getEvents();
 
@@ -51,16 +55,12 @@ class EventManager {
         }
 
         Logger.info({tags, message: 'Finished event handling'});
-    };
-
+    }
 
     /**
-     * @param {import('./model/event').Event} event     Event to manage
-     * @param {import('../db/model/event-room-config.model').EventRoomConfig[]} eventRoomConfigs
-     *
-     * @returns void
+     * @param event     Event to manage
      */
-    async handleEvent(event, eventRoomConfigs) {
+    async handleEvent(event: Event, eventRoomConfigs: EventRoomConfig[]): Promise<void> {
         this.tags = {...this.tags, event: event.name};
         delete this.tags.group;
 
@@ -77,22 +77,18 @@ class EventManager {
         for (const booking of bookings) {
             await this.handleBookingOfEventHeating(event, booking, eventRoomConfigs);
         }
-    };
+    }
 
     /**
      * Determine if heating needs to be started for passed booking
      *
-     * @param {import('./model/event').Event} event     Event containing passed booking
-     * @param {import('./model/booking').Booking} booking   Booking (room) to possibly adjust
-     * @param {import('../db/model/event-room-config.model').EventRoomConfig[]} eventRoomConfigs
-     *
-     * @returns void
+     * @param event     Event containing passed booking
+     * @param booking   Booking (room) to possibly adjust
      */
-    async handleBookingOfEventHeating(event, booking, eventRoomConfigs) {
-        /** @type {RoomConfig} */
-        let roomConfig;
+    async handleBookingOfEventHeating(event: Event, booking: Booking, eventRoomConfigs: EventRoomConfig[]): Promise<void> {
+        let roomConfig: RoomConfig;
 
-        const ignored = {
+        const ignored: Record<string, string> = {
             '4': 'Küche'
         };
 
@@ -119,9 +115,9 @@ class EventManager {
         const groupState = this.#getGroupState(roomConfig);
 
         await this.#executeHeatingSchedule(roomConfig, event, groupState, booking, eventRoomConfigs);
-    };
+    }
 
-    async #executeHeatingSchedule(roomConfig, event, groupState, booking, eventRoomConfigs) {
+    async #executeHeatingSchedule(roomConfig: RoomConfig, event: Event, groupState: GroupState, booking: Booking, eventRoomConfigs: EventRoomConfig[]) {
         const {
             shouldStartHeating, minutesUntilHeatingStart, minutesToReachTemp, minutesPreOfBooking
         } = HeatingScheduler.calculateHeatingSchedule(roomConfig, event, groupState, booking, eventRoomConfigs);
@@ -144,7 +140,12 @@ class EventManager {
             Logger.info({tags: this.tags, message});
 
             const lock = new Lock();
-            lock.expiring = moment(event.endDate);
+            // .toISOString() rather than assigning the Moment object directly: Lock.expiring
+            // is a persisted string field (see db/model/lock.ts). The original JS assigned
+            // the Moment instance itself, type-incorrect but functionally harmless since it
+            // was never read again before lockDB.save() serializes it via JSON.stringify,
+            // which calls the Moment's own toJSON() - defined as `.toISOString()` - anyway.
+            lock.expiring = moment(event.endDate).toISOString();
             lock.eventName = event.name;
             lock.id = groupState.id;
             this.lockDB.save(lock);
@@ -158,7 +159,7 @@ class EventManager {
         }
     }
 
-    #getGroupState(roomConfig) {
+    #getGroupState(roomConfig: RoomConfig): GroupState {
         const groupState = this.groupStateDB.tryGetById(roomConfig.homematicId);
         if (!groupState) {
             Logger.error({message: 'Group state not found in DB. Using Dummy.'});
@@ -167,12 +168,7 @@ class EventManager {
         return groupState;
     }
 
-    /**
-     *
-     * @param {import('./model/booking').Booking} booking
-     * @returns {boolean}
-     */
-    #isAcceptedBooking(booking) {
+    #isAcceptedBooking(booking: Booking): boolean {
         // ONLY ALLOW ROOMS WITH STATUS "gebucht"
         if (booking.statusId !== '2') {
             Logger.warn({tags: this.tags, message: `Booking ${booking.id} not in status "accepted"`});
@@ -182,7 +178,7 @@ class EventManager {
         return true;
     }
 
-    #isRoomLocked(roomConfig) {
+    #isRoomLocked(roomConfig: RoomConfig): boolean {
         if (this.lockDB.tryGetById(roomConfig.homematicId)) {
             Logger.info({tags: this.tags, message: `Room '${roomConfig.name}' is locked`});
             return true;
@@ -191,5 +187,3 @@ class EventManager {
         return false;
     }
 }
-
-module.exports = {EventManager};

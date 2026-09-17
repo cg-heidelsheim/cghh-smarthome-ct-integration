@@ -2,7 +2,7 @@
   "name": "ct-integration",
   "version": "0.0.1",
   "description": "node.js port of the 3rd party Google Assistant SDK",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "prestart": "npm run build",

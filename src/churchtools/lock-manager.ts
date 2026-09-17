@@ -1,24 +1,24 @@
-const {Logger} = require('../util/logger');
-const {GroupManagerFactory} = require('../homematic/group/group-manager.factory');
-const {EventLogger} = require('../util/event.logger');
+import {Logger} from '../util/logger';
+import {GroupManagerFactory} from '../homematic/group/group-manager.factory';
+import {EventLogger} from '../util/event.logger';
+import type {LockDB} from '../db/lock.db';
+import type {RoomConfigDB} from '../db/room-config.db';
+import type {Lock} from '../db/model/lock';
 
-class LockManager {
+export class LockManager {
     tags = {module: 'CRON', function: 'LOCKS'};
+    lockDB: LockDB;
+    roomConfigDB: RoomConfigDB;
 
-    /**
-     * @param {import('../db/lock.db').LockDB} lockDB
-     * @param {import('../db/room-config.db').RoomConfigDB} roomConfigDB
-     */
-    constructor(lockDB, roomConfigDB) {
+    constructor(lockDB: LockDB, roomConfigDB: RoomConfigDB) {
         this.lockDB = lockDB;
         this.roomConfigDB = roomConfigDB;
     }
 
     /**
      * Manage locks for all rooms.
-     * @returns {Promise<void>}
      */
-    async manageLocks() {
+    async manageLocks(): Promise<void> {
         Logger.info({tags: this.tags, message: 'Starting lock resolving'});
 
         const locks = this.lockDB.getAll();
@@ -35,11 +35,8 @@ class LockManager {
      * Manage lock.
      * Checks if the log is expired.
      * If expired, delete it, and reset the corresponding room
-     *
-     * @param {import('../db/model/lock').Lock} lock
-     * @returns {Promise<void>}
      */
-    async #manageLock(lock) {
+    async #manageLock(lock: Lock): Promise<void> {
         const roomConfig = this.roomConfigDB.getById(lock.id);
         const tags = {...this.tags, group: roomConfig.name.replace(/ /g, '_')};
 
@@ -65,5 +62,3 @@ class LockManager {
         }
     }
 }
-
-module.exports = {LockManager};

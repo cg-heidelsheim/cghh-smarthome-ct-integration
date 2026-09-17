@@ -1,14 +1,14 @@
-const moment = require('./src/util/timezone.bootstrap');
+import moment from './src/util/timezone.bootstrap';
 
-const {execute, resetEverythingIfNotLocked} = require('./src/churchtools/churchtools-event-cron');
-const {startEventListener} = require('./src/homematic/homematic-event-listener');
-const {Uptime} = require('./uptime');
+import {execute, resetEverythingIfNotLocked} from './src/churchtools/churchtools-event-cron';
+import {startEventListener} from './src/homematic/homematic-event-listener';
+import {Uptime} from './uptime';
 
-const {Logger} = require('./src/util/logger');
-const {EnvironmentManager} = require('./src/util/environment-manager');
-const influxDb = require('./src/timeseries/influx/influx-db');
+import {Logger} from './src/util/logger';
+import {EnvironmentManager} from './src/util/environment-manager';
+import influxDb from './src/timeseries/influx/influx-db';
 
-const CronJob = require('cron').CronJob;
+import {CronJob} from 'cron';
 
 require('dotenv').config();
 
@@ -16,7 +16,7 @@ require('dotenv').config();
 // flushed on shutdown, silently losing up to a batch's worth of log/state data on every
 // restart or deploy.
 let shuttingDown = false;
-const shutdown = async (signal) => {
+const shutdown = async (signal: string) => {
     if (shuttingDown) {return;}
     shuttingDown = true;
 
@@ -25,18 +25,23 @@ const shutdown = async (signal) => {
     await influxDb.flushAndClose();
     process.exit(0);
 };
+// `.catch()` on each of these three (also below on `run()`) rather than floating promises:
+// none of the underlying calls are expected to reject in practice (executeCron and
+// EnvironmentManager already swallow their own errors internally), but leaving an async
+// entrypoint uncaught means a single unexpected throw becomes an unhandled promise
+// rejection on the process's top level, which can terminate the whole service.
 process.on('SIGTERM', () => {
-    shutdown('SIGTERM');
+    shutdown('SIGTERM').catch((e) => Logger.error({message: 'Shutdown (SIGTERM) failed: ' + e.message}));
 });
 process.on('SIGINT', () => {
-    shutdown('SIGINT');
+    shutdown('SIGINT').catch((e) => Logger.error({message: 'Shutdown (SIGINT) failed: ' + e.message}));
 });
 
 /**
  * ENTRYPOINT
  */
-const job = new CronJob(process.env.CRON_DEFINITION, async () => {
-    await executeCron();
+const job = new CronJob(process.env.CRON_DEFINITION!, () => {
+    executeCron().catch((e) => Logger.error({message: 'executeCron (cron tick) failed: ' + e.message}));
 });
 
 const executeCron = async () => {
@@ -44,7 +49,7 @@ const executeCron = async () => {
     Logger.info({tags: generalTags, message: '======= Starting Cronjob ======='});
 
     const maxTries = 3;
-    let resetNotPossible = {};
+    let resetNotPossible: Record<string, boolean> = {};
 
     // try reset if failed earlier
     // or its 0 o'clock
@@ -99,4 +104,4 @@ const run = async () => {
     startEventListener();
 };
 
-run();
+run().catch((e) => Logger.error({message: 'Startup (run()) failed: ' + e.message}));

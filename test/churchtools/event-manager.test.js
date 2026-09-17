@@ -172,6 +172,24 @@ describe('EventManager', () => {
       );
     });
 
+    it('saves the lock with expiring as an ISO string, not a Moment object (Lock.expiring is a persisted string field)', async () => {
+      const roomConfig = makeRoomConfig({homematicId: 'group-1', minutesNeeded: 0});
+      roomConfigDB.findByCTId.mockReturnValue(roomConfig);
+      lockDB.tryGetById.mockReturnValue(null);
+      groupStateDB.tryGetById.mockReturnValue({id: 'group-1', label: 'Saal'});
+      GroupManagerFactory.createGroupManager.mockReturnValue({
+        heatForEvent: jest.fn().mockResolvedValue(undefined),
+        groupState: {label: 'Saal'},
+      });
+
+      const event = makeEvent();
+      await eventManager.handleBookingOfEventHeating(event, makeBooking(), []);
+
+      const savedLock = lockDB.save.mock.calls[0][0];
+      expect(typeof savedLock.expiring).toBe('string');
+      expect(savedLock.expiring).toBe(moment(event.endDate).toISOString());
+    });
+
     it('does not start heating (or save a lock) when the schedule says it is not time yet', async () => {
       const roomConfig = makeRoomConfig({homematicId: 'group-1', minutesNeeded: 0});
       roomConfigDB.findByCTId.mockReturnValue(roomConfig);

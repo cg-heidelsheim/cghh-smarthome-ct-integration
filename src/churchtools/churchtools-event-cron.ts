@@ -1,12 +1,12 @@
-const {RoomConfigDB} = require('../db/room-config.db');
-const {HomematicApi} = require('./../homematic/homematic-api');
-const {LockDB} = require('../db/lock.db');
-const {LockManager} = require('../churchtools/lock-manager');
-const {EventManager} = require('../churchtools/event-manager');
-const {GroupStateDB} = require('../db/group-state.db');
-const {EventRoomConfigDB} = require('../db/event-room-configuration.db');
-const {Uptime} = require('../../uptime');
-const {Logger} = require('../util/logger');
+import {RoomConfigDB} from '../db/room-config.db';
+import {HomematicApi} from './../homematic/homematic-api';
+import {LockDB} from '../db/lock.db';
+import {LockManager} from '../churchtools/lock-manager';
+import {EventManager} from '../churchtools/event-manager';
+import {GroupStateDB} from '../db/group-state.db';
+import {EventRoomConfigDB} from '../db/event-room-configuration.db';
+import {Uptime} from '../../uptime';
+import {Logger} from '../util/logger';
 
 require('dotenv').config();
 require('../util/timezone.bootstrap');
@@ -36,7 +36,7 @@ async function manageCTEvents() {
 /**
  * Initialize run for heating adjustment
  */
-async function execute() {
+export async function execute() {
     await manageLocks();
     await manageCTEvents();
 }
@@ -44,12 +44,12 @@ async function execute() {
 /**
  * If no lock exists for the room, reset it to idle
  */
-async function resetEverythingIfNotLocked(earlierResetNotPossible) {
+export async function resetEverythingIfNotLocked(earlierResetNotPossible: Record<string, boolean>): Promise<Record<string, boolean>> {
     const roomConfigurationDB = new RoomConfigDB();
     const lockDB = new LockDB();
     const roomConfigs = roomConfigurationDB.getAll();
     const homematicAPI = new HomematicApi();
-    const resetNotPossible = {};
+    const resetNotPossible: Record<string, boolean> = {};
 
     // set boolean if this reset is a retry (if earlier one reset didn't work)
     const earlierResetNotPossibleBool = Object.keys(earlierResetNotPossible).length > 0;
@@ -87,6 +87,3 @@ async function resetEverythingIfNotLocked(earlierResetNotPossible) {
 
     return resetNotPossible;
 }
-
-
-module.exports = {execute, resetEverythingIfNotLocked};

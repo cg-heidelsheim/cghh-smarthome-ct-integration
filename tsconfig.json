@@ -21,6 +21,6 @@
     "outDir": "dist",
     "rootDir": "."
   },
-  "include": ["src/**/*", "test/**/*", "index.js", "uptime.js"],
+  "include": ["src/**/*", "test/**/*", "index.ts", "uptime.ts"],
   "exclude": ["node_modules", "dist", "coverage", "reports", "persistent"]
 }

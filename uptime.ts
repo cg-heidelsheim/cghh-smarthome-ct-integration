@@ -1,8 +1,8 @@
-const axios = require('axios');
-const {Logger} = require('./src/util/logger');
+import axios from 'axios';
+import {Logger} from './src/util/logger';
 
-class Uptime {
-    static pingUptime = (status, message, subject) => {
+export class Uptime {
+    static pingUptime = (status: string, message: unknown, subject: string) => {
         // Check if not in local/test mode before performing the operation
         if (process.env.ENVIRONMENT === 'production') {
             const url = `${subject === 'CRON' ? process.env.UPTIME_KUMA_CRON_URL : process.env.UPTIME_KUMA_WS_URL}?status=${status}&msg=${message}&ping=`;
@@ -24,5 +24,3 @@ class Uptime {
         }
     };
 }
-
-module.exports = {Uptime};
