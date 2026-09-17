@@ -5,8 +5,9 @@
 > explanation and operator FAQ.
 
 > The running container also serves a German-language docs site (end-user heating explanation +
-> developer overview) at `/docs` on port 8080 — see `docs/site/` for the source and
-> `src/docs-site/` for the server that renders it.
+> developer overview) at `/docs` on port 8080 inside the container — published as host port
+> `34242` on the production deployment (see `Jenkinsfile`'s "Start container - main" stage). See
+> `docs/site/` for the source and `src/docs-site/` for the server that renders it.
 
 ##
 Reverse Engineered API: https://homematicip-rest-api.readthedocs.io/en/latest/_modules/homematicip/group.html#HeatingGroup.set_point_temperature

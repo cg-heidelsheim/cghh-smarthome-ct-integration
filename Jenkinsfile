@@ -99,6 +99,7 @@ pipeline {
                             -v /var/www/vhosts/cg-heidelsheim.de/ct-integration.smarthome.cg-heidelsheim.de/volumes/persistent:/usr/src/app/persistent \
                             --network=cghh-smarthome \
                             --restart unless-stopped \
+                            -p 34242:8080 \
                             -d ${image_name}"
                 }
             }
