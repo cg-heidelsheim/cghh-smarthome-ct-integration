@@ -5,12 +5,14 @@ require('dotenv').config();
 
 class ChurchToolsApiClient {
     baseUrl: string;
-    cookietoken: string;
+    cookieName: string;
+    cookieValue: string;
 
     constructor() {
         this.baseUrl = process.env.CT_API_URL ?? '';
         if (!this.baseUrl) {throw new Error('CT_API_URL environment variable is not set.');}
-        this.cookietoken = '';
+        this.cookieName = '';
+        this.cookieValue = '';
     }
 
     async login(): Promise<void> {
@@ -19,8 +21,29 @@ class ChurchToolsApiClient {
                 username: process.env.CT_USERNAME, password: process.env.CT_PASSWORD,
             }, {withCredentials: true});
 
-            const setCookie = response.headers['set-cookie'];
-            this.cookietoken = setCookie ? setCookie[0].split(';')[0].split('=')[1] : '';
+            // FIXED: previously always took set-cookie[0] and always sent it back under the
+            // hardcoded name 'ChurchTools_ct_heidelsheim'. ChurchTools now sends that same
+            // cookie name twice, first as an *expired, empty-value* cookie clearing the old
+            // session, before the real one - under a different name,
+            // 'ChurchToolsV2_ct_heidelsheim'. Reading index [0] silently picked up the empty
+            // clearing cookie, so every request after login ran unauthenticated: ChurchTools
+            // doesn't reply with an HTTP 401 for that, it replies 200 with a JSON body
+            // ({status: "fail", data: "<permission error string>"}), which the checks below
+            // didn't catch either, so it surfaced three steps downstream as an unrelated
+            // "rawEvents.map is not a function" crash. This is the actual pre-existing bug
+            // behind that error, not a local `.env`/test-credentials issue. Now picks
+            // whichever set-cookie entry actually has a non-empty value, and sends that
+            // cookie back under its own real name - robust to ChurchTools renaming it again.
+            const setCookie = response.headers['set-cookie'] ?? [];
+            const sessionCookie = setCookie
+                .map((raw) => raw.split(';')[0])
+                .map((pair) => {
+                    const eq = pair.indexOf('=');
+                    return {name: pair.slice(0, eq), value: pair.slice(eq + 1)};
+                })
+                .find((cookie) => cookie.value.length > 0);
+            this.cookieName = sessionCookie?.name ?? '';
+            this.cookieValue = sessionCookie?.value ?? '';
 
             const data = response.data;
 
@@ -47,11 +70,15 @@ class ChurchToolsApiClient {
                 headers: {
                     'Access-Control-Allow-Origin': '*',
                     'Content-Type': 'application/json',
-                    cookie: 'ChurchTools_ct_heidelsheim=' + this.cookietoken,
+                    cookie: `${this.cookieName}=${this.cookieValue}`,
                 },
             });
 
-            if (response.data.status === 'error') {
+            // FIXED: only checked for status === 'error'. An unauthenticated/unauthorized
+            // request (e.g. the stale-cookie bug above) comes back as status === 'fail' with
+            // a message in `data`, not 'error' - that case fell all the way through to
+            // `rawEvents.map()` on a non-array `data` value instead of a clear error here.
+            if (response.data.status !== 'success') {
                 throw new Error(JSON.stringify(response.data));
             }
 
