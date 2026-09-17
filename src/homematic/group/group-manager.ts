@@ -1,37 +1,43 @@
-const {PendingLogDB} = require('../../db/pending-log.db');
-const {Logger} = require('../../util/logger');
-const {PendingLog} = require('../../db/model/pending-log');
+import {PendingLogDB} from '../../db/pending-log.db';
+import {Logger} from '../../util/logger';
+import {PendingLog} from '../../db/model/pending-log';
+import type {RoomConfig} from '../../db/model/room-config';
+import type {GroupState} from '../../db/model/group-state';
+import type {HomematicApi} from '../homematic-api';
+import type {Event} from '../../churchtools/model/event';
+import type {EventRoomConfig} from '../../db/model/event-room-config.model';
+
+interface GroupManagerParams {
+    roomConfiguration: RoomConfig;
+    roomState: GroupState;
+    homematicAPI: HomematicApi;
+}
 
 /**
  * TODO REFACTOR
  */
-class GroupManager {
+export class GroupManager {
 
-    /** @type {import('../../db/model/room-config').RoomConfig} */
-    roomConfiguration;
-    /** @type {import('../../db/model/group-state').GroupState} */
-    groupState;
-    /** @type {import('../homematic-api').HomematicApi} */
-    homematicAPI;
+    roomConfiguration: RoomConfig;
+    groupState: GroupState;
+    homematicAPI: HomematicApi;
 
-    constructor(params) {
+    constructor(params: GroupManagerParams) {
         this.roomConfiguration = params.roomConfiguration;
         this.groupState = params.roomState;
 
         this.homematicAPI = params.homematicAPI;
     }
 
-    async setToIdle(eventName) {
+    async setToIdle(eventName: string) {
         const desiredTemperature = this.roomConfiguration.desiredTemperatureIdle;
         await this.updateTemperature(desiredTemperature, eventName);
     }
 
     /**
-     * @param {import('../../churchtools/model/event').Event} event
-     * @param {import('../../db/model/event-room-config.model').EventRoomConfig[]} eventRoomConfigs
      * @throws {Error} If room is currently heated (may happen if somebody changes temperature between events)
      */
-    async heatForEvent(event, eventRoomConfigs) {
+    async heatForEvent(event: Event, eventRoomConfigs: EventRoomConfig[]) {
         const desiredTemperature = this.roomConfiguration.getDesiredRoomTemperatureForEvent(event, eventRoomConfigs);
 
         // check if temp is currently manually changed
@@ -53,7 +59,7 @@ class GroupManager {
         await this.updateTemperature(desiredTemperature, event.name);
     }
 
-    async updateTemperature(desiredTemperature, eventName) {
+    async updateTemperature(desiredTemperature: number, eventName: string) {
         const tags = {module: 'CRON', function: 'EVENT', group: this.roomConfiguration.homematicId};
         // set before data send, otherwise websocket might trigger before lock is set
         const pendingLogDb = new PendingLogDB();
@@ -82,5 +88,3 @@ class GroupManager {
     }
 
 }
-
-module.exports = {GroupManager};

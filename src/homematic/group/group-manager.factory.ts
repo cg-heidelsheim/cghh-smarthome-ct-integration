@@ -1,10 +1,10 @@
-const {GroupStateDB} = require('../../db/group-state.db');
-const {RoomConfigDB} = require('../../db/room-config.db');
-const {GroupManager} = require('./group-manager');
-const {HomematicApi} = require('../homematic-api');
+import {GroupStateDB} from '../../db/group-state.db';
+import {RoomConfigDB} from '../../db/room-config.db';
+import {GroupManager} from './group-manager';
+import {HomematicApi} from '../homematic-api';
 
-class GroupManagerFactory {
-    static createGroupManager(groupId) {
+export class GroupManagerFactory {
+    static createGroupManager(groupId: string): GroupManager {
         const groupStateDB = new GroupStateDB();
         const roomConfigDB = new RoomConfigDB();
 
@@ -18,5 +18,3 @@ class GroupManagerFactory {
         });
     }
 }
-
-module.exports = {GroupManagerFactory};

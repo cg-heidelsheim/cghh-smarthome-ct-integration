@@ -1,46 +1,55 @@
-const {WebsocketManager} = require('../websocket-manager');
+import {WebsocketManager} from '../websocket-manager';
 
-const {GroupStateDB} = require('../db/group-state.db');
-const {GroupStateBuilder} = require('./group/group-state.builder');
-const {GroupDataSender} = require('../timeseries/group.data-sender');
+import {GroupStateDB} from '../db/group-state.db';
+import {GroupStateBuilder} from './group/group-state.builder';
+import {GroupDataSender} from '../timeseries/group.data-sender';
 
-const {DeviceStateDB} = require('../db/device-state.db');
-const {DeviceStateBuilder} = require('./device/device-state.builder');
-const {DeviceDataSender} = require('../timeseries/device.data-sender');
+import {DeviceStateDB} from '../db/device-state.db';
+import {DeviceStateBuilder} from './device/device-state.builder';
+import {DeviceDataSender} from '../timeseries/device.data-sender';
 
-const {WeatherStateDB} = require('../db/weather-state.db');
-const {WeatherStateBuilder} = require('./weather/weather-state.builder');
-const {WeatherDataSender} = require('../timeseries/weather.data-sender');
+import {WeatherStateDB} from '../db/weather-state.db';
+import {WeatherStateBuilder} from './weather/weather-state.builder';
+import {WeatherDataSender} from '../timeseries/weather.data-sender';
 
-const {EventLogger} = require('../util/event.logger');
-const {Logger} = require('../util/logger');
+import {EventLogger} from '../util/event.logger';
+import {Logger} from '../util/logger';
 
-require('../util/timezone.bootstrap');
-const {HMIPWSMessage} = require('./ws/model/hmip-ws-message');
-const {HMIPWSGroupChangedEvent} = require('./ws/model/event/hmip-ws-event-group-changed');
-const {HMIPWSDeviceChangedEvent} = require('./ws/model/event/hmip-ws-event-device-changed');
-const {HMIPWSHomeChangedEvent} = require('./ws/model/event/hmip-ws-event-home-changed');
-const {HMIPWSHeatingGroup} = require('./ws/model/group/hmip-ws-group-heating');
-const {HMIPWSHeatingThermostatDevice} = require('./ws/model/device/hmip-ws-device-heating-thermostat');
-const {HMIPWSHome} = require('./ws/model/home/hmip-ws-home');
+import '../util/timezone.bootstrap';
+import {HMIPWSMessage} from './ws/model/hmip-ws-message';
+import type {HMIPWSEvent} from './ws/model/event/hmip-ws-event';
+import {HMIPWSGroupChangedEvent} from './ws/model/event/hmip-ws-event-group-changed';
+import {HMIPWSDeviceChangedEvent} from './ws/model/event/hmip-ws-event-device-changed';
+import {HMIPWSHomeChangedEvent} from './ws/model/event/hmip-ws-event-home-changed';
+import {HMIPWSHeatingGroup} from './ws/model/group/hmip-ws-group-heating';
+import {HMIPWSHeatingThermostatDevice} from './ws/model/device/hmip-ws-device-heating-thermostat';
+import {HMIPWSHome} from './ws/model/home/hmip-ws-home';
+import type {GroupState} from '../db/model/group-state';
+import type {DeviceState} from '../db/model/device-state';
+import type {WeatherState} from '../db/model/weather-state';
+import type WebSocket from 'ws';
 
 require('dotenv').config();
 
-const startEventListener = () => {
-    const websocketManager = new WebsocketManager(process.env.HOMEMATIC_WS_URL);
+export const startEventListener = () => {
+    const websocketManager = new WebsocketManager(process.env.HOMEMATIC_WS_URL!);
     const headers = {
-        'AUTHTOKEN': process.env.HOMEMATIC_API_AUTHTOKEN
+        'AUTHTOKEN': process.env.HOMEMATIC_API_AUTHTOKEN ?? ''
     };
     websocketManager.setHeaders(headers);
-    websocketManager.connect(callback).then(_ => console.log('WS Connected 1'));
+    websocketManager.connect(callback)
+        .then(_ => console.log('WS Connected 1'))
+        // Previously a floating promise with no rejection handler - if the initial connect
+        // failed (e.g. EnvironmentManager.updateServerVariables() throwing), it became an
+        // unhandled promise rejection. See the equivalent fix in websocket-manager.ts's
+        // reconnect path for the same class of issue.
+        .catch((error) => Logger.error({message: 'Initial WS connect failed: ' + error.message}));
 };
 
 /**
  * Callback function that gets executed when the websocket receives a new event
- *
- * @param {*} data
  */
-const callback = (data) => {
+const callback = (data: WebSocket.RawData) => {
     const rawBuffer = data.toString('utf8');
     const jsonData = JSON.parse(rawBuffer);
 
@@ -52,10 +61,8 @@ const callback = (data) => {
 
 /**
  * Handle event data send over websocket connection
- *
- * @param {HMIPWSEvent} event
  */
-const handleElement = (event) => {
+const handleElement = (event: HMIPWSEvent | undefined) => {
     if (event instanceof HMIPWSGroupChangedEvent) {
         handleGroupChangeEvent(event);
     } else if (event instanceof HMIPWSDeviceChangedEvent) {
@@ -71,10 +78,8 @@ const handleElement = (event) => {
  * Determine if values did change.
  *
  * Initialize data send
- *
- * @param {HMIPWSGroupChangedEvent} event
  */
-const handleGroupChangeEvent = (event) => {
+const handleGroupChangeEvent = (event: HMIPWSGroupChangedEvent) => {
     const group = event.group;
 
     if (!(group instanceof HMIPWSHeatingGroup)) {return;}
@@ -86,7 +91,7 @@ const handleGroupChangeEvent = (event) => {
     // rather than throwing - this handler runs synchronously inside the WS 'message'
     // handler with no surrounding try/catch, so letting an I/O error escape here would
     // crash the whole live WS listener, not just this one update.
-    let currentGroupState;
+    let currentGroupState: GroupState | null = null;
     try {
         currentGroupState = groupStateDB.tryGetById(group.id);
     } catch (error) {
@@ -107,17 +112,15 @@ const handleGroupChangeEvent = (event) => {
  * Determine if is heating thermostat.
  *
  * Initialize data send
- *
- * @param {HMIPWSDeviceChangedEvent} event
  */
-const handleDeviceChanged = (event) => {
+const handleDeviceChanged = (event: HMIPWSDeviceChangedEvent) => {
     const device = event.device;
 
     if (!(device instanceof HMIPWSHeatingThermostatDevice)) {return;}
 
     const deviceStateDb = new DeviceStateDB();
 
-    let currentDeviceState;
+    let currentDeviceState: DeviceState | null = null;
     try {
         currentDeviceState = deviceStateDb.tryGetById(device.id);
     } catch (e) {
@@ -137,10 +140,8 @@ const handleDeviceChanged = (event) => {
  * Determine if weather information is present.
  *
  * Initialize data send
- *
- * @param {*} event
  */
-const handleHomeChangeEvent = (event) => {
+const handleHomeChangeEvent = (event: HMIPWSHomeChangedEvent) => {
     const rawHome = event.home;
 
     if (!rawHome) {return;}
@@ -149,9 +150,9 @@ const handleHomeChangeEvent = (event) => {
 
     const weatherStateDb = new WeatherStateDB();
 
-    let currentWeatherState;
+    let currentWeatherState: WeatherState | null = null;
     try {
-        currentWeatherState = weatherStateDb.tryGetById(home.location.city.split(',')[0]);
+        currentWeatherState = weatherStateDb.tryGetById(home.location!.city.split(',')[0]);
     } catch (e) {
         Logger.error({message: 'Weather state DB read failed, using dummy state: ' + e.message});
     }
@@ -164,13 +165,7 @@ const handleHomeChangeEvent = (event) => {
     handleWeatherStateChange(currentWeatherState, updatedWeatherState);
 };
 
-/**
- *
- * @param {import('../db/model/group-state').GroupState} currentState
- * @param {import('../db/model/group-state').GroupState} updatedState
- * @returns
- */
-const handleGroupStateChange = (currentState, updatedState) => {
+const handleGroupStateChange = (currentState: GroupState, updatedState: GroupState) => {
     if (currentState.equalsValueAttributes(updatedState)) {return;}
 
     const dataSender = new GroupDataSender();
@@ -182,12 +177,7 @@ const handleGroupStateChange = (currentState, updatedState) => {
     EventLogger.wsGroupChange(currentState, updatedState);
 };
 
-/**
- * @param {import('../db/model/device-state').DeviceState} currentState
- * @param {import('../db/model/device-state').DeviceState} updatedState
- * @returns
- */
-const handleDeviceStateChange = (currentState, updatedState) => {
+const handleDeviceStateChange = (currentState: DeviceState, updatedState: DeviceState) => {
     const deviceStateDB = new DeviceStateDB();
 
     updatedState.channels
@@ -196,7 +186,7 @@ const handleDeviceStateChange = (currentState, updatedState) => {
                 const channelIndex = updatedChannel.index;
                 const currentChannel = currentState.getChannelByIndex(channelIndex);
 
-                if (updatedChannel.equalsValueAttributes(currentChannel)) {return;}
+                if (updatedChannel.equalsValueAttributes(currentChannel!)) {return;}
 
                 const dataSender = new DeviceDataSender();
                 dataSender.sendData(updatedState, channelIndex);
@@ -208,12 +198,7 @@ const handleDeviceStateChange = (currentState, updatedState) => {
     deviceStateDB.save(updatedState);
 };
 
-/**
- * @param {import('../db/model/weather-state').WeatherState} currentState
- * @param {import('../db/model/weather-state').WeatherState} updatedState
- * @returns
- */
-const handleWeatherStateChange = (currentState, updatedState) => {
+const handleWeatherStateChange = (currentState: WeatherState, updatedState: WeatherState) => {
     if (currentState.equalsValueAttributes(updatedState)) {return;}
 
     const dataSender = new WeatherDataSender();
@@ -224,5 +209,3 @@ const handleWeatherStateChange = (currentState, updatedState) => {
 
     EventLogger.weatherUpdateDebug(currentState, updatedState);
 };
-
-module.exports = {startEventListener};
