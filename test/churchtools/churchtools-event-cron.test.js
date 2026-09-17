@@ -34,21 +34,32 @@ jest.mock('../../src/churchtools/event-manager', () => ({EventManager: eventMana
 const uptimeMock = {pingUptime: jest.fn()};
 jest.mock('../../uptime', () => ({Uptime: uptimeMock}));
 
+const environmentManagerMock = {updateServerVariables: jest.fn()};
+jest.mock('../../src/util/environment-manager', () => ({EnvironmentManager: environmentManagerMock}));
+
 const {Uptime} = require('../../uptime');
 
 describe('churchtools-event-cron', () => {
   let execute;
   let resetEverythingIfNotLocked;
+  let executeCron;
 
   beforeEach(() => {
     jest.resetModules();
     jest.clearAllMocks();
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2024-01-15T10:30:00')); // not midnight, by default
 
     lockManagerMock.instance.manageLocks.mockResolvedValue(undefined);
     eventManagerMock.instance.handleEvents.mockResolvedValue(undefined);
     homematicApiMock.instance.setTemperatureForGroup.mockResolvedValue(undefined);
+    environmentManagerMock.updateServerVariables.mockResolvedValue(undefined);
 
-    ({execute, resetEverythingIfNotLocked} = require('../../src/churchtools/churchtools-event-cron'));
+    ({execute, resetEverythingIfNotLocked, executeCron} = require('../../src/churchtools/churchtools-event-cron'));
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   describe('execute', () => {
@@ -124,6 +135,60 @@ describe('churchtools-event-cron', () => {
 
       expect(homematicApiMock.instance.setTemperatureForGroup).not.toHaveBeenCalledWith('group-1', 16);
       expect(homematicApiMock.instance.setTemperatureForGroup).toHaveBeenCalledWith('group-2', 16);
+    });
+  });
+
+  describe('executeCron (moved here from index.ts, previously untestable)', () => {
+    it('outside the midnight window, skips the nightly-reset loop entirely and just runs execute()', async () => {
+      // system time set to 10:30 in beforeEach - not midnight
+      roomConfigDBMock.instance.getAll.mockReturnValue([]);
+
+      await executeCron();
+
+      expect(environmentManagerMock.updateServerVariables).not.toHaveBeenCalled();
+      expect(lockManagerMock.instance.manageLocks).toHaveBeenCalled();
+      expect(eventManagerMock.instance.handleEvents).toHaveBeenCalled();
+      expect(Uptime.pingUptime).toHaveBeenCalledWith('up', 'OK', 'CRON');
+    });
+
+    it('at exactly HH:00, runs the nightly-reset loop before execute()', async () => {
+      jest.setSystemTime(new Date('2024-01-15T00:00:00'));
+      roomConfigDBMock.instance.getAll.mockReturnValue([
+        {name: 'Saal', homematicId: 'group-1', desiredTemperatureIdle: 16},
+      ]);
+      lockDBMock.instance.tryGetById.mockReturnValue(null);
+
+      await executeCron();
+
+      expect(homematicApiMock.instance.setTemperatureForGroup).toHaveBeenCalledWith('group-1', 16);
+      expect(eventManagerMock.instance.handleEvents).toHaveBeenCalled();
+      expect(Uptime.pingUptime).toHaveBeenCalledWith('up', 'OK', 'CRON');
+    });
+
+    it('retries the nightly reset up to 3 times, refreshing server URLs between attempts, and pings Uptime down after the 3rd failure', async () => {
+      jest.setSystemTime(new Date('2024-01-15T00:00:00'));
+      roomConfigDBMock.instance.getAll.mockReturnValue([
+        {name: 'Saal', homematicId: 'group-1', desiredTemperatureIdle: 16, homematicName: 'Saal HMIP'},
+      ]);
+      lockDBMock.instance.tryGetById.mockReturnValue(null);
+      homematicApiMock.instance.setTemperatureForGroup.mockRejectedValue(new Error('ECONNREFUSED'));
+
+      await executeCron();
+
+      expect(homematicApiMock.instance.setTemperatureForGroup).toHaveBeenCalledTimes(3);
+      expect(environmentManagerMock.updateServerVariables).toHaveBeenCalledTimes(2); // between attempts 1->2 and 2->3, not after the 3rd
+      expect(Uptime.pingUptime).toHaveBeenCalledWith('down', expect.anything(), 'CRON');
+      // execute() still runs afterwards regardless of the reset outcome
+      expect(eventManagerMock.instance.handleEvents).toHaveBeenCalled();
+    });
+
+    it('pings Uptime down (without throwing) when execute() itself fails', async () => {
+      roomConfigDBMock.instance.getAll.mockReturnValue([]);
+      eventManagerMock.instance.handleEvents.mockRejectedValue(new Error('ChurchTools unreachable'));
+
+      await expect(executeCron()).resolves.toBeUndefined();
+
+      expect(Uptime.pingUptime).toHaveBeenCalledWith('down', expect.anything(), 'CRON');
     });
   });
 });

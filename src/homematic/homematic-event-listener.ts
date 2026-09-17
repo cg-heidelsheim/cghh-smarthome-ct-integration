@@ -31,6 +31,28 @@ import type WebSocket from 'ws';
 
 require('dotenv').config();
 
+/**
+ * Look up an entity's current persisted state, falling back to a placeholder ("dummy") state
+ * when it's missing. A missing entry (first time this entity is seen) is normal and silent.
+ * A genuine read failure (e.g. a corrupt state file) is logged but still falls back to the
+ * dummy state rather than throwing - this whole module runs synchronously inside the WS
+ * 'message' handler with no surrounding try/catch, so letting an I/O error escape here would
+ * crash the entire live WS listener, not just one update.
+ *
+ * Extracted because the three call sites below (group/device/weather) repeated this exact
+ * try/catch/fallback shape, differing only in which lookup to call, which dummy-state builder
+ * to fall back to, and the entity name in the log message.
+ */
+function tryGetOrDummy<T>(entityName: string, lookup: () => T | null, buildDummy: () => T): T {
+    let state: T | null = null;
+    try {
+        state = lookup();
+    } catch (error) {
+        Logger.error({message: `${entityName} state DB read failed, using dummy state: ${error}`});
+    }
+    return state ?? buildDummy();
+}
+
 export const startEventListener = () => {
     const websocketManager = new WebsocketManager(process.env.HOMEMATIC_WS_URL!);
     const headers = {
@@ -86,20 +108,9 @@ const handleGroupChangeEvent = (event: HMIPWSGroupChangedEvent) => {
 
     const groupStateDB = new GroupStateDB();
 
-    // A missing entry (first time this group is seen) is normal and silent. A real read
-    // failure (e.g. a corrupt state file) is logged but still falls back to a dummy state
-    // rather than throwing - this handler runs synchronously inside the WS 'message'
-    // handler with no surrounding try/catch, so letting an I/O error escape here would
-    // crash the whole live WS listener, not just this one update.
-    let currentGroupState: GroupState | null = null;
-    try {
-        currentGroupState = groupStateDB.tryGetById(group.id);
-    } catch (error) {
-        Logger.error({message: 'Group state DB read failed, using dummy state: ' + error});
-    }
-    if (!currentGroupState) {
-        currentGroupState = GroupStateBuilder.dummyState(group.id);
-    }
+    const currentGroupState = tryGetOrDummy(
+        'Group', () => groupStateDB.tryGetById(group.id), () => GroupStateBuilder.dummyState(group.id)
+    );
 
     const updatedGroupState = GroupStateBuilder.fromHomematicGroup(group);
 
@@ -120,15 +131,9 @@ const handleDeviceChanged = (event: HMIPWSDeviceChangedEvent) => {
 
     const deviceStateDb = new DeviceStateDB();
 
-    let currentDeviceState: DeviceState | null = null;
-    try {
-        currentDeviceState = deviceStateDb.tryGetById(device.id);
-    } catch (e) {
-        Logger.error({message: 'Device state DB read failed, using dummy state: ' + e.message});
-    }
-    if (!currentDeviceState) {
-        currentDeviceState = DeviceStateBuilder.dummyState(device.id);
-    }
+    const currentDeviceState = tryGetOrDummy(
+        'Device', () => deviceStateDb.tryGetById(device.id), () => DeviceStateBuilder.dummyState(device.id)
+    );
 
     const updatedDeviceState = DeviceStateBuilder.fromHomematicDevice(device);
 
@@ -150,15 +155,9 @@ const handleHomeChangeEvent = (event: HMIPWSHomeChangedEvent) => {
 
     const weatherStateDb = new WeatherStateDB();
 
-    let currentWeatherState: WeatherState | null = null;
-    try {
-        currentWeatherState = weatherStateDb.tryGetById(home.location!.city.split(',')[0]);
-    } catch (e) {
-        Logger.error({message: 'Weather state DB read failed, using dummy state: ' + e.message});
-    }
-    if (!currentWeatherState) {
-        currentWeatherState = WeatherStateBuilder.dummyState();
-    }
+    const currentWeatherState = tryGetOrDummy(
+        'Weather', () => weatherStateDb.tryGetById(home.location!.city.split(',')[0]), () => WeatherStateBuilder.dummyState()
+    );
 
     const updatedWeatherState = WeatherStateBuilder.fromHomematicHome(home);
 
