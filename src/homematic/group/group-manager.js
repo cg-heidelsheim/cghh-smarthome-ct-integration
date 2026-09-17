@@ -28,10 +28,11 @@ class GroupManager {
 
     /**
      * @param {import('../../churchtools/model/event').Event} event
+     * @param {import('../../db/model/event-room-config.model').EventRoomConfig[]} eventRoomConfigs
      * @throws {Error} If room is currently heated (may happen if somebody changes temperature between events)
      */
-    async heatForEvent(event) {
-        const desiredTemperature = this.roomConfiguration.getDesiredRoomTemperatureForEvent(event);
+    async heatForEvent(event, eventRoomConfigs) {
+        const desiredTemperature = this.roomConfiguration.getDesiredRoomTemperatureForEvent(event, eventRoomConfigs);
 
         // check if temp is currently manually changed
         const temperatureIsManuallyChanged = this.groupState.setTemperature !== this.roomConfiguration.desiredTemperatureIdle;

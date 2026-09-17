@@ -92,6 +92,19 @@ class JsonFileDB {
     }
 
     /**
+     * Wraps a raw stored record in `this.ModelClass`, if one was configured.
+     *
+     * @param {*} data
+     * @returns {*}
+     */
+    #toModel(data) {
+        if (this.ModelClass) {
+            return Object.assign(new this.ModelClass(), data);
+        }
+        return data;
+    }
+
+    /**
      * Retrieves a record by id from the JSON file.
      * Throws error if no record found.
      *
@@ -100,17 +113,28 @@ class JsonFileDB {
      * @throws {Error} When record does not exist.
      */
     getById(id) {
-        const allData = this._readFile();
-        const data = allData[id];
+        const data = this.tryGetById(id);
         if (!data) {
             throw new Error(`Entry with id "${id}" not found in "${this.ModelClass.name}" DB.`);
         }
-
-        if (this.ModelClass) {
-            return Object.assign(new this.ModelClass(), data);
-        }
-
         return data;
+    }
+
+    /**
+     * Retrieves a record by id from the JSON file, or `null` if it doesn't exist.
+     * Unlike `getById`, "not found" is a normal return value rather than a thrown
+     * error, so callers don't need exception-as-control-flow to check for absence.
+     * A real read/parse failure (a corrupt DB file) still throws, since that's a
+     * different failure mode than "not found" and callers should handle it distinctly.
+     *
+     * @param {string} id Key of the record to get.
+     * @returns {*|null}
+     */
+    tryGetById(id) {
+        const allData = this._readFile();
+        const data = allData[id];
+        if (!data) {return null;}
+        return this.#toModel(data);
     }
 
     /**
@@ -124,18 +148,27 @@ class JsonFileDB {
      * @throws {Error} When no matching record is found.
      */
     findByAttribute(attributeName, value) {
-        const allData = this._readFile();
-        const allEntries = Object.values(allData);
-        const found = allEntries.find(entry => entry[attributeName] === value);
+        const found = this.tryFindByAttribute(attributeName, value);
         if (!found) {
             throw new Error(`Entry with ${attributeName} = ${value} not found in DB.`);
         }
-
-        if (this.ModelClass) {
-            return Object.assign(new this.ModelClass(), found);
-        }
-
         return found;
+    }
+
+    /**
+     * Same as `findByAttribute`, but returns `null` instead of throwing when no
+     * matching record is found. See `tryGetById` for why this distinction matters.
+     *
+     * @param {string} attributeName
+     * @param {any} value
+     * @returns {any|null}
+     */
+    tryFindByAttribute(attributeName, value) {
+        const allData = this._readFile();
+        const allEntries = Object.values(allData);
+        const found = allEntries.find(entry => entry[attributeName] === value);
+        if (!found) {return null;}
+        return this.#toModel(found);
     }
 
     /**

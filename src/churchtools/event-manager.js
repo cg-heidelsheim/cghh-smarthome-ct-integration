@@ -16,11 +16,13 @@ class EventManager {
      * @param {import('../db/lock.db').LockDB} lockDB
      * @param {import('../db/room-config.db').RoomConfigDB} roomConfigDB
      * @param {import('../db/group-state.db').GroupStateDB} groupStateDB
+     * @param {import('../db/event-room-configuration.db').EventRoomConfigDB} eventRoomConfigDB
      */
-    constructor(lockDB, roomConfigDB, groupStateDB) {
+    constructor(lockDB, roomConfigDB, groupStateDB, eventRoomConfigDB) {
         this.lockDB = lockDB;
         this.roomConfigDB = roomConfigDB;
         this.groupStateDB = groupStateDB;
+        this.eventRoomConfigDB = eventRoomConfigDB;
     }
 
     /**
@@ -33,6 +35,9 @@ class EventManager {
         const ctClient = new ChurchToolsApiClient();
         const events = await ctClient.getEvents();
 
+        // Fetched once per run and threaded through, rather than each booking re-reading
+        // the event-room-config file from disk individually.
+        const eventRoomConfigs = this.eventRoomConfigDB.getAll();
 
         const tags = {...this.tags};
         Logger.info({tags, message: 'Start event handling - #ofEvents: ' + events.length});
@@ -42,7 +47,7 @@ class EventManager {
         Logger.info({tags, message: 'Active/Upcoming Events - #ofEvents: ' + filteredEvents.length});
 
         for (const event of filteredEvents) {
-            await this.handleEvent(event);
+            await this.handleEvent(event, eventRoomConfigs);
         }
 
         Logger.info({tags, message: 'Finished event handling'});
@@ -51,10 +56,11 @@ class EventManager {
 
     /**
      * @param {import('./model/event').Event} event     Event to manage
+     * @param {import('../db/model/event-room-config.model').EventRoomConfig[]} eventRoomConfigs
      *
      * @returns void
      */
-    async handleEvent(event) {
+    async handleEvent(event, eventRoomConfigs) {
         this.tags = {...this.tags, event: event.name};
         delete this.tags.group;
 
@@ -69,7 +75,7 @@ class EventManager {
         }
 
         for (const booking of bookings) {
-            await this.handleBookingOfEventHeating(event, booking);
+            await this.handleBookingOfEventHeating(event, booking, eventRoomConfigs);
         }
     };
 
@@ -78,10 +84,11 @@ class EventManager {
      *
      * @param {import('./model/event').Event} event     Event containing passed booking
      * @param {import('./model/booking').Booking} booking   Booking (room) to possibly adjust
+     * @param {import('../db/model/event-room-config.model').EventRoomConfig[]} eventRoomConfigs
      *
      * @returns void
      */
-    async handleBookingOfEventHeating(event, booking) {
+    async handleBookingOfEventHeating(event, booking, eventRoomConfigs) {
         /** @type {RoomConfig} */
         let roomConfig;
 
@@ -111,13 +118,13 @@ class EventManager {
 
         const groupState = this.#getGroupState(roomConfig);
 
-        await this.#executeHeatingSchedule(roomConfig, event, groupState, booking);
+        await this.#executeHeatingSchedule(roomConfig, event, groupState, booking, eventRoomConfigs);
     };
 
-    async #executeHeatingSchedule(roomConfig, event, groupState, booking) {
+    async #executeHeatingSchedule(roomConfig, event, groupState, booking, eventRoomConfigs) {
         const {
             shouldStartHeating, minutesUntilHeatingStart, minutesToReachTemp, minutesPreOfBooking
-        } = HeatingScheduler.calculateHeatingSchedule(roomConfig, event, groupState, booking);
+        } = HeatingScheduler.calculateHeatingSchedule(roomConfig, event, groupState, booking, eventRoomConfigs);
 
         if (!shouldStartHeating) {
             const message = `Event '${event.name}' - Booking '${roomConfig.name}' - ΔT=${minutesToReachTemp}m | ⏱=${minutesUntilHeatingStart}m`;
@@ -128,9 +135,9 @@ class EventManager {
 
         try {
             const groupManager = GroupManagerFactory.createGroupManager(groupState.id);
-            await groupManager.heatForEvent(event);
+            await groupManager.heatForEvent(event, eventRoomConfigs);
 
-            EventLogger.groupUpdatePreheat(groupState.label, roomConfig.getDesiredRoomTemperatureForEvent(event), event);
+            EventLogger.groupUpdatePreheat(groupState.label, roomConfig.getDesiredRoomTemperatureForEvent(event, eventRoomConfigs), event);
             EventLogger.heatingTimeExpectancy(minutesToReachTemp, minutesPreOfBooking, groupState);
 
             const message = `Event '${event.name}' - Booking '${roomConfig.name}' Start heating`;
@@ -152,12 +159,12 @@ class EventManager {
     }
 
     #getGroupState(roomConfig) {
-        try {
-            return this.groupStateDB.getById(roomConfig.homematicId);
-        } catch (e) {
-            Logger.error({message: 'Group state not found in DB. Using Dummy. Error: ' + e.message});
+        const groupState = this.groupStateDB.tryGetById(roomConfig.homematicId);
+        if (!groupState) {
+            Logger.error({message: 'Group state not found in DB. Using Dummy.'});
             return GroupStateBuilder.dummyState(roomConfig.homematicId);
         }
+        return groupState;
     }
 
     /**
@@ -176,14 +183,12 @@ class EventManager {
     }
 
     #isRoomLocked(roomConfig) {
-        try {
-            this.lockDB.getById(roomConfig.homematicId);
+        if (this.lockDB.tryGetById(roomConfig.homematicId)) {
             Logger.info({tags: this.tags, message: `Room '${roomConfig.name}' is locked`});
             return true;
-        } catch (_err) {
-            Logger.debug({tags: this.tags, message: `Room '${roomConfig.name}' is not locked`});
-            return false;
         }
+        Logger.debug({tags: this.tags, message: `Room '${roomConfig.name}' is not locked`});
+        return false;
     }
 }
 

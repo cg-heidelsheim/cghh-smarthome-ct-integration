@@ -1,6 +1,5 @@
-const moment = require('moment-timezone');
+const moment = require('./timezone.bootstrap');
 const influxDb = require('../timeseries/influx/influx-db'); // now the singleton
-moment.tz.setDefault('Europe/Berlin');
 
 class Logger {
 

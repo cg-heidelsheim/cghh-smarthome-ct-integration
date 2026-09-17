@@ -1,5 +1,4 @@
-const moment = require('moment-timezone');
-moment.tz.setDefault('Europe/Berlin');
+const moment = require('./timezone.bootstrap');
 
 /**
  * Filters events that are currently active or start in the future.

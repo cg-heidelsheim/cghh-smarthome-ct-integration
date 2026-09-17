@@ -15,7 +15,7 @@ const {WeatherDataSender} = require('../timeseries/weather.data-sender');
 const {EventLogger} = require('../util/event.logger');
 const {Logger} = require('../util/logger');
 
-const moment = require('moment-timezone');
+require('../util/timezone.bootstrap');
 const {HMIPWSMessage} = require('./ws/model/hmip-ws-message');
 const {HMIPWSGroupChangedEvent} = require('./ws/model/event/hmip-ws-event-group-changed');
 const {HMIPWSDeviceChangedEvent} = require('./ws/model/event/hmip-ws-event-device-changed');
@@ -23,8 +23,6 @@ const {HMIPWSHomeChangedEvent} = require('./ws/model/event/hmip-ws-event-home-ch
 const {HMIPWSHeatingGroup} = require('./ws/model/group/hmip-ws-group-heating');
 const {HMIPWSHeatingThermostatDevice} = require('./ws/model/device/hmip-ws-device-heating-thermostat');
 const {HMIPWSHome} = require('./ws/model/home/hmip-ws-home');
-
-moment.tz.setDefault('Europe/Berlin');
 
 require('dotenv').config();
 
@@ -83,12 +81,18 @@ const handleGroupChangeEvent = (event) => {
 
     const groupStateDB = new GroupStateDB();
 
+    // A missing entry (first time this group is seen) is normal and silent. A real read
+    // failure (e.g. a corrupt state file) is logged but still falls back to a dummy state
+    // rather than throwing - this handler runs synchronously inside the WS 'message'
+    // handler with no surrounding try/catch, so letting an I/O error escape here would
+    // crash the whole live WS listener, not just this one update.
     let currentGroupState;
-
     try {
-        currentGroupState = groupStateDB.getById(group.id);
+        currentGroupState = groupStateDB.tryGetById(group.id);
     } catch (error) {
-        Logger.warn({message: 'No group state could be loaded from disk: ' + error});
+        Logger.error({message: 'Group state DB read failed, using dummy state: ' + error});
+    }
+    if (!currentGroupState) {
         currentGroupState = GroupStateBuilder.dummyState(group.id);
     }
 
@@ -115,9 +119,11 @@ const handleDeviceChanged = (event) => {
 
     let currentDeviceState;
     try {
-        currentDeviceState = deviceStateDb.getById(device.id);
+        currentDeviceState = deviceStateDb.tryGetById(device.id);
     } catch (e) {
-        Logger.error({message: 'Device state not found in db. Error: ' + e.message});
+        Logger.error({message: 'Device state DB read failed, using dummy state: ' + e.message});
+    }
+    if (!currentDeviceState) {
         currentDeviceState = DeviceStateBuilder.dummyState(device.id);
     }
 
@@ -145,9 +151,11 @@ const handleHomeChangeEvent = (event) => {
 
     let currentWeatherState;
     try {
-        currentWeatherState = weatherStateDb.getById(home.location.city.split(',')[0]);
+        currentWeatherState = weatherStateDb.tryGetById(home.location.city.split(',')[0]);
     } catch (e) {
-        Logger.error({message: 'Weather state not found in db. Error: ' + e.message});
+        Logger.error({message: 'Weather state DB read failed, using dummy state: ' + e.message});
+    }
+    if (!currentWeatherState) {
         currentWeatherState = WeatherStateBuilder.dummyState();
     }
 

@@ -1,5 +1,4 @@
-const moment = require('moment-timezone');
-moment.tz.setDefault('Europe/Berlin');
+const moment = require('../../util/timezone.bootstrap');
 
 class Lock {
 

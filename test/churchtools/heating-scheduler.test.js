@@ -74,14 +74,15 @@ describe('HeatingScheduler.calculateHeatingSchedule', () => {
     expect(result.minutesToReachTemp).toBe(20); // Math.round(15.4) + 5
   });
 
-  it('passes event and groupState through to roomConfig.getMinutesNeededToReachTemperatureForEvent', () => {
+  it('passes event, groupState, and eventRoomConfigs through to roomConfig.getMinutesNeededToReachTemperatureForEvent', () => {
     const roomConfig = makeRoomConfig(10);
     const event = {startDate: moment(NOW).add(30, 'minutes').format('YYYY-MM-DD HH:mm:ss')};
     const groupState = {temperature: 18};
     const booking = {minPre: 0};
+    const eventRoomConfigs = [{id: 'bandprobe', desiredTemperature: 18}];
 
-    HeatingScheduler.calculateHeatingSchedule(roomConfig, event, groupState, booking);
+    HeatingScheduler.calculateHeatingSchedule(roomConfig, event, groupState, booking, eventRoomConfigs);
 
-    expect(roomConfig.getMinutesNeededToReachTemperatureForEvent).toHaveBeenCalledWith(event, groupState);
+    expect(roomConfig.getMinutesNeededToReachTemperatureForEvent).toHaveBeenCalledWith(event, groupState, eventRoomConfigs);
   });
 });

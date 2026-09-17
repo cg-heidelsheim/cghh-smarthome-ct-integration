@@ -140,9 +140,7 @@ describe('EventLogger', () => {
 
         it('logs a MANU change and does not touch PendingLogDB when no pending log exists', () => {
             PendingLogDB.mockImplementation(() => ({
-                getById: jest.fn(() => {
-                    throw new Error('not found');
-                }),
+                tryGetById: jest.fn(() => null),
                 deleteById: jest.fn(),
             }));
 
@@ -158,7 +156,7 @@ describe('EventLogger', () => {
         it('logs an AUTO change and resolves the pending log when one exists', () => {
             const deleteById = jest.fn();
             PendingLogDB.mockImplementation(() => ({
-                getById: jest.fn(() => ({eventName: 'Bandprobe'})),
+                tryGetById: jest.fn(() => ({eventName: 'Bandprobe'})),
                 deleteById,
             }));
 
@@ -169,6 +167,22 @@ describe('EventLogger', () => {
 
             expect(Logger.core.mock.calls[0][0].tags.type).toBe('AUTO');
             expect(deleteById).toHaveBeenCalledWith('1');
+        });
+
+        it('FIXED: falls back to MANU (without crashing) when the pending-log DB read genuinely fails', () => {
+            PendingLogDB.mockImplementation(() => ({
+                tryGetById: jest.fn(() => {
+                    throw new Error('corrupt file');
+                }),
+                deleteById: jest.fn(),
+            }));
+
+            const currentState = {id: '1', label: 'Room A', setTemperature: 20};
+            const updatedState = {id: '1', label: 'Room A', setTemperature: 22};
+
+            expect(() => EventLogger.wsGroupChangeCore(currentState, updatedState)).not.toThrow();
+
+            expect(Logger.core.mock.calls[0][0].tags.type).toBe('MANU');
         });
     });
 

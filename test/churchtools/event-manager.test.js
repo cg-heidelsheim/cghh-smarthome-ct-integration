@@ -28,14 +28,16 @@ describe('EventManager', () => {
   let lockDB;
   let roomConfigDB;
   let groupStateDB;
+  let eventRoomConfigDB;
   let eventManager;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    lockDB = {getById: jest.fn(), save: jest.fn()};
+    lockDB = {tryGetById: jest.fn(), save: jest.fn()};
     roomConfigDB = {findByCTId: jest.fn()};
-    groupStateDB = {getById: jest.fn()};
-    eventManager = new EventManager(lockDB, roomConfigDB, groupStateDB);
+    groupStateDB = {tryGetById: jest.fn()};
+    eventRoomConfigDB = {getAll: jest.fn().mockReturnValue([])};
+    eventManager = new EventManager(lockDB, roomConfigDB, groupStateDB, eventRoomConfigDB);
   });
 
   function makeRoomConfig({
@@ -77,16 +79,17 @@ describe('EventManager', () => {
       expect(spy).not.toHaveBeenCalled();
     });
 
-    it('handles every booking on the event', async () => {
+    it('handles every booking on the event, threading eventRoomConfigs through', async () => {
       const spy = jest.spyOn(eventManager, 'handleBookingOfEventHeating').mockResolvedValue(undefined);
       const bookingA = makeBooking({id: 'a'});
       const bookingB = makeBooking({id: 'b'});
       const event = makeEvent({bookings: [bookingA, bookingB]});
+      const eventRoomConfigs = [{id: 'bandprobe', desiredTemperature: 18}];
 
-      await eventManager.handleEvent(event);
+      await eventManager.handleEvent(event, eventRoomConfigs);
 
-      expect(spy).toHaveBeenCalledWith(event, bookingA);
-      expect(spy).toHaveBeenCalledWith(event, bookingB);
+      expect(spy).toHaveBeenCalledWith(event, bookingA, eventRoomConfigs);
+      expect(spy).toHaveBeenCalledWith(event, bookingB, eventRoomConfigs);
       expect(spy).toHaveBeenCalledTimes(2);
     });
   });
@@ -105,7 +108,7 @@ describe('EventManager', () => {
 
       await eventManager.handleBookingOfEventHeating(makeEvent(), makeBooking());
 
-      expect(lockDB.getById).not.toHaveBeenCalled();
+      expect(lockDB.tryGetById).not.toHaveBeenCalled();
     });
 
     it('skips bookings that are not status "2" (accepted)', async () => {
@@ -113,39 +116,33 @@ describe('EventManager', () => {
 
       await eventManager.handleBookingOfEventHeating(makeEvent(), makeBooking({statusId: '1'}));
 
-      expect(lockDB.getById).not.toHaveBeenCalled();
+      expect(lockDB.tryGetById).not.toHaveBeenCalled();
     });
 
     it('treats a found lock entry as "room is locked" and stops processing', async () => {
       roomConfigDB.findByCTId.mockReturnValue(makeRoomConfig());
-      lockDB.getById.mockReturnValue({id: 'group-1'}); // found -> locked
+      lockDB.tryGetById.mockReturnValue({id: 'group-1'}); // found -> locked
 
       await eventManager.handleBookingOfEventHeating(makeEvent(), makeBooking());
 
-      expect(groupStateDB.getById).not.toHaveBeenCalled();
+      expect(groupStateDB.tryGetById).not.toHaveBeenCalled();
     });
 
-    it('treats a throwing lock lookup as "room is not locked" and continues (exception-as-control-flow)', async () => {
+    it('treats a null lock lookup as "room is not locked" and continues', async () => {
       roomConfigDB.findByCTId.mockReturnValue(makeRoomConfig({minutesNeeded: 999}));
-      lockDB.getById.mockImplementation(() => {
-        throw new Error('not found');
-      });
-      groupStateDB.getById.mockReturnValue({id: 'group-1', label: 'Saal'});
+      lockDB.tryGetById.mockReturnValue(null);
+      groupStateDB.tryGetById.mockReturnValue({id: 'group-1', label: 'Saal'});
 
       await eventManager.handleBookingOfEventHeating(makeEvent(), makeBooking());
 
-      expect(groupStateDB.getById).toHaveBeenCalledWith('group-1');
+      expect(groupStateDB.tryGetById).toHaveBeenCalledWith('group-1');
     });
 
     it('falls back to GroupStateBuilder.dummyState when groupStateDB has no entry yet', async () => {
       const roomConfig = makeRoomConfig({minutesNeeded: 999}); // -> shouldStartHeating stays false, easy to assert no crash
       roomConfigDB.findByCTId.mockReturnValue(roomConfig);
-      lockDB.getById.mockImplementation(() => {
-        throw new Error('not found');
-      });
-      groupStateDB.getById.mockImplementation(() => {
-        throw new Error('not found');
-      });
+      lockDB.tryGetById.mockReturnValue(null);
+      groupStateDB.tryGetById.mockReturnValue(null);
       GroupStateBuilder.dummyState.mockReturnValue({id: 'group-1', label: 'INIT'});
 
       await eventManager.handleBookingOfEventHeating(makeEvent(), makeBooking());
@@ -156,19 +153,18 @@ describe('EventManager', () => {
     it('starts heating, saves a lock, and logs when the schedule says heating should start now', async () => {
       const roomConfig = makeRoomConfig({homematicId: 'group-1', desiredTemperature: 21, minutesNeeded: 0});
       roomConfigDB.findByCTId.mockReturnValue(roomConfig);
-      lockDB.getById.mockImplementation(() => {
-        throw new Error('not found');
-      });
-      groupStateDB.getById.mockReturnValue({id: 'group-1', label: 'Saal'});
+      lockDB.tryGetById.mockReturnValue(null);
+      groupStateDB.tryGetById.mockReturnValue({id: 'group-1', label: 'Saal'});
 
       const heatForEvent = jest.fn().mockResolvedValue(undefined);
       GroupManagerFactory.createGroupManager.mockReturnValue({heatForEvent, groupState: {label: 'Saal'}});
 
       const event = makeEvent();
-      await eventManager.handleBookingOfEventHeating(event, makeBooking());
+      const eventRoomConfigs = [{id: 'bandprobe', desiredTemperature: 18}];
+      await eventManager.handleBookingOfEventHeating(event, makeBooking(), eventRoomConfigs);
 
       expect(GroupManagerFactory.createGroupManager).toHaveBeenCalledWith('group-1');
-      expect(heatForEvent).toHaveBeenCalledWith(event);
+      expect(heatForEvent).toHaveBeenCalledWith(event, eventRoomConfigs);
       expect(EventLogger.groupUpdatePreheat).toHaveBeenCalledWith('Saal', 21, event);
       expect(EventLogger.heatingTimeExpectancy).toHaveBeenCalled();
       expect(lockDB.save).toHaveBeenCalledWith(
@@ -179,10 +175,8 @@ describe('EventManager', () => {
     it('does not start heating (or save a lock) when the schedule says it is not time yet', async () => {
       const roomConfig = makeRoomConfig({homematicId: 'group-1', minutesNeeded: 0});
       roomConfigDB.findByCTId.mockReturnValue(roomConfig);
-      lockDB.getById.mockImplementation(() => {
-        throw new Error('not found');
-      });
-      groupStateDB.getById.mockReturnValue({id: 'group-1', label: 'Saal'});
+      lockDB.tryGetById.mockReturnValue(null);
+      groupStateDB.tryGetById.mockReturnValue({id: 'group-1', label: 'Saal'});
 
       const event = makeEvent({startDate: moment().add(5, 'minutes').format('YYYY-MM-DD HH:mm:ss')});
       await eventManager.handleBookingOfEventHeating(event, makeBooking());
@@ -194,10 +188,8 @@ describe('EventManager', () => {
     it('logs a "blocked" event instead of an error when heatForEvent rejects with "Blocked" (manual override)', async () => {
       const roomConfig = makeRoomConfig({homematicId: 'group-1', minutesNeeded: 0});
       roomConfigDB.findByCTId.mockReturnValue(roomConfig);
-      lockDB.getById.mockImplementation(() => {
-        throw new Error('not found');
-      });
-      groupStateDB.getById.mockReturnValue({id: 'group-1', label: 'Saal'});
+      lockDB.tryGetById.mockReturnValue(null);
+      groupStateDB.tryGetById.mockReturnValue({id: 'group-1', label: 'Saal'});
 
       const heatForEvent = jest.fn().mockRejectedValue(new Error('Blocked'));
       GroupManagerFactory.createGroupManager.mockReturnValue({heatForEvent, groupState: {label: 'Saal'}});
@@ -212,10 +204,8 @@ describe('EventManager', () => {
     it('does not save a lock when heatForEvent rejects with a non-"Blocked" error', async () => {
       const roomConfig = makeRoomConfig({homematicId: 'group-1', minutesNeeded: 0});
       roomConfigDB.findByCTId.mockReturnValue(roomConfig);
-      lockDB.getById.mockImplementation(() => {
-        throw new Error('not found');
-      });
-      groupStateDB.getById.mockReturnValue({id: 'group-1', label: 'Saal'});
+      lockDB.tryGetById.mockReturnValue(null);
+      groupStateDB.tryGetById.mockReturnValue({id: 'group-1', label: 'Saal'});
 
       const heatForEvent = jest.fn().mockRejectedValue(new Error('ECONNREFUSED'));
       GroupManagerFactory.createGroupManager.mockReturnValue({heatForEvent, groupState: {label: 'Saal'}});
@@ -241,11 +231,13 @@ describe('EventManager', () => {
         endDate: moment().subtract(1, 'hours').format('YYYY-MM-DD HH:mm:ss'),
       });
       mockGetEvents.mockResolvedValue([past, upcoming]);
+      const eventRoomConfigs = [{id: 'bandprobe', desiredTemperature: 18}];
+      eventRoomConfigDB.getAll.mockReturnValue(eventRoomConfigs);
 
       await eventManager.handleEvents();
 
       expect(spy).toHaveBeenCalledTimes(1);
-      expect(spy).toHaveBeenCalledWith(upcoming);
+      expect(spy).toHaveBeenCalledWith(upcoming, eventRoomConfigs);
     });
   });
 });

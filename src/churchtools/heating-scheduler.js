@@ -8,6 +8,7 @@ class HeatingScheduler {
      * @param {Event} event
      * @param {GroupState} groupState
      * @param {Booking} booking
+     * @param {import('../db/model/event-room-config.model').EventRoomConfig[]} eventRoomConfigs
      *
      * @returns {{
      *   shouldStartHeating: boolean,
@@ -17,7 +18,7 @@ class HeatingScheduler {
      *   heatingStartTime: import('moment').Moment
      * }}
      */
-    static calculateHeatingSchedule(roomConfig, event, groupState, booking) {
+    static calculateHeatingSchedule(roomConfig, event, groupState, booking, eventRoomConfigs) {
         const now = moment();
         const eventStart = moment(event.startDate);
 
@@ -25,7 +26,8 @@ class HeatingScheduler {
 
         let minutesToReachTemp = roomConfig.getMinutesNeededToReachTemperatureForEvent(
             event,
-            groupState
+            groupState,
+            eventRoomConfigs
         );
         minutesToReachTemp = Math.round(minutesToReachTemp) + minutesPreOfBooking;
 

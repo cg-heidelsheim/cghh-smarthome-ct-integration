@@ -12,7 +12,7 @@ function makeSharedInstanceMock(methods) {
 const roomConfigDBMock = makeSharedInstanceMock(['getAll', 'getById', 'findByCTId']);
 jest.mock('../../src/db/room-config.db', () => ({RoomConfigDB: roomConfigDBMock.Ctor}));
 
-const lockDBMock = makeSharedInstanceMock(['getAll', 'getById', 'deleteById', 'save']);
+const lockDBMock = makeSharedInstanceMock(['getAll', 'getById', 'tryGetById', 'deleteById', 'save']);
 jest.mock('../../src/db/lock.db', () => ({LockDB: lockDBMock.Ctor}));
 
 const groupStateDBMock = makeSharedInstanceMock(['getAll', 'getById']);
@@ -68,19 +68,17 @@ describe('churchtools-event-cron', () => {
   });
 
   describe('resetEverythingIfNotLocked', () => {
-    it('KNOWN BUG: throws if called before execute() has ever run in this process (module-level roomConfigurationDB singleton is undefined)', async () => {
-      await expect(resetEverythingIfNotLocked({})).rejects.toThrow();
+    it('FIXED (was: KNOWN BUG): no longer depends on execute() having run first — it builds its own RoomConfigDB/LockDB instead of reading a module-level singleton', async () => {
+      roomConfigDBMock.instance.getAll.mockReturnValue([]);
+
+      await expect(resetEverythingIfNotLocked({})).resolves.toEqual({});
     });
 
     it('resets a room that currently has no lock to its idle temperature', async () => {
-      await execute(); // initializes the module-level singleton
-
       roomConfigDBMock.instance.getAll.mockReturnValue([
         {name: 'Saal', homematicId: 'group-1', desiredTemperatureIdle: 16},
       ]);
-      lockDBMock.instance.getById.mockImplementation(() => {
-        throw new Error('not found');
-      });
+      lockDBMock.instance.tryGetById.mockReturnValue(null); // no lock found
 
       const result = await resetEverythingIfNotLocked({});
 
@@ -89,12 +87,10 @@ describe('churchtools-event-cron', () => {
     });
 
     it('does not reset a room that currently has an active lock', async () => {
-      await execute();
-
       roomConfigDBMock.instance.getAll.mockReturnValue([
         {name: 'Saal', homematicId: 'group-1', desiredTemperatureIdle: 16},
       ]);
-      lockDBMock.instance.getById.mockReturnValue({id: 'group-1'}); // found -> locked
+      lockDBMock.instance.tryGetById.mockReturnValue({id: 'group-1'}); // found -> locked
 
       const result = await resetEverythingIfNotLocked({});
 
@@ -103,14 +99,10 @@ describe('churchtools-event-cron', () => {
     });
 
     it('marks a room as reset-not-possible and pings Uptime when the Homematic API call fails', async () => {
-      await execute();
-
       roomConfigDBMock.instance.getAll.mockReturnValue([
         {name: 'Saal', homematicId: 'group-1', desiredTemperatureIdle: 16, homematicName: 'Saal HMIP'},
       ]);
-      lockDBMock.instance.getById.mockImplementation(() => {
-        throw new Error('not found');
-      });
+      lockDBMock.instance.tryGetById.mockReturnValue(null);
       homematicApiMock.instance.setTemperatureForGroup.mockRejectedValue(new Error('ECONNREFUSED'));
 
       const result = await resetEverythingIfNotLocked({});
@@ -120,15 +112,11 @@ describe('churchtools-event-cron', () => {
     });
 
     it('on retry, skips rooms that already succeeded and only retries rooms still marked reset-not-possible', async () => {
-      await execute();
-
       roomConfigDBMock.instance.getAll.mockReturnValue([
         {name: 'Saal', homematicId: 'group-1', desiredTemperatureIdle: 16},
         {name: 'Kueche', homematicId: 'group-2', desiredTemperatureIdle: 16},
       ]);
-      lockDBMock.instance.getById.mockImplementation(() => {
-        throw new Error('not found');
-      });
+      lockDBMock.instance.tryGetById.mockReturnValue(null);
 
       const earlierResetNotPossible = {'group-2': true}; // group-1 already succeeded earlier
 

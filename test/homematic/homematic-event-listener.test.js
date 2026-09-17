@@ -24,7 +24,7 @@ jest.mock('../../src/homematic/ws/model/hmip-ws-message', () => ({
 }));
 
 function mockDb() {
-  const instance = {getById: jest.fn(), save: jest.fn()};
+  const instance = {tryGetById: jest.fn(), save: jest.fn()};
   return {instance, ctor: jest.fn(() => instance)};
 }
 
@@ -101,13 +101,13 @@ describe('homematic-event-listener (startEventListener)', () => {
     it('ignores a non-heating group entirely', () => {
       deliver([new HMIPWSGroupChangedEvent({id: 'g1'})]); // plain object, not an HMIPWSHeatingGroup
 
-      expect(groupDb.instance.getById).not.toHaveBeenCalled();
+      expect(groupDb.instance.tryGetById).not.toHaveBeenCalled();
     });
 
     it('loads the current state, builds the updated state, and does nothing when unchanged', () => {
       const group = new HMIPWSHeatingGroup({id: 'g1', label: 'Saal'});
       const currentState = {id: 'g1', label: 'Saal', lock: undefined, equalsValueAttributes: jest.fn(() => true)};
-      groupDb.instance.getById.mockReturnValue(currentState);
+      groupDb.instance.tryGetById.mockReturnValue(currentState);
       GroupStateBuilder.fromHomematicGroup.mockReturnValue({id: 'g1', label: 'Saal'});
 
       deliver([new HMIPWSGroupChangedEvent(group)]);
@@ -122,7 +122,7 @@ describe('homematic-event-listener (startEventListener)', () => {
       const group = new HMIPWSHeatingGroup({id: 'g1', label: 'Saal'});
       const currentState = {id: 'g1', label: 'Saal', lock: 'some-lock', equalsValueAttributes: jest.fn(() => false)};
       const updatedState = {id: 'g1', label: 'Saal', setTemperature: 21};
-      groupDb.instance.getById.mockReturnValue(currentState);
+      groupDb.instance.tryGetById.mockReturnValue(currentState);
       GroupStateBuilder.fromHomematicGroup.mockReturnValue(updatedState);
 
       deliver([new HMIPWSGroupChangedEvent(group)]);
@@ -135,15 +135,26 @@ describe('homematic-event-listener (startEventListener)', () => {
       expect(EventLogger.wsGroupChange).toHaveBeenCalledWith(currentState, updatedState);
     });
 
-    it('falls back to GroupStateBuilder.dummyState when no prior state exists on disk', () => {
+    it('falls back to GroupStateBuilder.dummyState when no prior state exists on disk (normal first-time case)', () => {
       const group = new HMIPWSHeatingGroup({id: 'g1', label: 'Saal'});
-      groupDb.instance.getById.mockImplementation(() => {
-        throw new Error('not found');
-      });
+      groupDb.instance.tryGetById.mockReturnValue(null);
       GroupStateBuilder.dummyState.mockReturnValue({id: 'g1', label: 'INIT', equalsValueAttributes: () => true});
       GroupStateBuilder.fromHomematicGroup.mockReturnValue({id: 'g1', label: 'Saal'});
 
       deliver([new HMIPWSGroupChangedEvent(group)]);
+
+      expect(GroupStateBuilder.dummyState).toHaveBeenCalledWith('g1');
+    });
+
+    it('also falls back to dummyState (without crashing the WS listener) when the DB read genuinely fails', () => {
+      const group = new HMIPWSHeatingGroup({id: 'g1', label: 'Saal'});
+      groupDb.instance.tryGetById.mockImplementation(() => {
+        throw new Error('corrupt file');
+      });
+      GroupStateBuilder.dummyState.mockReturnValue({id: 'g1', label: 'INIT', equalsValueAttributes: () => true});
+      GroupStateBuilder.fromHomematicGroup.mockReturnValue({id: 'g1', label: 'Saal'});
+
+      expect(() => deliver([new HMIPWSGroupChangedEvent(group)])).not.toThrow();
 
       expect(GroupStateBuilder.dummyState).toHaveBeenCalledWith('g1');
     });
@@ -153,7 +164,7 @@ describe('homematic-event-listener (startEventListener)', () => {
     it('ignores a device that is not a heating thermostat', () => {
       deliver([new HMIPWSDeviceChangedEvent({id: 'd1'})]); // plain object, not HMIPWSHeatingThermostatDevice
 
-      expect(deviceDb.instance.getById).not.toHaveBeenCalled();
+      expect(deviceDb.instance.tryGetById).not.toHaveBeenCalled();
     });
 
     it('per channel: sends + logs only channels that changed, but always saves the whole device state', () => {
@@ -166,7 +177,7 @@ describe('homematic-event-listener (startEventListener)', () => {
         getChannelByIndex: jest.fn((i) => (i === 1 ? {index: 1} : {index: 2})),
       };
       const updatedState = {id: 'd1', label: 'Thermostat', channels: [unchangedChannel, changedChannel]};
-      deviceDb.instance.getById.mockReturnValue(currentState);
+      deviceDb.instance.tryGetById.mockReturnValue(currentState);
       DeviceStateBuilder.fromHomematicDevice.mockReturnValue(updatedState);
 
       deliver([new HMIPWSDeviceChangedEvent(device)]);
@@ -180,15 +191,26 @@ describe('homematic-event-listener (startEventListener)', () => {
       expect(deviceDb.instance.save).toHaveBeenCalledWith(updatedState);
     });
 
-    it('falls back to DeviceStateBuilder.dummyState when no prior state exists on disk', () => {
+    it('falls back to DeviceStateBuilder.dummyState when no prior state exists on disk (normal first-time case)', () => {
       const device = new HMIPWSHeatingThermostatDevice({id: 'd1', label: 'Thermostat'});
-      deviceDb.instance.getById.mockImplementation(() => {
-        throw new Error('not found');
-      });
+      deviceDb.instance.tryGetById.mockReturnValue(null);
       DeviceStateBuilder.dummyState.mockReturnValue({id: 'd1', label: 'INIT'});
       DeviceStateBuilder.fromHomematicDevice.mockReturnValue({id: 'd1', label: 'Thermostat', channels: []});
 
       deliver([new HMIPWSDeviceChangedEvent(device)]);
+
+      expect(DeviceStateBuilder.dummyState).toHaveBeenCalledWith('d1');
+    });
+
+    it('also falls back to dummyState (without crashing the WS listener) when the DB read genuinely fails', () => {
+      const device = new HMIPWSHeatingThermostatDevice({id: 'd1', label: 'Thermostat'});
+      deviceDb.instance.tryGetById.mockImplementation(() => {
+        throw new Error('corrupt file');
+      });
+      DeviceStateBuilder.dummyState.mockReturnValue({id: 'd1', label: 'INIT'});
+      DeviceStateBuilder.fromHomematicDevice.mockReturnValue({id: 'd1', label: 'Thermostat', channels: []});
+
+      expect(() => deliver([new HMIPWSDeviceChangedEvent(device)])).not.toThrow();
 
       expect(DeviceStateBuilder.dummyState).toHaveBeenCalledWith('d1');
     });
@@ -198,25 +220,25 @@ describe('homematic-event-listener (startEventListener)', () => {
     it('does nothing when the event carries no home payload', () => {
       deliver([new HMIPWSHomeChangedEvent(null)]);
 
-      expect(weatherDb.instance.getById).not.toHaveBeenCalled();
+      expect(weatherDb.instance.tryGetById).not.toHaveBeenCalled();
     });
 
     it('keys the weather-state lookup by the first comma-segment of the city name', () => {
       const home = new HMIPWSHome({location: {city: 'Heidelsheim, Germany'}, weather: {}});
       const currentState = {label: 'Heidelsheim', equalsValueAttributes: jest.fn(() => true)};
-      weatherDb.instance.getById.mockReturnValue(currentState);
+      weatherDb.instance.tryGetById.mockReturnValue(currentState);
       WeatherStateBuilder.fromHomematicHome.mockReturnValue({label: 'Heidelsheim'});
 
       deliver([new HMIPWSHomeChangedEvent(home)]);
 
-      expect(weatherDb.instance.getById).toHaveBeenCalledWith('Heidelsheim');
+      expect(weatherDb.instance.tryGetById).toHaveBeenCalledWith('Heidelsheim');
     });
 
     it('sends to Influx, persists, and logs when the weather state changed', () => {
       const home = new HMIPWSHome({location: {city: 'Heidelsheim, Germany'}, weather: {}});
       const currentState = {label: 'Heidelsheim', equalsValueAttributes: jest.fn(() => false)};
       const updatedState = {label: 'Heidelsheim', temperature: 5};
-      weatherDb.instance.getById.mockReturnValue(currentState);
+      weatherDb.instance.tryGetById.mockReturnValue(currentState);
       WeatherStateBuilder.fromHomematicHome.mockReturnValue(updatedState);
 
       deliver([new HMIPWSHomeChangedEvent(home)]);
@@ -226,15 +248,26 @@ describe('homematic-event-listener (startEventListener)', () => {
       expect(EventLogger.weatherUpdateDebug).toHaveBeenCalledWith(currentState, updatedState);
     });
 
-    it('falls back to WeatherStateBuilder.dummyState (no id argument) when no prior state exists', () => {
+    it('falls back to WeatherStateBuilder.dummyState (no id argument) when no prior state exists (normal first-time case)', () => {
       const home = new HMIPWSHome({location: {city: 'Heidelsheim, Germany'}, weather: {}});
-      weatherDb.instance.getById.mockImplementation(() => {
-        throw new Error('not found');
-      });
+      weatherDb.instance.tryGetById.mockReturnValue(null);
       WeatherStateBuilder.dummyState.mockReturnValue({label: 'INIT', equalsValueAttributes: () => true});
       WeatherStateBuilder.fromHomematicHome.mockReturnValue({label: 'Heidelsheim'});
 
       deliver([new HMIPWSHomeChangedEvent(home)]);
+
+      expect(WeatherStateBuilder.dummyState).toHaveBeenCalledWith();
+    });
+
+    it('also falls back to dummyState (without crashing the WS listener) when the DB read genuinely fails', () => {
+      const home = new HMIPWSHome({location: {city: 'Heidelsheim, Germany'}, weather: {}});
+      weatherDb.instance.tryGetById.mockImplementation(() => {
+        throw new Error('corrupt file');
+      });
+      WeatherStateBuilder.dummyState.mockReturnValue({label: 'INIT', equalsValueAttributes: () => true});
+      WeatherStateBuilder.fromHomematicHome.mockReturnValue({label: 'Heidelsheim'});
+
+      expect(() => deliver([new HMIPWSHomeChangedEvent(home)])).not.toThrow();
 
       expect(WeatherStateBuilder.dummyState).toHaveBeenCalledWith();
     });
@@ -244,9 +277,9 @@ describe('homematic-event-listener (startEventListener)', () => {
     it('silently ignores an event of an unrecognized type', () => {
       deliver([{type: 'SOMETHING_ELSE'}]);
 
-      expect(groupDb.instance.getById).not.toHaveBeenCalled();
-      expect(deviceDb.instance.getById).not.toHaveBeenCalled();
-      expect(weatherDb.instance.getById).not.toHaveBeenCalled();
+      expect(groupDb.instance.tryGetById).not.toHaveBeenCalled();
+      expect(deviceDb.instance.tryGetById).not.toHaveBeenCalled();
+      expect(weatherDb.instance.tryGetById).not.toHaveBeenCalled();
     });
   });
 });

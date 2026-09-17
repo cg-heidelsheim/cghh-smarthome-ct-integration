@@ -87,6 +87,41 @@ class DummyModel {}
     });
   });
 
+  describe('tryGetById', () => {
+    it('should return data when id found', () => {
+      const data = { value: 'abc' };
+      jest.spyOn(db, '_readFile').mockReturnValue({ 'id1': data });
+      expect(db.tryGetById('id1')).toEqual(data);
+    });
+
+    it('should return null (not throw) when id not found', () => {
+      jest.spyOn(db, '_readFile').mockReturnValue({});
+      expect(db.tryGetById('missing')).toBeNull();
+    });
+
+    it('should still propagate a real read/parse failure rather than treating it as "not found"', () => {
+      jest.spyOn(db, '_readFile').mockImplementation(() => { throw new Error('corrupt file'); });
+      expect(() => db.tryGetById('id1')).toThrow('corrupt file');
+    });
+  });
+
+  describe('findByAttribute / tryFindByAttribute', () => {
+    it('findByAttribute returns the first matching entry', () => {
+      jest.spyOn(db, '_readFile').mockReturnValue({ a: { homematicId: 'h1', value: 1 }, b: { homematicId: 'h2', value: 2 } });
+      expect(db.findByAttribute('homematicId', 'h2')).toEqual({ homematicId: 'h2', value: 2 });
+    });
+
+    it('findByAttribute throws when nothing matches', () => {
+      jest.spyOn(db, '_readFile').mockReturnValue({});
+      expect(() => db.findByAttribute('homematicId', 'missing')).toThrow('Entry with homematicId = missing not found in DB.');
+    });
+
+    it('tryFindByAttribute returns null (not throw) when nothing matches', () => {
+      jest.spyOn(db, '_readFile').mockReturnValue({});
+      expect(db.tryFindByAttribute('homematicId', 'missing')).toBeNull();
+    });
+  });
+
   describe('getAll', () => {
     it('should return empty array if no data stored', () => {
       jest.spyOn(db, '_readFile').mockReturnValue({});

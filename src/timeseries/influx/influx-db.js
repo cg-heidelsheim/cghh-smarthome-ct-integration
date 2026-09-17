@@ -1,7 +1,6 @@
 const {InfluxDB} = require('@influxdata/influxdb-client');
 const {Point} = require('@influxdata/influxdb-client');
-const moment = require('moment-timezone');
-moment.tz.setDefault('Europe/Berlin');
+require('../../util/timezone.bootstrap');
 require('dotenv').config();
 
 let logSeq = 0; // module-level counter

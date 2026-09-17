@@ -1,9 +1,8 @@
+const moment = require('./src/util/timezone.bootstrap');
+
 const {execute, resetEverythingIfNotLocked} = require('./src/churchtools/churchtools-event-cron');
 const {startEventListener} = require('./src/homematic/homematic-event-listener');
 const {Uptime} = require('./uptime');
-
-const moment = require('moment-timezone');
-moment.tz.setDefault('Europe/Berlin');
 
 const {Logger} = require('./src/util/logger');
 const {EnvironmentManager} = require('./src/util/environment-manager');

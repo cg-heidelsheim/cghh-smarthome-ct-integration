@@ -1,7 +1,6 @@
-const moment = require('moment-timezone');
+const moment = require('./timezone.bootstrap');
 const {PendingLogDB} = require('../db/pending-log.db');
 const {Logger} = require('./logger');
-moment.tz.setDefault('Europe/Berlin');
 
 /**
  * This class is the main Logging Class for actions that the automated Script has made
@@ -64,11 +63,15 @@ class EventLogger {
 
         const pendingLogsManager = new PendingLogDB();
 
+        // No pending log is the common case (a manual change) and isn't logged as
+        // anything notable; a genuine DB read failure is logged but still treated as
+        // "no pending log" rather than thrown, since this runs on the live WS path with
+        // no surrounding try/catch.
         let pendingObj;
         try {
-            pendingObj = pendingLogsManager.getById(currentState.id);
+            pendingObj = pendingLogsManager.tryGetById(currentState.id);
         } catch (err) {
-            Logger.debug({message: 'Pending Log not found: ' + err.message});
+            Logger.debug({message: 'Pending Log DB read failed: ' + err.message});
         }
 
         let tags = {

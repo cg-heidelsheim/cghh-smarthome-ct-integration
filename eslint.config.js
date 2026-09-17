@@ -69,21 +69,21 @@ module.exports = defineConfig([
     // This was a real smell found in room-config.js (a model instantiating EventRoomConfigDB
     // and importing churchtools/model/event.js internally) — enforce it structurally so it
     // can't come back.
+    //
+    // `no-restricted-imports` only inspects ES-module `import` statements; this codebase is
+    // CommonJS (`require(...)`), so that rule silently never fires here. `no-restricted-syntax`
+    // with an ESQuery selector on `require('...')` call literals is what actually catches it.
     files: ['src/db/model/**/*.js', 'src/db/model/**/*.ts'],
     rules: {
-      'no-restricted-imports': [
+      'no-restricted-syntax': [
         'error',
         {
-          patterns: [
-            {
-              group: ['**/churchtools/**'],
-              message: 'src/db/model/ is the persistence-model layer and must not import from churchtools/. Pass required data in from the caller instead.',
-            },
-            {
-              group: ['**/*.db.js', '**/*.db'],
-              message: 'src/db/model/ must not perform its own I/O by requiring a *.db.js class. Pass the looked-up value in from the caller instead.',
-            },
-          ],
+          selector: "CallExpression[callee.name='require'] > Literal[value=/churchtools/]",
+          message: 'src/db/model/ is the persistence-model layer and must not import from churchtools/. Pass required data in from the caller instead.',
+        },
+        {
+          selector: "CallExpression[callee.name='require'] > Literal[value=/\\.db(\\.js)?$/]",
+          message: 'src/db/model/ must not perform its own I/O by requiring a *.db.js class. Pass the looked-up value in from the caller instead.',
         },
       ],
     },
