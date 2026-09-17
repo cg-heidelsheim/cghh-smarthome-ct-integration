@@ -1,3 +1,14 @@
+const moment = require('../../src/util/timezone.bootstrap');
+
+// `new Date('2024-01-15T00:00:00')` parses as LOCAL time of whatever machine/container runs the
+// test - on a dev machine set to Europe/Berlin that happens to line up with the app's actual
+// midnight check (`moment().hours()`, Berlin-pinned via timezone.bootstrap.ts), but the Docker
+// build environment (node:20, no TZ set) defaults to UTC, where '00:00:00' local is 01:00/02:00
+// Berlin time - never the exact-midnight branch the "at exactly HH:00" tests below rely on.
+// Building the fixture through the same Berlin-aware `moment` the app itself uses makes the
+// injected system time correct regardless of the host/container's own timezone.
+const berlinTime = (isoWithoutZone) => moment.tz(isoWithoutZone, 'Europe/Berlin').toDate();
+
 function makeSharedInstanceMock(methods) {
   const instance = {};
   for (const name of methods) {
@@ -48,7 +59,7 @@ describe('churchtools-event-cron', () => {
     jest.resetModules();
     jest.clearAllMocks();
     jest.useFakeTimers();
-    jest.setSystemTime(new Date('2024-01-15T10:30:00')); // not midnight, by default
+    jest.setSystemTime(berlinTime('2024-01-15T10:30:00')); // not midnight, by default
 
     lockManagerMock.instance.manageLocks.mockResolvedValue(undefined);
     eventManagerMock.instance.handleEvents.mockResolvedValue(undefined);
@@ -152,7 +163,7 @@ describe('churchtools-event-cron', () => {
     });
 
     it('at exactly HH:00, runs the nightly-reset loop before execute()', async () => {
-      jest.setSystemTime(new Date('2024-01-15T00:00:00'));
+      jest.setSystemTime(berlinTime('2024-01-15T00:00:00'));
       roomConfigDBMock.instance.getAll.mockReturnValue([
         {name: 'Saal', homematicId: 'group-1', desiredTemperatureIdle: 16},
       ]);
@@ -166,7 +177,7 @@ describe('churchtools-event-cron', () => {
     });
 
     it('retries the nightly reset up to 3 times, refreshing server URLs between attempts, and pings Uptime down after the 3rd failure', async () => {
-      jest.setSystemTime(new Date('2024-01-15T00:00:00'));
+      jest.setSystemTime(berlinTime('2024-01-15T00:00:00'));
       roomConfigDBMock.instance.getAll.mockReturnValue([
         {name: 'Saal', homematicId: 'group-1', desiredTemperatureIdle: 16, homematicName: 'Saal HMIP'},
       ]);
