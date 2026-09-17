@@ -1,7 +1,7 @@
 const WebSocket = require('ws');
 const {Uptime} = require('../uptime');
 const {Logger} = require('./util/logger');
-const {EnvironmentManager} = require("./util/environment-manager");
+const {EnvironmentManager} = require('./util/environment-manager');
 
 class WebsocketManager {
     websocket;
@@ -30,7 +30,7 @@ class WebsocketManager {
      * @param {*} callback  Callback to execute on message event
      */
     connect = async (callback) => {
-        let tags = {module: "WS"};
+        const tags = {module: 'WS'};
 
         await EnvironmentManager.updateServerVariables();
 
@@ -41,40 +41,45 @@ class WebsocketManager {
         this.websocket.on('message', (data) => {
             // On non prod mode, wait for 1s before WS process.
             // This is bcs the prod change might cause a ws event BEFORE the test/feature even finished the automatic action itself.
-            if(process.env.ENVIRONMENT !== "production") {
+            if(process.env.ENVIRONMENT !== 'production') {
                 setTimeout(() => {
-                    Uptime.pingUptime("up", "GOT MESSAGE", "WS");
+                    Uptime.pingUptime('up', 'GOT MESSAGE', 'WS');
                     callback(data);
-                }, 2000)
+                }, 2000);
             } else {
-                Uptime.pingUptime("up", "GOT MESSAGE", "WS");
+                Uptime.pingUptime('up', 'GOT MESSAGE', 'WS');
                 callback(data);
             }
         });
 
         this.websocket.on('open', () => {
-            Logger.info({tags, message: "Connected"});
-            Uptime.pingUptime("up", "CONNECTED", "WS");
+            Logger.info({tags, message: 'Connected'});
+            Uptime.pingUptime('up', 'CONNECTED', 'WS');
+            // A successful (re)connect must stop any reconnect interval that was scheduled
+            // while disconnected — previously missing, which meant one repeating interval
+            // kept opening a new WebSocket connection every reconnectIntervallMillis
+            // indefinitely, even after the connection had already recovered.
+            this.clearWsReconnectInterval();
             this.initializePingInterval();
         });
 
         this.websocket.on('close', async () => {
-            Logger.warn({tags, message: "Disconnected"});
-            Uptime.pingUptime("down", "DISCONNECTED", "WS");
+            Logger.warn({tags, message: 'Disconnected'});
+            Uptime.pingUptime('down', 'DISCONNECTED', 'WS');
             this.clearPingInterval();
             this.initializeReconnectInterval(callback);
         });
 
         this.websocket.on('error', (error) => {
             Logger.warn({tags, message: error.message});
-            Uptime.pingUptime("down", error.message, "WS");
+            Uptime.pingUptime('down', error.message, 'WS');
             this.clearPingInterval();
             this.initializeReconnectInterval(callback);
         });
 
         this.websocket.on('unexpected-response', (error) => {
             Logger.warn({tags, message: error.message});
-            Uptime.pingUptime("down", error.message, "WS");
+            Uptime.pingUptime('down', error.message, 'WS');
             this.clearPingInterval();
             this.initializeReconnectInterval(callback);
         });
@@ -107,7 +112,7 @@ class WebsocketManager {
         this.clearWsReconnectInterval();
 
         this.reconnectIntervalRef = setInterval(() => {
-            this.connect(callback).then(_ => console.log("WS Connected 2"));
+            this.connect(callback).then(_ => console.log('WS Connected 2'));
         }, this.reconnectIntervallMillis);
     };
 

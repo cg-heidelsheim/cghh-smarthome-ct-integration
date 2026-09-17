@@ -1,7 +1,7 @@
 const {InfluxDB} = require('@influxdata/influxdb-client');
 const {Point} = require('@influxdata/influxdb-client');
 const moment = require('moment-timezone');
-moment.tz.setDefault("Europe/Berlin");
+moment.tz.setDefault('Europe/Berlin');
 require('dotenv').config();
 
 let logSeq = 0; // module-level counter
@@ -59,7 +59,7 @@ class InfluxDBManager {
             const writeApi = this.influx.getWriteApi(
                 this.org,
                 bucket,
-                "ns",
+                'ns',
                 writeOptions
             );
             writeApi.useDefaultTags({ environment: process.env.ENVIRONMENT });
@@ -69,11 +69,11 @@ class InfluxDBManager {
     }
 
     sendLog(data, info = {}) {
-        const writeApi = this.getGenericWriteApi("logs");
+        const writeApi = this.getGenericWriteApi('logs');
 
-        const point = new Point("Default Log");
-        point.stringField("log", data.message);
-        point.intField("seq", logSeq++);
+        const point = new Point('Default Log');
+        point.stringField('log', data.message);
+        point.intField('seq', logSeq++);
 
         if (data.tags) {
             Object.entries(data.tags).forEach(([key, val]) => {
@@ -83,7 +83,7 @@ class InfluxDBManager {
         }
 
         if (Object.keys(info).length > 0) {
-            point.stringField("info", JSON.stringify(info));
+            point.stringField('info', JSON.stringify(info));
         }
         writeApi.writePoint(point);
     }
@@ -122,7 +122,7 @@ class InfluxDBManager {
                 await writeApi.close();
             }
         } catch (e) {
-            console.log("[INFLUX] [ERROR] flushing/closing", e);
+            console.log('[INFLUX] [ERROR] flushing/closing', e);
         }
     }
 }

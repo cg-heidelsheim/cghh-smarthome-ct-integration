@@ -1,4 +1,4 @@
-const Booking = require("./booking");
+const Booking = require('./booking');
 
 /**
  * Represents an Event with start and end dates, a name, category, and bookings.

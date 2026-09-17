@@ -1,52 +1,36 @@
-const {WeatherState} = require("../db/model/weather-state");
-
 /**
  * Take information of a {@link GroupState} and parse it into an influx usable DB object
  *
- * @param {GroupState} state
+ * @param {import('../db/model/group-state').GroupState} state
  *
  * @returns object
  */
 const parseGroupStateIntoInfluxDataObject = (state) => {
     return {
-        label: "sensoric",
+        label: 'sensoric',
         values: {
             temperature: state.temperature,
             setTemperature: state.setTemperature,
             humidity: state.humidity,
         },
         tags: {
-            name: state.label.replace(/\s/g, "_"),
-            type: "HEATING"
+            name: state.label.replace(/\s/g, '_'),
+            type: 'HEATING'
         }
     };
 };
 
 const parseDeviceStateChannelIntoInfluxDataObject = (state, channel) => {
     return {
-        label: "sensoric",
+        label: 'sensoric',
         values: {
             temperature: channel.temperature,
             setTemperature: channel.setTemperature,
         },
         tags: {
             channel: channel.index,
-            name: state.label.replace(/\s/g, "_"),
-            type: "HEATING_THERMOSTAT"
-        }
-    };
-};
-
-const parseDeviceStateChannelIntoInfluxDataObjectState = (state, channel) => {
-    return {
-        label: "sensoric",
-        values: {
-            valvePosition: channel.valvePosition ? channel.valvePosition * 100 : 0
-        },
-        tags: {
-            channel: channel.index,
-            name: state.label.replace(/\s/g, "_"),
-            type: "HEATING_THERMOSTAT"
+            name: state.label.replace(/\s/g, '_'),
+            type: 'HEATING_THERMOSTAT'
         }
     };
 };
@@ -71,7 +55,7 @@ const parseHeatingGroupDataIntoInfluxDataObject = (group) => {
 /**
  * Take information of a {@link WeatherState} and parse it into an influx usable DB object
  *
- * @param {WeatherState} state
+ * @param {import('../db/model/weather-state').WeatherState} state
  *
  * @returns object
  */
@@ -104,7 +88,6 @@ const parseWeatherStateIntoInfluxDataObject = (state) => {
 module.exports = {
     parseGroupStateIntoInfluxDataObject,
     parseDeviceStateChannelIntoInfluxDataObject,
-    parseDeviceStateChannelIntoInfluxDataObjectState,
     parseHeatingGroupDataIntoInfluxDataObject,
     parseWeatherStateIntoInfluxDataObject
 };

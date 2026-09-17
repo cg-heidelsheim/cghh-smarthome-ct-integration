@@ -11,7 +11,7 @@ class HMIPWSHeatingGroup extends HMIPWSGroup {
             metaGroupId: params.metaGroupId,
             label: params.label,
             lastStatusUpdate: params.lastStatusUpdate,
-            type: "HEATING",
+            type: 'HEATING',
             unreach: params.unreach,
             lowBat: params.lowBat,
             dutyCycle: params.dutyCycle,
@@ -139,4 +139,4 @@ class HMIPWSHeatingGroup extends HMIPWSGroup {
     }
 }
 
-module.exports = {HMIPWSHeatingGroup}
+module.exports = {HMIPWSHeatingGroup};

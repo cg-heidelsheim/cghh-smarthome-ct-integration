@@ -85,7 +85,7 @@ class JsonFileDB {
      * @param {string} id Key for the record.
      */
     deleteById(id) {
-        let allData = this._readFile();
+        const allData = this._readFile();
         delete allData[id];
 
         fse.outputFileSync(this.filePath, JSON.stringify(allData, null, 2));

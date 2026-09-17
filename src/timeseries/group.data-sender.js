@@ -1,16 +1,15 @@
-const {DataSender} = require("./data-sender.base");
-const {GroupState} = require("../db/model/group-state");
-const {parseGroupStateIntoInfluxDataObject} = require("../util/homematic-influx.mapper");
+const {DataSender} = require('./data-sender.base');
+const {parseGroupStateIntoInfluxDataObject} = require('../util/homematic-influx.mapper');
 
 class GroupDataSender extends DataSender {
 
     constructor() {
-        super("groups");
+        super('groups');
     }
 
     /**
      * @param args
-     * @param {GroupState}     args[0] currentState
+     * @param {import('../db/model/group-state').GroupState}     args[0] currentState
      */
     parseData(...args) {
         const [state] = args;

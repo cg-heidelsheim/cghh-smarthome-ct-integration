@@ -1,8 +1,8 @@
-const {HMIPWSGroupChannelRef} = require("./hmip-ws-group-channel-ref");
-const {HMIPWSHeatingGroup} = require("./hmip-ws-group-heating");
-const {HMIPWSMetaGroup} = require("./hmip-ws-group-meta");
-const {HMIPWSIndoorClimateGroup} = require("./hmip-ws-group-indoor-climate");
-const {Logger} = require("../../../../util/logger");
+const {HMIPWSGroupChannelRef} = require('./hmip-ws-group-channel-ref');
+const {HMIPWSHeatingGroup} = require('./hmip-ws-group-heating');
+const {HMIPWSMetaGroup} = require('./hmip-ws-group-meta');
+const {HMIPWSIndoorClimateGroup} = require('./hmip-ws-group-indoor-climate');
+const {Logger} = require('../../../../util/logger');
 
 require('dotenv').config();
 
@@ -32,24 +32,24 @@ function createGroupFromJson(json) {
         case 'INDOOR_CLIMATE':
             return HMIPWSIndoorClimateGroup.fromJson(json);
         default: {
-            if (process.env.ENVIRONMENT !== "production") {
-                const ignores = ["SHUTTER"];
+            if (process.env.ENVIRONMENT !== 'production') {
+                const ignores = ['SHUTTER'];
                 const matches = ignores.some(t => type.includes(t));
 
                 if (matches) {
                     Logger.warn({
-                        tags: {module: "WS", function: "FACTORY"},
+                        tags: {module: 'WS', function: 'FACTORY'},
                         message: 'IGNORE HMIPWSGroup.type: ' + type
-                    })
+                    });
                 } else {
                     Logger.warn({
-                        tags: {module: "WS", function: "FACTORY"},
-                        message: 'Unknown HMIPWSGroup.type: ' + type + " - " + JSON.stringify(json)
-                    })
+                        tags: {module: 'WS', function: 'FACTORY'},
+                        message: 'Unknown HMIPWSGroup.type: ' + type + ' - ' + JSON.stringify(json)
+                    });
                 }
             }
         }
     }
 }
 
-module.exports = {createGroupFromJson}
+module.exports = {createGroupFromJson};

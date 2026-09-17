@@ -1,7 +1,3 @@
-const {HMIPWSFunctionalChannel} = require('./channel/hmip-ws-functional-channel');
-
-const {createFunctionalChannelFromJson} = require("./channel/hmip-ws-functional-channel-factory");
-
 /**
  * Base class for devices
  */
@@ -14,7 +10,7 @@ class HMIPWSDevice {
      * @param {string} homeId
      * @param {number} lastStatusUpdate
      * @param {string} label
-     * @param {HMIPWSFunctionalChannel[]} functionalChannels
+     * @param {import('./channel/hmip-ws-functional-channel').HMIPWSFunctionalChannel[]} functionalChannels
      */
     constructor(id, type, homeId, lastStatusUpdate, label, functionalChannels) {
         this.id = id;
@@ -26,4 +22,4 @@ class HMIPWSDevice {
     }
 }
 
-module.exports = {HMIPWSDevice}
+module.exports = {HMIPWSDevice};

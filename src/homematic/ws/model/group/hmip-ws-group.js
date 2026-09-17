@@ -17,4 +17,4 @@ class HMIPWSGroup {
     }
 }
 
-module.exports = {HMIPWSGroup}
+module.exports = {HMIPWSGroup};

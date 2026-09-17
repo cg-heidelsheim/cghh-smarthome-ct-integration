@@ -1,6 +1,6 @@
-const {createFunctionalChannelFromJson} = require("./channel/hmip-ws-functional-channel-factory");
-const {HMIPWSHeatingThermostatDevice} = require("./hmip-ws-device-heating-thermostat");
-const {Logger} = require("../../../../util/logger");
+const {createFunctionalChannelFromJson} = require('./channel/hmip-ws-functional-channel-factory');
+const {HMIPWSHeatingThermostatDevice} = require('./hmip-ws-device-heating-thermostat');
+const {Logger} = require('../../../../util/logger');
 
 require('dotenv').config();
 
@@ -26,20 +26,20 @@ function createDeviceFromJson(json) {
             return HMIPWSHeatingThermostatDevice.fromJson({...json, functionalChannels});
 
         default: {
-            if (process.env.ENVIRONMENT !== "production") {
-                const ignores = ["BLIND", "SHUTTER", "ACCESS_POINT", "WALL_MOUNTED_THERMOSTAT_PRO"];
+            if (process.env.ENVIRONMENT !== 'production') {
+                const ignores = ['BLIND', 'SHUTTER', 'ACCESS_POINT', 'WALL_MOUNTED_THERMOSTAT_PRO'];
                 const matches = ignores.some(t => type.includes(t));
 
                 if (matches) {
                     Logger.warn({
-                        tags: {module: "WS", function: "FACTORY"},
+                        tags: {module: 'WS', function: 'FACTORY'},
                         message: 'Unknown HMIPWSDevice.type: ' + type
-                    })
+                    });
                 } else {
                     Logger.warn({
-                        tags: {module: "WS", function: "FACTORY"},
-                        message: 'Unknown HMIPWSDevice.type: ' + type + " - " + JSON.stringify(json)
-                    })
+                        tags: {module: 'WS', function: 'FACTORY'},
+                        message: 'Unknown HMIPWSDevice.type: ' + type + ' - ' + JSON.stringify(json)
+                    });
                 }
             }
         }

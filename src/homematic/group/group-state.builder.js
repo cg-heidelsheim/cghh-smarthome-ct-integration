@@ -1,5 +1,4 @@
-const {GroupState} = require("../../db/model/group-state");
-const {Group} = require("./group");
+const {GroupState} = require('../../db/model/group-state');
 
 class GroupStateBuilder {
 
@@ -32,7 +31,7 @@ class GroupStateBuilder {
         const groupState = new GroupState();
 
         groupState.id = id;
-        groupState.label = "INIT";
+        groupState.label = 'INIT';
 
         return groupState;
     }

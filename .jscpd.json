@@ -1,0 +1,18 @@
+{
+  "threshold": 2,
+  "minLines": 8,
+  "minTokens": 80,
+  "mode": "mild",
+  "ignore": [
+    "**/node_modules/**",
+    "**/coverage/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/reports/**",
+    "**/persistent/**",
+    "**/test/**",
+    "**/package-lock.json"
+  ],
+  "reporters": ["json", "html"],
+  "output": "reports/jscpd"
+}

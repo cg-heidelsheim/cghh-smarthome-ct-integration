@@ -1,13 +1,12 @@
-const {HMIPWSDevice} = require('../device/hmip-ws-device');
 const {HMIPWSEvent} = require('./hmip-ws-event');
-const createDeviceFromJson = require("../device/hmip-ws-device-factory").createDeviceFromJson;
+const createDeviceFromJson = require('../device/hmip-ws-device-factory').createDeviceFromJson;
 
 /**
  * DEVICE_CHANGED event
  */
 class HMIPWSDeviceChangedEvent extends HMIPWSEvent {
     /**
-     * @param {HMIPWSDevice} device
+     * @param {import('../device/hmip-ws-device').HMIPWSDevice} device
      */
     constructor(device) {
         super('DEVICE_CHANGED');
@@ -24,4 +23,4 @@ class HMIPWSDeviceChangedEvent extends HMIPWSEvent {
     }
 }
 
-module.exports = {HMIPWSDeviceChangedEvent}
+module.exports = {HMIPWSDeviceChangedEvent};

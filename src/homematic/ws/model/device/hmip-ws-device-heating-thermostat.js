@@ -68,4 +68,4 @@ class HMIPWSHeatingThermostatDevice extends HMIPWSDevice {
     }
 }
 
-module.exports = {HMIPWSHeatingThermostatDevice}
+module.exports = {HMIPWSHeatingThermostatDevice};

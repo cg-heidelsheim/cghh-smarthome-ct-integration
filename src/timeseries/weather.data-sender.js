@@ -1,15 +1,14 @@
-const {DataSender} = require("./data-sender.base");
-const {WeatherState} = require("../db/model/weather-state");
-const {parseWeatherStateIntoInfluxDataObject} = require("../util/homematic-influx.mapper");
+const {DataSender} = require('./data-sender.base');
+const {parseWeatherStateIntoInfluxDataObject} = require('../util/homematic-influx.mapper');
 
 class WeatherDataSender extends DataSender {
     constructor() {
-        super("weather");
+        super('weather');
     }
 
     /**
      * @param args
-     * @param {WeatherState}     args[0] state
+     * @param {import('../db/model/weather-state').WeatherState}     args[0] state
      */
     parseData(...args) {
         const [state] = args;

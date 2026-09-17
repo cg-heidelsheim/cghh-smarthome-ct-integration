@@ -3,9 +3,8 @@
  * This models the full JSON you posted.
  */
 
-const {HMIPWSEvent} = require('./event/hmip-ws-event');
 const {HMIPWSOrigin} = require('./hmip-ws-origin');
-const {createEventFromJson} = require("./event/hmip-ws-event-factory");
+const {createEventFromJson} = require('./event/hmip-ws-event-factory');
 
 /**
  * @typedef {'DEVICE' | 'GROUP' | 'HOME'} HMIPWSOriginType
@@ -17,7 +16,7 @@ const {createEventFromJson} = require("./event/hmip-ws-event-factory");
 
 class HMIPWSMessage {
     /**
-     * @param {HMIPWSEvent[]} events
+     * @param {import('./event/hmip-ws-event').HMIPWSEvent[]} events
      * @param {HMIPWSOrigin} origin
      * @param {string} accessPointId
      * @param {number} timestamp
@@ -55,4 +54,4 @@ class HMIPWSMessage {
     }
 }
 
-module.exports = {HMIPWSMessage}
+module.exports = {HMIPWSMessage};

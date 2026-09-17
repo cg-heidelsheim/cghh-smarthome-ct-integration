@@ -11,14 +11,14 @@ describe('GroupState.equalsValueAttributes', () => {
     stateA.temperature = 20;
     stateA.setTemperature = 22;
     stateA.humidity = 50;
-    stateA.id = "id1";
-    stateA.label = "Label1";
+    stateA.id = 'id1';
+    stateA.label = 'Label1';
 
     stateB.temperature = 20;
     stateB.setTemperature = 22;
     stateB.humidity = 50;
-    stateB.id = "id2";   // Different id to verify it's not compared
-    stateB.label = "Label2"; // Different label as well
+    stateB.id = 'id2';   // Different id to verify it's not compared
+    stateB.label = 'Label2'; // Different label as well
   });
 
   test('returns true if all compared value attributes are identical', () => {

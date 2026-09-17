@@ -1,23 +1,21 @@
-const ChurchToolsApiClient = require("./ct-api");
-const {Logger} = require("../util/logger");
-const {HeatingScheduler} = require("../churchtools/heating-scheduler");
-const {filterCurrentAndUpcomingEvents} = require("../util/event-filter.util");
-const {GroupStateBuilder} = require("../homematic/group/group-state.builder");
-const {GroupManagerFactory} = require("../homematic/group/group-manager.factory");
-const {EventLogger} = require("../util/event.logger");
-const {Event} = require("./model/event");
-const {Lock} = require("./../db/model/lock");
-const {Booking} = require("./model/booking");
-const moment = require("moment");
+const ChurchToolsApiClient = require('./ct-api');
+const {Logger} = require('../util/logger');
+const {HeatingScheduler} = require('../churchtools/heating-scheduler');
+const {filterCurrentAndUpcomingEvents} = require('../util/event-filter.util');
+const {GroupStateBuilder} = require('../homematic/group/group-state.builder');
+const {GroupManagerFactory} = require('../homematic/group/group-manager.factory');
+const {EventLogger} = require('../util/event.logger');
+const {Lock} = require('./../db/model/lock');
+const moment = require('moment');
 
 
 class EventManager {
-    tags = {module: "CRON", function: "EVENT"};
+    tags = {module: 'CRON', function: 'EVENT'};
 
     /**
-     * @param {LockDB} lockDB
-     * @param {RoomConfigDB} roomConfigDB
-     * @param {GroupStateDB} groupStateDB
+     * @param {import('../db/lock.db').LockDB} lockDB
+     * @param {import('../db/room-config.db').RoomConfigDB} roomConfigDB
+     * @param {import('../db/group-state.db').GroupStateDB} groupStateDB
      */
     constructor(lockDB, roomConfigDB, groupStateDB) {
         this.lockDB = lockDB;
@@ -37,22 +35,22 @@ class EventManager {
 
 
         const tags = {...this.tags};
-        Logger.info({tags, message: "Start event handling - #ofEvents: " + events.length});
+        Logger.info({tags, message: 'Start event handling - #ofEvents: ' + events.length});
 
         const filteredEvents = filterCurrentAndUpcomingEvents(events);
 
-        Logger.info({tags, message: "Active/Upcoming Events - #ofEvents: " + filteredEvents.length});
+        Logger.info({tags, message: 'Active/Upcoming Events - #ofEvents: ' + filteredEvents.length});
 
         for (const event of filteredEvents) {
             await this.handleEvent(event);
         }
 
-        Logger.info({tags, message: "Finished event handling"});
+        Logger.info({tags, message: 'Finished event handling'});
     };
 
 
     /**
-     * @param {Event} event     Event to manage
+     * @param {import('./model/event').Event} event     Event to manage
      *
      * @returns void
      */
@@ -78,8 +76,8 @@ class EventManager {
     /**
      * Determine if heating needs to be started for passed booking
      *
-     * @param {Event} event     Event containing passed booking
-     * @param {Booking} booking   Booking (room) to possibly adjust
+     * @param {import('./model/event').Event} event     Event containing passed booking
+     * @param {import('./model/booking').Booking} booking   Booking (room) to possibly adjust
      *
      * @returns void
      */
@@ -88,8 +86,8 @@ class EventManager {
         let roomConfig;
 
         const ignored = {
-            "4": "Küche"
-        }
+            '4': 'Küche'
+        };
 
         if (ignored[booking.resourceId]) {
             Logger.info({
@@ -108,10 +106,10 @@ class EventManager {
 
         this.tags = {...this.tags, group: roomConfig.name.replace(/ /g, '_')};
 
-        if (!this.#isAcceptedBooking(booking)) return;
-        if (this.#isRoomLocked(roomConfig)) return;
+        if (!this.#isAcceptedBooking(booking)) {return;}
+        if (this.#isRoomLocked(roomConfig)) {return;}
 
-        let groupState = this.#getGroupState(roomConfig);
+        const groupState = this.#getGroupState(roomConfig);
 
         await this.#executeHeatingSchedule(roomConfig, event, groupState, booking);
     };
@@ -144,8 +142,8 @@ class EventManager {
             lock.id = groupState.id;
             this.lockDB.save(lock);
         } catch (e) {
-            if (e.message !== "Blocked") {
-                Logger.error({tags: this.tags, message: `Error on executeHeatingSchedule ${e.message}`})
+            if (e.message !== 'Blocked') {
+                Logger.error({tags: this.tags, message: `Error on executeHeatingSchedule ${e.message}`});
             } else {
                 // blocked due to existing manual override
                 EventLogger.groupUpdatePreheatBlocked(event.name, groupState.label);
@@ -157,19 +155,19 @@ class EventManager {
         try {
             return this.groupStateDB.getById(roomConfig.homematicId);
         } catch (e) {
-            Logger.error({message: "Group state not found in DB. Using Dummy. Error: " + e.message});
+            Logger.error({message: 'Group state not found in DB. Using Dummy. Error: ' + e.message});
             return GroupStateBuilder.dummyState(roomConfig.homematicId);
         }
     }
 
     /**
      *
-     * @param {Booking} booking
+     * @param {import('./model/booking').Booking} booking
      * @returns {boolean}
      */
     #isAcceptedBooking(booking) {
         // ONLY ALLOW ROOMS WITH STATUS "gebucht"
-        if (booking.statusId !== "2") {
+        if (booking.statusId !== '2') {
             Logger.warn({tags: this.tags, message: `Booking ${booking.id} not in status "accepted"`});
             return false;
         }
@@ -182,11 +180,11 @@ class EventManager {
             this.lockDB.getById(roomConfig.homematicId);
             Logger.info({tags: this.tags, message: `Room '${roomConfig.name}' is locked`});
             return true;
-        } catch (err) {
+        } catch (_err) {
             Logger.debug({tags: this.tags, message: `Room '${roomConfig.name}' is not locked`});
             return false;
         }
     }
 }
 
-module.exports = {EventManager}
+module.exports = {EventManager};

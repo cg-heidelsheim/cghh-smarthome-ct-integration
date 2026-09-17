@@ -24,9 +24,8 @@ class DataSender {
      * @param  {...any} args - Arguments needed for parsing
      * @returns {Object} Data formatted for InfluxDB
      */
-    parseData(...args) {
-        throw new Error("parseData() must be implemented by subclass.");
-        return {};
+    parseData(..._args) {
+        throw new Error('parseData() must be implemented by subclass.');
     }
 
     /**

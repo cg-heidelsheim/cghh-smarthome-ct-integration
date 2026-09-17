@@ -1,7 +1,7 @@
 const {JsonFileDB} = require('./json-file.db.js');
 const {RoomConfig} = require('./model/room-config');
 
-const FILE_PATH = process.cwd() + "/config/room.config.json";
+const FILE_PATH = process.cwd() + '/config/room.config.json';
 
 class RoomConfigDB extends JsonFileDB {
     constructor() {

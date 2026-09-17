@@ -1,11 +1,10 @@
-const {Event} = require("./../churchtools/model/event");
 const moment = require('moment-timezone');
-moment.tz.setDefault("Europe/Berlin");
+moment.tz.setDefault('Europe/Berlin');
 
 /**
  * Filters events that are currently active or start in the future.
  *
- * @param {Event[]} events - List of event objects with startDate/endDate.
+ * @param {import('./../churchtools/model/event').Event[]} events - List of event objects with startDate/endDate.
  * @returns {Array} Sorted list of upcoming or active events.
  */
 function filterCurrentAndUpcomingEvents(events) {

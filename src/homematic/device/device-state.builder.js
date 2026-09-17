@@ -1,6 +1,6 @@
-const {ChannelState} = require("../../db/model/channel-state");
-const {DeviceState} = require("../../db/model/device-state");
-const {HMIPWSHeatingThermostatChannel} = require("../ws/model/device/channel/hmip-ws-functional-channel-heating-thermostat");
+const {ChannelState} = require('../../db/model/channel-state');
+const {DeviceState} = require('../../db/model/device-state');
+const {HMIPWSHeatingThermostatChannel} = require('../ws/model/device/channel/hmip-ws-functional-channel-heating-thermostat');
 
 class DeviceStateBuilder {
 
@@ -40,7 +40,7 @@ class DeviceStateBuilder {
         const deviceState = new DeviceState();
 
         deviceState.id = id;
-        deviceState.label = "INIT";
+        deviceState.label = 'INIT';
         deviceState.channels = [];
 
         return deviceState;

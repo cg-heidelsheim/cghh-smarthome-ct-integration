@@ -1,7 +1,7 @@
-const {JsonFileDB} = require("./json-file.db");
-const {Lock} = require("./model/lock");
+const {JsonFileDB} = require('./json-file.db');
+const {Lock} = require('./model/lock');
 
-const FILE_PATH = process.cwd() + "/persistent/locks.json";
+const FILE_PATH = process.cwd() + '/persistent/locks.json';
 
 class LockDB extends JsonFileDB {
 

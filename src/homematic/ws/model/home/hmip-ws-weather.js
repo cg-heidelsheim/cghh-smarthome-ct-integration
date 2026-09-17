@@ -12,4 +12,4 @@ class HMIPWSHomeWeather {
     }
 }
 
-module.exports = {HMIPWSHomeWeather}
+module.exports = {HMIPWSHomeWeather};

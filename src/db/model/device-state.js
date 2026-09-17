@@ -17,8 +17,6 @@
  * }
  */
 
-const {ChannelState} = require("./channel-state");
-
 class DeviceState {
 
     /**
@@ -35,7 +33,7 @@ class DeviceState {
 
     /**
      * Array of channel states within the device
-     * @type {ChannelState[]}
+     * @type {import('./channel-state').ChannelState[]}
      */
     channels = [];
 
@@ -43,7 +41,7 @@ class DeviceState {
      * Retrieves a ChannelState by its index.
      *
      * @param {number} index The index of the channel to retrieve.
-     * @returns {ChannelState | undefined} The channel with the specified index, or undefined if not found.
+     * @returns {import('./channel-state').ChannelState | undefined} The channel with the specified index, or undefined if not found.
      */
     getChannelByIndex(index) {
         return this.channels.find(channel => channel.index === index);

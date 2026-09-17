@@ -23,4 +23,4 @@ class HMIPWSHomeChangedEvent extends HMIPWSEvent {
     }
 }
 
-module.exports = {HMIPWSHomeChangedEvent}
+module.exports = {HMIPWSHomeChangedEvent};

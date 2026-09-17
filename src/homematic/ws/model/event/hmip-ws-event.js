@@ -10,4 +10,4 @@ class HMIPWSEvent {
     }
 }
 
-module.exports = {HMIPWSEvent}
+module.exports = {HMIPWSEvent};

@@ -6,7 +6,15 @@
   "scripts": {
     "start": "node index.js",
     "test": "jest",
-    "test:ci": "jest --maxWorkers=1 --detectOpenHandles"
+    "test:ci": "jest --maxWorkers=1 --detectOpenHandles",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "tsc --noEmit",
+    "knip": "knip",
+    "dupes": "jscpd .",
+    "dupes:report": "jscpd . --reporters json,html --output reports/jscpd || true",
+    "check": "npm run lint && npm run typecheck && npm run knip && npm run dupes && npm run test:coverage"
   },
   "repository": {
     "type": "git",
@@ -38,7 +46,13 @@
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
+    "@types/node": "^22.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.70.0",
+    "@typescript-eslint/parser": "^8.70.0",
+    "eslint": "^9.39.5",
     "jest": "^30.2.0",
+    "jscpd": "^5.2.1",
+    "knip": "^6.36.0",
     "ts-jest": "^29.4.5",
     "typescript": "^5.9.3"
   }

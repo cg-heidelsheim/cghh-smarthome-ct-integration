@@ -11,7 +11,7 @@ class HMIPWSIndoorClimateGroup extends HMIPWSGroup {
             metaGroupId: params.metaGroupId,
             label: params.label,
             lastStatusUpdate: params.lastStatusUpdate,
-            type: "INDOOR_CLIMATE",
+            type: 'INDOOR_CLIMATE',
             unreach: params.unreach,
             lowBat: params.lowBat,
             dutyCycle: params.dutyCycle,
@@ -49,4 +49,4 @@ class HMIPWSIndoorClimateGroup extends HMIPWSGroup {
     }
 }
 
-module.exports = {HMIPWSIndoorClimateGroup}
+module.exports = {HMIPWSIndoorClimateGroup};

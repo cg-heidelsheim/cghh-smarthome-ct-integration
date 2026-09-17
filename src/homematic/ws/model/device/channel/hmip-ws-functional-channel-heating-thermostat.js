@@ -37,6 +37,9 @@ class HMIPWSHeatingThermostatChannel extends HMIPWSFunctionalChannel {
             deviceId,
             index,
             groupIndex,
+            label,
+            groups,
+            supportedOptionalFeatures,
             channelRole,
             temperatureOffset,
             valvePosition,
@@ -52,6 +55,9 @@ class HMIPWSHeatingThermostatChannel extends HMIPWSFunctionalChannel {
             deviceId,
             index,
             groupIndex,
+            label,
+            groups,
+            supportedOptionalFeatures,
             channelRole,
             temperatureOffset,
             valvePosition,
@@ -65,4 +71,4 @@ class HMIPWSHeatingThermostatChannel extends HMIPWSFunctionalChannel {
     }
 }
 
-module.exports = {HMIPWSHeatingThermostatChannel}
+module.exports = {HMIPWSHeatingThermostatChannel};

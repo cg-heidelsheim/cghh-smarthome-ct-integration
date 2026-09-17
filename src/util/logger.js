@@ -1,38 +1,38 @@
 const moment = require('moment-timezone');
 const influxDb = require('../timeseries/influx/influx-db'); // now the singleton
-moment.tz.setDefault("Europe/Berlin");
+moment.tz.setDefault('Europe/Berlin');
 
 class Logger {
 
     static core(data, info = {}) {
-        Logger.log("CORE", data.tags, data.message, info);
+        Logger.log('CORE', data.tags, data.message, info);
     }
 
     static trace(data, info = {}) {
-        Logger.log("TRACE", data.tags, data.message, info);
+        Logger.log('TRACE', data.tags, data.message, info);
     }
 
     static debug(data, info = {}) {
-        Logger.log("DEBUG", data.tags, data.message, info);
+        Logger.log('DEBUG', data.tags, data.message, info);
     }
 
     static info(data, info = {}) {
-        Logger.log("INFO", data.tags, data.message, info);
+        Logger.log('INFO', data.tags, data.message, info);
     }
 
     static warn(data, info = {}) {
-        Logger.log("WARN", data.tags, data.message, info);
+        Logger.log('WARN', data.tags, data.message, info);
     }
 
     static error(data, info = {}) {
-        Logger.log("ERROR", data.tags, data.message, info);
+        Logger.log('ERROR', data.tags, data.message, info);
     }
 
     static log(level, tags, message, info = {}) {
         tags = tags || {};
-        tags["level"] = level;
+        tags['level'] = level;
 
-        console.log(`[${moment().format("YYYY-MM-DD HH:mm:ss")}] [${tags.level}] ${JSON.stringify(tags)} ${message}`);
+        console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}] [${tags.level}] ${JSON.stringify(tags)} ${message}`);
 
         tags = {level, ...tags};
         influxDb.sendLog({tags, message}, info);

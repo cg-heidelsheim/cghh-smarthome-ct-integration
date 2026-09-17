@@ -1,3 +1,5 @@
+const {shallowEqualsOn} = require('./shallow-equals.util');
+
 /**
  * Represents the state of a group with values relevant for comparison.
  */
@@ -40,10 +42,7 @@ class GroupState {
      * @returns {boolean} True if the compared attributes are equal, false otherwise.
      */
     equalsValueAttributes(other) {
-        if (!other) return false;
-        return this.temperature === other.temperature &&
-            this.setTemperature === other.setTemperature &&
-            this.humidity === other.humidity;
+        return shallowEqualsOn(this, other, ['temperature', 'setTemperature', 'humidity']);
     }
 }
 

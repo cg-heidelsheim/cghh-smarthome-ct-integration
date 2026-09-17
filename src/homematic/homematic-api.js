@@ -1,5 +1,5 @@
-const axios = require("axios");
-const {Logger} = require("../util/logger");
+const axios = require('axios');
+const {Logger} = require('../util/logger');
 
 require('dotenv').config();
 
@@ -19,7 +19,7 @@ class HomematicApi {
      * @returns
      */
     async setTemperatureForGroup(groupId, desiredTemperature) {
-        const tags = {module: "API", function: "HOMEMATIC", group: groupId};
+        const tags = {module: 'API', function: 'HOMEMATIC', group: groupId};
 
         if (process.env.ENVIRONMENT !== 'production') {
             Logger.core({
@@ -31,30 +31,36 @@ class HomematicApi {
 
         Logger.debug({tags, message: `Set temperature of ${groupId} to ${desiredTemperature}`});
 
-        return await this.callRest(this.API_URL + "hmip/group/heating/setSetPointTemperature", {
-            "groupId": groupId,
-            "setPointTemperature": desiredTemperature
+        return await this.callRest(this.API_URL + 'hmip/group/heating/setSetPointTemperature', {
+            groupId,
+            'setPointTemperature': desiredTemperature
         });
     }
 
     async getServerUrls() {
-        const tags = {module: "API", function: "HOMEMATIC_LOOKUP"};
-        Logger.debug({tags, message: "Fetching Server URL for Homematic API"});
+        const tags = {module: 'API', function: 'HOMEMATIC_LOOKUP'};
+        Logger.debug({tags, message: 'Fetching Server URL for Homematic API'});
 
-        return await this.callRest(this.LOOKUP_URL + "getHost", {
-            "clientCharacteristics": {
-                "apiVersion": "10",
-                "applicationIdentifier": "homematicip-python",
-                "applicationVersion": "1.0",
-                "deviceManufacturer": "none",
-                "deviceType": "Computer",
-                "language": "de-DE",
-                "osType": "Windows",
-                "osVersion": "10"
+        return await this.callRest(this.LOOKUP_URL + 'getHost', {
+            'clientCharacteristics': {
+                'apiVersion': '10',
+                'applicationIdentifier': 'homematicip-python',
+                'applicationVersion': '1.0',
+                'deviceManufacturer': 'none',
+                'deviceType': 'Computer',
+                'language': 'de-DE',
+                'osType': 'Windows',
+                'osVersion': '10'
             },
-            "id": this.ACCESS_POINT_ID
+            'id': this.ACCESS_POINT_ID
         });
     }
+
+    // Bounded exponential backoff: 5s, 10s, 20s, 40s, capped at 60s. Replaces a previous
+    // formula (Math.pow(5000, attempt * 0.5)) that grew from ~71ms to 20+ days across
+    // attempts instead of a sane progression.
+    static RETRY_BASE_MS = 5000;
+    static RETRY_MAX_MS = 60000;
 
     async callRest(url, payload, attempt = 1, id = null) {
         if (id == null) {
@@ -63,42 +69,46 @@ class HomematicApi {
 
         const maxRetries = 5;
         const headers = {
-            "content-type": "application/json",
-            "accept": "application/json",
-            "version": "12",
-            "authtoken": this.AUTH_TOKEN
+            'content-type': 'application/json',
+            'accept': 'application/json',
+            'version': '12',
+            'authtoken': this.AUTH_TOKEN
         };
 
-        let response;
-
-        let tags = {module: "API", function: "HOMEMATIC", attempt, identifier: id, url: url};
-
+        const tags = {module: 'API', function: 'HOMEMATIC', attempt, identifier: id, url};
         const info = {request: payload};
 
         try {
-            Logger.debug({tags, message: "Calling " + url});
-            response = await axios.post(url, payload, {headers});
-            Logger.debug({tags, message: "Api call succeeded"});
+            Logger.debug({tags, message: 'Calling ' + url});
+            const response = await axios.post(url, payload, {headers});
+            Logger.debug({tags, message: 'Api call succeeded'});
 
             return response.data;
         } catch (e) {
-            tags = {...tags};
             info.response = e.response?.data;
 
-            if (attempt <= maxRetries) {
-                const retryInMs = Math.pow(5000, attempt * 0.5);
-
-                Logger.warn({tags, message: "Could not execute API request: " + e}, info);
-                Logger.warn({tags, message: "Retrying in " + retryInMs + " ms"}, info);
-
-                setTimeout(() => {
-                    Logger.warn({tags: {...tags, attempt: attempt + 1}, message: "Retrying request"}, info);
-                    this.callRest(url, payload, attempt++, id);
-                }, retryInMs);
-            } else {
-                Logger.error({tags, message: "Could not execute API request: " + e}, info);
+            if (attempt > maxRetries) {
+                Logger.error({tags, message: 'Could not execute API request: ' + e}, info);
                 throw Error(e);
             }
+
+            const retryInMs = Math.min(
+                HomematicApi.RETRY_BASE_MS * 2 ** (attempt - 1),
+                HomematicApi.RETRY_MAX_MS
+            );
+
+            Logger.warn({tags, message: 'Could not execute API request: ' + e}, info);
+            Logger.warn({tags, message: 'Retrying in ' + retryInMs + ' ms'}, info);
+
+            // Previously fire-and-forget (setTimeout without awaiting the recursive call),
+            // so the original caller's await resolved as `undefined` after just the first
+            // failure, treating a still-in-progress retry chain as success. Now the retry
+            // is awaited end-to-end, so a caller only sees success once the API call
+            // actually succeeds, and only sees the final failure once retries are exhausted.
+            await new Promise((resolve) => setTimeout(resolve, retryInMs));
+
+            Logger.warn({tags: {...tags, attempt: attempt + 1}, message: 'Retrying request'}, info);
+            return this.callRest(url, payload, attempt + 1, id);
         }
     }
 }

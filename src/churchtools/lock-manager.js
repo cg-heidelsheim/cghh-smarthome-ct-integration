@@ -1,16 +1,13 @@
-const {Logger} = require("../util/logger");
-const {Lock} = require("../db/model/lock");
-const {LockDB} = require("../db/lock.db");
-const {RoomConfigDB} = require("../db/room-config.db");
-const {GroupManagerFactory} = require("../homematic/group/group-manager.factory")
-const {EventLogger} = require("../util/event.logger");
+const {Logger} = require('../util/logger');
+const {GroupManagerFactory} = require('../homematic/group/group-manager.factory');
+const {EventLogger} = require('../util/event.logger');
 
 class LockManager {
-    tags = {module: "CRON", function: "LOCKS"};
+    tags = {module: 'CRON', function: 'LOCKS'};
 
     /**
-     * @param {LockDB} lockDB
-     * @param {RoomConfigDB} roomConfigDB
+     * @param {import('../db/lock.db').LockDB} lockDB
+     * @param {import('../db/room-config.db').RoomConfigDB} roomConfigDB
      */
     constructor(lockDB, roomConfigDB) {
         this.lockDB = lockDB;
@@ -22,16 +19,16 @@ class LockManager {
      * @returns {Promise<void>}
      */
     async manageLocks() {
-        Logger.info({tags: this.tags, message: "Starting lock resolving"});
+        Logger.info({tags: this.tags, message: 'Starting lock resolving'});
 
         const locks = this.lockDB.getAll();
-        Logger.info({tags: this.tags, message: "Number of locks: " + locks.length});
+        Logger.info({tags: this.tags, message: 'Number of locks: ' + locks.length});
 
         for (const lock of locks) {
             await this.#manageLock(lock);
         }
 
-        Logger.info({tags: this.tags, message: "Finished lock resolving"});
+        Logger.info({tags: this.tags, message: 'Finished lock resolving'});
     }
 
     /**
@@ -39,16 +36,16 @@ class LockManager {
      * Checks if the log is expired.
      * If expired, delete it, and reset the corresponding room
      *
-     * @param {Lock} lock
+     * @param {import('../db/model/lock').Lock} lock
      * @returns {Promise<void>}
      */
     async #manageLock(lock) {
         const roomConfig = this.roomConfigDB.getById(lock.id);
-        const tags = {...this.tags, group: roomConfig.name.replace(/ /g, "_")};
+        const tags = {...this.tags, group: roomConfig.name.replace(/ /g, '_')};
 
         if (!lock.isExpired()) {
             Logger.debug({tags, message: `Room '${roomConfig.name}' - Lock not expired`});
-            return
+            return;
         }
 
         Logger.info({tags, message: `Room '${roomConfig.name}' - Lock expired - Reset`});

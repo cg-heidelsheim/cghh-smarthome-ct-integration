@@ -1,13 +1,12 @@
-const {HMIPWSGroup} = require('../group/hmip-ws-group');
 const {HMIPWSEvent} = require('./hmip-ws-event');
-const {createGroupFromJson} = require("../group/hmip-ws-group-factory");
+const {createGroupFromJson} = require('../group/hmip-ws-group-factory');
 
 /**
  * GROUP_CHANGED event
  */
 class HMIPWSGroupChangedEvent extends HMIPWSEvent {
     /**
-     * @param {HMIPWSGroup} group
+     * @param {import('../group/hmip-ws-group').HMIPWSGroup} group
      */
     constructor(group) {
         super('GROUP_CHANGED');
@@ -24,4 +23,4 @@ class HMIPWSGroupChangedEvent extends HMIPWSEvent {
     }
 }
 
-module.exports = {HMIPWSGroupChangedEvent}
+module.exports = {HMIPWSGroupChangedEvent};

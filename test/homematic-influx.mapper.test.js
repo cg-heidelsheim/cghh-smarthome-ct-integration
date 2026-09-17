@@ -3,59 +3,59 @@ const {
     parseDeviceStateChannelIntoInfluxDataObject,
     parseHeatingGroupDataIntoInfluxDataObject,
     parseWeatherStateIntoInfluxDataObject
-} = require("../src/util/homematic-influx.mapper");
+} = require('../src/util/homematic-influx.mapper');
 
-describe("homematic-influx.mapper", () => {
-    test("parseGroupStateIntoInfluxDataObject parses correctly", () => {
+describe('homematic-influx.mapper', () => {
+    test('parseGroupStateIntoInfluxDataObject parses correctly', () => {
         const input = {
             temperature: 22.5,
             setTemperature: 23.0,
             humidity: 45,
-            label: "Living Room"
+            label: 'Living Room'
         };
         const result = parseGroupStateIntoInfluxDataObject(input);
         expect(result).toEqual({
-            label: "sensoric",
+            label: 'sensoric',
             values: {
                 temperature: 22.5,
                 setTemperature: 23.0,
                 humidity: 45
             },
             tags: {
-                name: "Living_Room",
-                type: "HEATING"
+                name: 'Living_Room',
+                type: 'HEATING'
             }
         });
     });
 
-    test("parseDeviceStateChannelIntoInfluxDataObject parses correctly", () => {
-        const state = {label: "Thermostat 1"};
+    test('parseDeviceStateChannelIntoInfluxDataObject parses correctly', () => {
+        const state = {label: 'Thermostat 1'};
         const channel = {temperature: 21.0, setTemperature: 22.0, index: 1};
         const result = parseDeviceStateChannelIntoInfluxDataObject(state, channel);
         expect(result).toEqual({
-            label: "sensoric",
+            label: 'sensoric',
             values: {
                 temperature: 21.0,
                 setTemperature: 22.0
             },
             tags: {
                 channel: 1,
-                name: "Thermostat_1",
-                type: "HEATING_THERMOSTAT"
+                name: 'Thermostat_1',
+                type: 'HEATING_THERMOSTAT'
             }
         });
     });
 
-    test("parseHeatingGroupDataIntoInfluxDataObject parses correctly", () => {
+    test('parseHeatingGroupDataIntoInfluxDataObject parses correctly', () => {
         const group = {
-            label: "Heating Group 1",
+            label: 'Heating Group 1',
             actualTemperature: 20.0,
             setPointTemperature: 21.5,
             humidity: 40
         };
         const result = parseHeatingGroupDataIntoInfluxDataObject(group);
         expect(result).toEqual({
-            label: "Heating Group 1",
+            label: 'Heating Group 1',
             values: {
                 temperature: 20.0,
                 setTemperature: 21.5,
@@ -64,9 +64,9 @@ describe("homematic-influx.mapper", () => {
         });
     });
 
-    test("parseWeatherStateIntoInfluxDataObject parses correctly", () => {
+    test('parseWeatherStateIntoInfluxDataObject parses correctly', () => {
         const input = {
-            label: "Outdoor Weather",
+            label: 'Outdoor Weather',
             temperature: 15.0,
             minTemperature: 10.0,
             maxTemperature: 20.0,
@@ -76,7 +76,7 @@ describe("homematic-influx.mapper", () => {
         };
         const result = parseWeatherStateIntoInfluxDataObject(input);
         expect(result).toEqual({
-            label: "Outdoor Weather",
+            label: 'Outdoor Weather',
             values: {
                 temperature: 15.0,
                 humidity: 50,

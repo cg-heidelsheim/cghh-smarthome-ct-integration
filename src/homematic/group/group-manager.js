@@ -1,20 +1,17 @@
-const {PendingLogDB} = require("../../db/pending-log.db");
-const {Logger} = require("../../util/logger");
-const {HomematicApi} = require("../homematic-api");
-const {GroupState} = require("../../db/model/group-state");
-const {PendingLog} = require("../../db/model/pending-log");
-const {Event} = require("./../../churchtools/model/event");
+const {PendingLogDB} = require('../../db/pending-log.db');
+const {Logger} = require('../../util/logger');
+const {PendingLog} = require('../../db/model/pending-log');
 
 /**
  * TODO REFACTOR
  */
 class GroupManager {
 
-    /** @type {RoomConfig} */
+    /** @type {import('../../db/model/room-config').RoomConfig} */
     roomConfiguration;
-    /** @type {GroupState} */
+    /** @type {import('../../db/model/group-state').GroupState} */
     groupState;
-    /** @type {HomematicApi} */
+    /** @type {import('../homematic-api').HomematicApi} */
     homematicAPI;
 
     constructor(params) {
@@ -30,7 +27,7 @@ class GroupManager {
     }
 
     /**
-     * @param {Event} event
+     * @param {import('../../churchtools/model/event').Event} event
      * @throws {Error} If room is currently heated (may happen if somebody changes temperature between events)
      */
     async heatForEvent(event) {
@@ -41,13 +38,13 @@ class GroupManager {
 
         const currentTemperatureIsDefined = this.groupState.setTemperature !== undefined;
         if (temperatureIsManuallyChanged && currentTemperatureIsDefined) {
-            if (process.env.ENVIRONMENT === "production") {
-                throw new Error("Blocked");
-            } else if (process.env.ENVIRONMENT !== "production") {
+            if (process.env.ENVIRONMENT === 'production') {
+                throw new Error('Blocked');
+            } else if (process.env.ENVIRONMENT !== 'production') {
                 if (this.groupState.setTemperature === desiredTemperature) {
-                    Logger.warn({message: "ATTENTION: Assumed no manual change, since setTemp === desiredTemp"})
+                    Logger.warn({message: 'ATTENTION: Assumed no manual change, since setTemp === desiredTemp'});
                 } else {
-                    throw new Error("Blocked");
+                    throw new Error('Blocked');
                 }
             }
         }
@@ -56,7 +53,7 @@ class GroupManager {
     }
 
     async updateTemperature(desiredTemperature, eventName) {
-        const tags = {module: "CRON", function: "EVENT", group: this.roomConfiguration.homematicId};
+        const tags = {module: 'CRON', function: 'EVENT', group: this.roomConfiguration.homematicId};
         // set before data send, otherwise websocket might trigger before lock is set
         const pendingLogDb = new PendingLogDB();
         const pendingLog = new PendingLog();
@@ -78,8 +75,8 @@ class GroupManager {
             });
 
             // revert pending log
-            pendingLogDb.delete(this.roomConfiguration.homematicId);
-            throw new Error("Cannot set Temperature to idle");
+            pendingLogDb.deleteById(this.roomConfiguration.homematicId);
+            throw new Error('Cannot set Temperature to idle');
         }
     }
 

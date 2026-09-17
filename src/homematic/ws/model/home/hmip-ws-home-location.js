@@ -6,4 +6,4 @@ class HMIPWSHomeLocation {
     }
 }
 
-module.exports = {HMIPWSHomeLocation}
+module.exports = {HMIPWSHomeLocation};

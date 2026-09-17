@@ -1,3 +1,5 @@
+const {shallowEqualsOn} = require('./shallow-equals.util');
+
 /**
  * Represents the weather state with relevant attributes for comparison.
  */
@@ -66,15 +68,10 @@ class WeatherState {
      * @returns {boolean} True if these value attributes are equal, false otherwise.
      */
     equalsValueAttributes(other) {
-        if (!other) return false;
-        return this.temperature === other.temperature &&
-            this.minTemperature === other.minTemperature &&
-            this.maxTemperature === other.maxTemperature &&
-            this.humidity === other.humidity &&
-            this.windSpeed === other.windSpeed &&
-            this.vaporAmount === other.vaporAmount &&
-            this.weatherCondition === other.weatherCondition &&
-            this.weatherDayTime === other.weatherDayTime;
+        return shallowEqualsOn(this, other, [
+            'temperature', 'minTemperature', 'maxTemperature', 'humidity',
+            'windSpeed', 'vaporAmount', 'weatherCondition', 'weatherDayTime'
+        ]);
     }
 }
 

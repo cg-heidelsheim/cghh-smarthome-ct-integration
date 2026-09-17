@@ -11,7 +11,7 @@ class HMIPWSMetaGroup extends HMIPWSGroup {
             metaGroupId: params.metaGroupId,
             label: params.label,
             lastStatusUpdate: params.lastStatusUpdate,
-            type: "META",
+            type: 'META',
             unreach: params.unreach,
             lowBat: params.lowBat,
             dutyCycle: params.dutyCycle,
@@ -50,4 +50,4 @@ class HMIPWSMetaGroup extends HMIPWSGroup {
     }
 }
 
-module.exports = {HMIPWSMetaGroup}
+module.exports = {HMIPWSMetaGroup};

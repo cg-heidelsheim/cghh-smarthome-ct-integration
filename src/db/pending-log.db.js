@@ -1,7 +1,7 @@
-const {JsonFileDB} = require("./json-file.db");
-const {PendingLog} = require("./model/pending-log");
+const {JsonFileDB} = require('./json-file.db');
+const {PendingLog} = require('./model/pending-log');
 
-const FILE_PATH = process.cwd() + "/persistent/pendingLogs.json";
+const FILE_PATH = process.cwd() + '/persistent/pendingLogs.json';
 
 class PendingLogDB extends JsonFileDB {
 

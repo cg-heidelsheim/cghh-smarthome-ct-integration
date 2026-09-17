@@ -20,4 +20,4 @@ class HMIPWSOrigin {
     }
 }
 
-module.exports = {HMIPWSOrigin}
+module.exports = {HMIPWSOrigin};

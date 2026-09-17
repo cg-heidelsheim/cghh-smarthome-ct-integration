@@ -1,7 +1,7 @@
-const {HMIPWSDeviceChangedEvent} = require("./hmip-ws-event-device-changed");
-const {HMIPWSGroupChangedEvent} = require("./hmip-ws-event-group-changed");
-const {HMIPWSHomeChangedEvent} = require("./hmip-ws-event-home-changed");
-const {Logger} = require("../../../../util/logger");
+const {HMIPWSDeviceChangedEvent} = require('./hmip-ws-event-device-changed');
+const {HMIPWSGroupChangedEvent} = require('./hmip-ws-event-group-changed');
+const {HMIPWSHomeChangedEvent} = require('./hmip-ws-event-home-changed');
+const {Logger} = require('../../../../util/logger');
 
 require('dotenv').config();
 
@@ -27,11 +27,11 @@ function createEventFromJson(json) {
         case 'HOME_CHANGED':
             return HMIPWSHomeChangedEvent.fromJson(json);
         default:
-            if (process.env.ENVIRONMENT === "production") {
+            if (process.env.ENVIRONMENT === 'production') {
                 Logger.warn({
-                    tags: {module: "WS", function: "FACTORY"},
-                    message: 'Unknown HMIPWSEvent.pushEventType: ' + type + " - " + JSON.stringify(json)
-                })
+                    tags: {module: 'WS', function: 'FACTORY'},
+                    message: 'Unknown HMIPWSEvent.pushEventType: ' + type + ' - ' + JSON.stringify(json)
+                });
             }
     }
 

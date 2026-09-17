@@ -17,9 +17,9 @@ class DummyModel {}
   beforeEach(() => {
     existsSyncSpy.mockClear();
     outputFileSyncMock.mockClear();
-    if (fse.ensureFile.mockClear) fse.ensureFile.mockClear();
-    if (fse.writeFile.mockClear) fse.writeFile.mockClear();
-    if (fse.readFile.mockClear) fse.readFile.mockClear();
+    if (fse.ensureFile.mockClear) {fse.ensureFile.mockClear();}
+    if (fse.writeFile.mockClear) {fse.writeFile.mockClear();}
+    if (fse.readFile.mockClear) {fse.readFile.mockClear();}
 
     db = new JsonFileDB(testFilePath);
     db.ModelClass = DummyModel;

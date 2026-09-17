@@ -19,4 +19,4 @@ class HMIPWSGroupChannelRef {
     }
 }
 
-module.exports = {HMIPWSGroupChannelRef}
+module.exports = {HMIPWSGroupChannelRef};

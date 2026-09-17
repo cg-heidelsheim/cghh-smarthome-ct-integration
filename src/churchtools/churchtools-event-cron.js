@@ -1,15 +1,15 @@
 const {RoomConfigDB} = require('../db/room-config.db');
-const {HomematicApi} = require("./../homematic/homematic-api");
-const {LockDB} = require("../db/lock.db");
-const {LockManager} = require("../churchtools/lock-manager");
-const {EventManager} = require("../churchtools/event-manager");
-const {GroupStateDB} = require("../db/group-state.db");
-const {Uptime} = require("../../uptime");
-const {Logger} = require("../util/logger");
+const {HomematicApi} = require('./../homematic/homematic-api');
+const {LockDB} = require('../db/lock.db');
+const {LockManager} = require('../churchtools/lock-manager');
+const {EventManager} = require('../churchtools/event-manager');
+const {GroupStateDB} = require('../db/group-state.db');
+const {Uptime} = require('../../uptime');
+const {Logger} = require('../util/logger');
 
 require('dotenv').config();
 const moment = require('moment-timezone');
-moment.tz.setDefault("Europe/Berlin");
+moment.tz.setDefault('Europe/Berlin');
 
 /** ------------------- */
 /** ------ ENTRY ------ */
@@ -62,8 +62,8 @@ async function resetEverythingIfNotLocked(earlierResetNotPossible) {
     for (const roomConfig of roomConfigs) {
         const hmip_groupId = roomConfig.homematicId;
 
-        let tags = {module: "CRON", function: "RESET", group: roomConfig.name.replace(/ /g, '_')};
-        Logger.debug({tags, message: `Handling room ` + JSON.stringify(roomConfig)});
+        const tags = {module: 'CRON', function: 'RESET', group: roomConfig.name.replace(/ /g, '_')};
+        Logger.debug({tags, message: 'Handling room ' + JSON.stringify(roomConfig)});
 
         // dont reset, if previous reset worked
         if (earlierResetNotPossibleBool && earlierResetNotPossible[hmip_groupId] === undefined) {
@@ -78,16 +78,16 @@ async function resetEverythingIfNotLocked(earlierResetNotPossible) {
             try {
                 const lockDB = new LockDB();
                 lockDB.getById(hmip_groupId);
-                Logger.warn({tags, message: `Room reset not possible - LOCKED`});
+                Logger.warn({tags, message: 'Room reset not possible - LOCKED'});
                 // element is locked - dont reset
             } catch (e) {
                 Logger.debug({tags, message: e});
                 await homematicAPI.setTemperatureForGroup(hmip_groupId, roomConfig.desiredTemperatureIdle);
-                Logger.debug({tags, message: `Room reset successful`});
+                Logger.debug({tags, message: 'Room reset successful'});
                 delete resetNotPossible[hmip_groupId];
             }
         } catch (e) {
-            Uptime.pingUptime("down", "Can not reset " + roomConfig.homematicName, "CRON");
+            Uptime.pingUptime('down', 'Can not reset ' + roomConfig.homematicName, 'CRON');
             Logger.error({tags, message: `Room reset not possible: ${e}`});
             resetNotPossible[hmip_groupId] = true;
         }

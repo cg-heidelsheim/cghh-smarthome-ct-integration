@@ -1,6 +1,5 @@
-const {DataSender} = require("./data-sender.base");
-const {ChanelState} = require("../db/model/channel-state");
-const {parseDeviceStateChannelIntoInfluxDataObject} = require("../util/homematic-influx.mapper");
+const {DataSender} = require('./data-sender.base');
+const {parseDeviceStateChannelIntoInfluxDataObject} = require('../util/homematic-influx.mapper');
 
 /**
  * Device data sender class.
@@ -9,18 +8,18 @@ const {parseDeviceStateChannelIntoInfluxDataObject} = require("../util/homematic
 class DeviceDataSender extends DataSender {
 
     constructor() {
-        super("devices");
+        super('devices');
     }
 
     /**
      * @param args
-     * @param {GroupState}      args[0] state
+     * @param {import('../db/model/device-state').DeviceState}      args[0] state
      * @param {number}          args[1] channelIndex
      */
     parseData(...args) {
         const [state, channelIndex] = args;
 
-        /** @type {ChanelState} */
+        /** @type {import('../db/model/channel-state').ChannelState} */
         const channel = state.channels.find(channel => channel.index === channelIndex);
         if (!channel) {
             throw new Error(`Channel with index ${channelIndex} not found in updatedState.`);

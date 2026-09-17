@@ -152,4 +152,4 @@ class HMIPWSHome {
     }
 }
 
-module.exports = {HMIPWSHome}
+module.exports = {HMIPWSHome};

@@ -1,7 +1,7 @@
-const {JsonFileDB} = require("./json-file.db");
-const {WeatherState} = require("./model/weather-state");
+const {JsonFileDB} = require('./json-file.db');
+const {WeatherState} = require('./model/weather-state');
 
-const FILE_PATH = process.cwd() + "/persistent/states/weather.json";
+const FILE_PATH = process.cwd() + '/persistent/states/weather.json';
 
 class WeatherStateDB extends JsonFileDB {
     constructor() {

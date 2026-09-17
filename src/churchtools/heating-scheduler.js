@@ -1,4 +1,4 @@
-const moment = require("moment");
+const moment = require('moment');
 
 class HeatingScheduler {
     /**
@@ -34,7 +34,7 @@ class HeatingScheduler {
         let minutesUntilHeatingStart = moment
             .duration(heatingStartTime.diff(now))
             .asMinutes();
-        minutesUntilHeatingStart = Math.round(minutesUntilHeatingStart)
+        minutesUntilHeatingStart = Math.round(minutesUntilHeatingStart);
 
         const shouldStartHeating = heatingStartTime.isSameOrBefore(now);
 
@@ -47,4 +47,4 @@ class HeatingScheduler {
     }
 }
 
-module.exports = {HeatingScheduler}
+module.exports = {HeatingScheduler};

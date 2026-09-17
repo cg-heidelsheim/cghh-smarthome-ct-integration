@@ -1,4 +1,4 @@
-const {WeatherState} = require("../../db/model/weather-state");
+const {WeatherState} = require('../../db/model/weather-state');
 
 class WeatherStateBuilder {
     /**
@@ -10,7 +10,7 @@ class WeatherStateBuilder {
     static fromHomematicHome(home) {
         const weatherState = new WeatherState();
 
-        weatherState.label = home.location.city.split(",")[0];
+        weatherState.label = home.location.city.split(',')[0];
         weatherState.temperature = home.weather.temperature;
         weatherState.minTemperature = home.weather.minTemperature;
         weatherState.maxTemperature = home.weather.maxTemperature;
@@ -32,7 +32,7 @@ class WeatherStateBuilder {
     static dummyState() {
         const weatherState = new WeatherState();
 
-        weatherState.label = "INIT";
+        weatherState.label = 'INIT';
 
         return weatherState;
     }

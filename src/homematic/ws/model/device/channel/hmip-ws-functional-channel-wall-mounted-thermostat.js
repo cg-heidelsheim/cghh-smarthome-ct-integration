@@ -33,6 +33,9 @@ class HMIPWSWallMountedThermostatChannel extends HMIPWSFunctionalChannel {
             deviceId,
             index,
             groupIndex,
+            label,
+            groups,
+            supportedOptionalFeatures,
             channelRole,
             temperatureOffset,
             setPointTemperature,
@@ -46,6 +49,9 @@ class HMIPWSWallMountedThermostatChannel extends HMIPWSFunctionalChannel {
             deviceId,
             index,
             groupIndex,
+            label,
+            groups,
+            supportedOptionalFeatures,
             channelRole,
             temperatureOffset,
             setPointTemperature,
@@ -57,4 +63,4 @@ class HMIPWSWallMountedThermostatChannel extends HMIPWSFunctionalChannel {
     }
 }
 
-module.exports = {HMIPWSWallMountedThermostatChannel}
+module.exports = {HMIPWSWallMountedThermostatChannel};
