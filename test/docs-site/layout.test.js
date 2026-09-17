@@ -72,6 +72,16 @@ describe('renderLayout', () => {
         expect(html).toContain('&lt;script&gt;');
     });
 
+    it('includes a mobile menu toggle button that expands the nav links', () => {
+        const html = renderLayout({
+            sections, activeSectionSlug: 'nutzer', activePageSlug: 'faq', title: 'FAQ', bodyHtml: '',
+        });
+
+        expect(html).toContain('id="nav-toggle"');
+        expect(html).toContain('id="nav-links"');
+        expect(html).toContain("classList.toggle('nav-expanded'");
+    });
+
     it('includes a theme toggle button and its script', () => {
         const html = renderLayout({
             sections, activeSectionSlug: 'nutzer', activePageSlug: 'faq', title: 'FAQ', bodyHtml: '',

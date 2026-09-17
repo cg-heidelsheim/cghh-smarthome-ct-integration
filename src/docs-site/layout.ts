@@ -86,13 +86,36 @@ const THEME_SCRIPT = `
   document.addEventListener('DOMContentLoaded', function () {
     updateButton();
     var btn = document.getElementById('theme-toggle');
-    if (!btn) {return;}
-    btn.addEventListener('click', function () {
-      var next = isDark() ? 'light' : 'dark';
-      root.setAttribute('data-theme', next);
-      try { localStorage.setItem(KEY, next); } catch (e) { /* ignore */ }
-      updateButton();
-    });
+    if (btn) {
+      btn.addEventListener('click', function () {
+        var next = isDark() ? 'light' : 'dark';
+        root.setAttribute('data-theme', next);
+        try { localStorage.setItem(KEY, next); } catch (e) { /* ignore */ }
+        updateButton();
+      });
+    }
+
+    var nav = document.getElementById('site-nav');
+    var navToggle = document.getElementById('nav-toggle');
+    if (nav && navToggle) {
+      var setExpanded = function (expanded) {
+        nav.classList.toggle('nav-expanded', expanded);
+        navToggle.setAttribute('aria-expanded', String(expanded));
+        navToggle.setAttribute('aria-label', expanded ? 'Menü schließen' : 'Menü öffnen');
+        navToggle.textContent = expanded ? '✕' : '☰';
+      };
+      navToggle.addEventListener('click', function () {
+        setExpanded(!nav.classList.contains('nav-expanded'));
+      });
+      // Navigating to a new page is a full page load anyway, but closing on click makes
+      // the tap feel like it did something immediately rather than waiting on navigation.
+      var navLinks = document.getElementById('nav-links');
+      if (navLinks) {
+        navLinks.addEventListener('click', function (event) {
+          if (event.target && event.target.tagName === 'A') {setExpanded(false);}
+        });
+      }
+    }
   });
 })();
 </script>`;
@@ -216,6 +239,12 @@ export const renderLayout = ({sections, activeSectionSlug, activePageSlug, title
     justify-content: space-between;
     gap: 10px;
   }
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+  }
   .nav-brand {
     display: block;
     font-weight: 700;
@@ -236,6 +265,19 @@ export const renderLayout = ({sections, activeSectionSlug, activePageSlug, title
     white-space: nowrap;
   }
   .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+  .nav-toggle {
+    display: none;
+    flex: 0 0 auto;
+    font: inherit;
+    font-size: 1rem;
+    line-height: 1;
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 7px 11px;
+    cursor: pointer;
+  }
   .nav-tagline {
     margin: 4px 0 20px;
     font-size: 0.78rem;
@@ -392,20 +434,31 @@ export const renderLayout = ({sections, activeSectionSlug, activePageSlug, title
       flex: 0 0 auto;
       border-right: none;
       border-bottom: 1px solid var(--border);
-      padding: 20px 20px 8px;
+      padding: 14px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
+    .nav-toggle { display: inline-flex; align-items: center; justify-content: center; }
+    .nav-links { display: none; }
+    nav.nav-expanded .nav-links { display: block; padding-top: 16px; }
     main { padding: 32px 20px 60px; }
   }
 </style>
 </head>
 <body>
-<nav>
+<nav id="site-nav">
   <div class="nav-top">
     <a class="nav-brand" href="/docs/nutzer">ChurchTools-Heizungsintegration</a>
-    <button type="button" id="theme-toggle" class="theme-toggle">🌙 Dunkel</button>
+    <div class="nav-actions">
+      <button type="button" id="theme-toggle" class="theme-toggle">🌙 Dunkel</button>
+      <button type="button" id="nav-toggle" class="nav-toggle" aria-expanded="false" aria-controls="nav-links" aria-label="Menü öffnen">☰</button>
+    </div>
   </div>
-  <p class="nav-tagline">Dokumentation</p>
-  ${renderNav(sections, activeSectionSlug, activePageSlug)}
+  <div class="nav-links" id="nav-links">
+    <p class="nav-tagline">Dokumentation</p>
+    ${renderNav(sections, activeSectionSlug, activePageSlug)}
+  </div>
 </nav>
 <main>
 <div class="page">
