@@ -4,7 +4,9 @@
   "description": "node.js port of the 3rd party Google Assistant SDK",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
+    "build": "tsc -p tsconfig.build.json",
+    "prestart": "npm run build",
+    "start": "node dist/index.js",
     "test": "jest",
     "test:ci": "jest --maxWorkers=1 --detectOpenHandles",
     "test:coverage": "jest --coverage",

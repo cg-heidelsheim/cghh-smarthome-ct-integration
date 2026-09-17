@@ -12,6 +12,10 @@ COPY . ./
 # Run tests, fail build if tests fail
 RUN npm run test:ci
 
+# Compile TypeScript to dist/ - the production image runs the compiled output directly,
+# it does not have (or need) the TypeScript toolchain.
+RUN npm run build
+
 # Stage 2 - production image
 FROM node:20-alpine
 
@@ -23,4 +27,4 @@ COPY --from=builder /usr/src/app ./
 
 EXPOSE 8080
 
-CMD ["npm", "run-script", "start"]
+CMD ["node", "dist/index.js"]

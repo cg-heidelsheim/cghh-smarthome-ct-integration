@@ -13,15 +13,7 @@
     "resolveJsonModule": true,
     "noEmit": true,
     "outDir": "dist",
-    "rootDir": ".",
-    "baseUrl": ".",
-    "paths": {
-      "@util/*": ["src/util/*"],
-      "@db/*": ["src/db/*"],
-      "@churchtools/*": ["src/churchtools/*"],
-      "@homematic/*": ["src/homematic/*"],
-      "@timeseries/*": ["src/timeseries/*"]
-    }
+    "rootDir": "."
   },
   "include": ["src/**/*", "test/**/*", "index.js", "uptime.js"],
   "exclude": ["node_modules", "dist", "coverage", "reports", "persistent"]
