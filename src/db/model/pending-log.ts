@@ -16,20 +16,11 @@
  *   "eventName": "Gebetskreis",
  * }
  */
+export class PendingLog {
 
-class PendingLog {
+    /** Unique identifier of the HMIP group */
+    id!: string;
 
-    /**
-     * Unique identifier of the HMIP group
-     * @type {string}
-     */
-    id;
-
-    /**
-     * Name of the event for which the action was made
-     * @type {string}
-     */
-    eventName;
+    /** Name of the event for which the action was made */
+    eventName!: string;
 }
-
-module.exports = {PendingLog};

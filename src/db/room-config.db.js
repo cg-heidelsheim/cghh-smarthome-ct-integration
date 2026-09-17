@@ -1,4 +1,4 @@
-const {JsonFileDB} = require('./json-file.db.js');
+const {JsonFileDB} = require('./json-file.db');
 const {RoomConfig} = require('./model/room-config');
 
 const FILE_PATH = process.cwd() + '/config/room.config.json';

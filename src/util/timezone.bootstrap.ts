@@ -1,4 +1,4 @@
-const moment = require('moment-timezone');
+import moment from 'moment-timezone';
 
 // `moment-timezone` is a process-wide singleton (Node caches the module), so setting the
 // default here affects every `moment()` call in the process regardless of which file
@@ -8,4 +8,4 @@ const moment = require('moment-timezone');
 // default itself again.
 moment.tz.setDefault('Europe/Berlin');
 
-module.exports = moment;
+export = moment;

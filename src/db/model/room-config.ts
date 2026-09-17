@@ -1,23 +1,23 @@
-class RoomConfig {
+import type {Event} from '../../churchtools/model/event';
+import type {GroupState} from './group-state';
+import type {EventRoomConfig} from './event-room-config.model';
 
-    id; // CT ID
-    name;
-    homematicName;
-    homematicId; // HMIP ID
-    desiredTemperature;
-    desiredTemperatureIdle;
-    heatingRate;
-    spinUpTime;
+export class RoomConfig {
+
+    id!: string; // CT ID
+    name!: string;
+    homematicName!: string;
+    homematicId!: string; // HMIP ID
+    desiredTemperature!: number;
+    desiredTemperatureIdle!: number;
+    heatingRate!: number;
+    spinUpTime!: number;
 
     /**
      * Calculate the approx. minutes to heat the room.
      * Calculated by taking the current temperature and room heating rate into account.
-     *
-     * @param {import('../../churchtools/model/event').Event} event
-     * @param {GroupState} groupState
-     * @param {import('./event-room-config.model').EventRoomConfig[]} eventRoomConfigs
      */
-    getMinutesNeededToReachTemperatureForEvent(event, groupState, eventRoomConfigs) {
+    getMinutesNeededToReachTemperatureForEvent(event: Event, groupState: GroupState, eventRoomConfigs: EventRoomConfig[]): number {
         const desiredTemperature = this.getDesiredRoomTemperatureForEvent(event, eventRoomConfigs);
         const currentRoomTemperature = groupState.temperature;
 
@@ -37,14 +37,12 @@ class RoomConfig {
      * Some events require different temperatures than the default desired temperature for the particular room.
      *
      * Pure: takes the already-fetched event-room-config list rather than reading it from
-     * disk itself, so this model layer performs no I/O of its own — the caller (typically
+     * disk itself, so this model layer performs no I/O of its own - the caller (typically
      * EventManager, which already owns an EventRoomConfigDB) fetches it once and passes it in.
      *
-     * @param {import('../../churchtools/model/event').Event} event
-     * @param {import('./event-room-config.model').EventRoomConfig[]} eventRoomConfigs
-     * @return {number} Temperature in °C
+     * @returns Temperature in °C
      */
-    getDesiredRoomTemperatureForEvent(event, eventRoomConfigs) {
+    getDesiredRoomTemperatureForEvent(event: Event, eventRoomConfigs: EventRoomConfig[]): number {
         let temperature = this.desiredTemperature;
 
         // Case-insensitive partial match
@@ -57,5 +55,3 @@ class RoomConfig {
         return temperature;
     }
 }
-
-module.exports = {RoomConfig};

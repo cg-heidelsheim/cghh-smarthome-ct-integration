@@ -1,5 +1,5 @@
-const {JsonFileDB} = require('./json-file.db.js');
-const {EventRoomConfig} = require('../db/model/event-room-config.model.js');
+const {JsonFileDB} = require('./json-file.db');
+const {EventRoomConfig} = require('../db/model/event-room-config.model');
 
 const FILE_PATH = process.cwd() + '/config/event-room-temperature.config.json';
 
