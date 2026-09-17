@@ -4,7 +4,13 @@ export interface DocPage {
     /** URL segment within the section; '' is the section's own index page. */
     slug: string;
     title: string;
-    file: string;
+    /**
+     * Source Markdown file - absent for a dynamically-rendered page (currently just
+     * "Zieltemperaturen", built live from config/*.json on every request - see
+     * docs-server.ts's dynamic-route handling and temperatures.ts). Such a page still needs a
+     * manifest entry purely so it shows up in the nav with the right title/active-state.
+     */
+    file?: string;
 }
 
 export interface DocSection {
@@ -27,7 +33,7 @@ export const sections: DocSection[] = [
         pages: [
             {slug: '', title: 'Übersicht', file: path.join(ROOT, 'docs/site/nutzer/index.md')},
             {slug: 'heizungslogik', title: 'Heizungslogik', file: path.join(ROOT, 'docs/site/nutzer/heizungslogik.md')},
-            {slug: 'grafana', title: 'Grafana-Dashboards', file: path.join(ROOT, 'docs/site/nutzer/grafana.md')},
+            {slug: 'zieltemperaturen', title: 'Zieltemperaturen'}, // dynamic - see docs-server.ts
             {slug: 'faq', title: 'FAQ', file: path.join(ROOT, 'docs/site/nutzer/faq.md')},
         ],
     },
@@ -42,13 +48,11 @@ export const sections: DocSection[] = [
         ],
     },
     {
-        slug: 'referenz',
-        title: 'Referenz (EN)',
+        slug: 'hausverwaltung',
+        title: 'Für die Hausverwaltung',
         pages: [
-            {slug: 'readme', title: 'README', file: path.join(ROOT, 'README.md')},
-            {slug: 'agents', title: 'AGENTS', file: path.join(ROOT, 'AGENTS.md')},
-            {slug: 'architecture', title: 'Architecture', file: path.join(ROOT, 'docs/architecture.md')},
-            {slug: 'testing-guide', title: 'Testing guide', file: path.join(ROOT, 'docs/testing-guide.md')},
+            {slug: '', title: 'Übersicht', file: path.join(ROOT, 'docs/site/hausverwaltung/index.md')},
+            {slug: 'grafana', title: 'Grafana-Dashboards', file: path.join(ROOT, 'docs/site/hausverwaltung/grafana.md')},
         ],
     },
 ];

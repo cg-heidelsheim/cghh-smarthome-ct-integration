@@ -26,4 +26,5 @@ nicht in der produktiven InfluxDB-Organisation und beeinflussen die echten Graph
 Zusätzlich zu den Sensordaten protokolliert das System auch, **was** es getan hat und **warum**
 (z. B. "Heizung gestartet für Raum X wegen Termin Y", "manuelle Übersteuerung erkannt"). Diese
 Logs sind im **Log-Dashboard** in Grafana einsehbar und helfen bei der Fehlersuche, wenn ein Raum
-nicht wie erwartet geheizt hat.
+nicht wie erwartet geheizt hat — zum Beispiel wenn ein Nutzer meldet, dass sein Raum nicht warm
+wurde (siehe [FAQ](/docs/nutzer/faq)).

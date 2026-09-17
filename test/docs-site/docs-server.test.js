@@ -1,12 +1,14 @@
 const http = require('http');
+const fs = require('fs');
+const path = require('path');
 
 const {startDocsServer} = require('../../src/docs-site/docs-server');
 
-const request = (port, path) => new Promise((resolve, reject) => {
-    http.get({port, path}, (res) => {
-        let body = '';
-        res.on('data', (chunk) => {body += chunk;});
-        res.on('end', () => resolve({statusCode: res.statusCode, headers: res.headers, body}));
+const request = (port, reqPath) => new Promise((resolve, reject) => {
+    http.get({port, path: reqPath}, (res) => {
+        const chunks = [];
+        res.on('data', (chunk) => {chunks.push(chunk);});
+        res.on('end', () => resolve({statusCode: res.statusCode, headers: res.headers, body: Buffer.concat(chunks)}));
     }).on('error', reject);
 });
 
@@ -45,35 +47,62 @@ describe('docs server', () => {
 
         expect(res.statusCode).toBe(200);
         expect(res.headers['content-type']).toContain('text/html');
-        expect(res.body).toContain('Heizungslogik');
-        expect(res.body).toContain('benötigte Zeit');
+        expect(res.body.toString()).toContain('Heizungslogik');
+        expect(res.body.toString()).toContain('benötigte Zeit');
     });
 
     it('serves the rendered German developer overview page', async () => {
         const res = await request(port, '/docs/technik/komponenten');
 
         expect(res.statusCode).toBe(200);
-        expect(res.body).toContain('Komponenten');
+        expect(res.body.toString()).toContain('Komponenten');
     });
 
-    it('serves the English reference pages (README etc.) unmodified in content, wrapped in the same layout', async () => {
-        const res = await request(port, '/docs/referenz/readme');
+    it('serves the Hausverwaltung section, kept separate from the general Nutzer docs', async () => {
+        const res = await request(port, '/docs/hausverwaltung/grafana');
 
         expect(res.statusCode).toBe(200);
-        expect(res.body).toContain('ChurchTools Integration for Homematic IP');
+        expect(res.body.toString()).toContain('Grafana-Dashboards');
+    });
+
+    it('no longer serves an internal mirror of README/AGENTS/architecture (removed - external GitHub links only)', async () => {
+        const res = await request(port, '/docs/referenz/readme');
+
+        expect(res.statusCode).toBe(404);
+    });
+
+    it('renders the Zieltemperaturen page live from the real config files on every request', async () => {
+        const res = await request(port, '/docs/nutzer/zieltemperaturen');
+
+        expect(res.statusCode).toBe(200);
+        const body = res.body.toString();
+        expect(body).toContain('Zieltemperaturen');
+        // Sanity-checks against the actual (committed) config/room.config.json content, proving
+        // this is read live rather than pre-baked into a static page.
+        expect(body).toContain('Godi-Saal');
+        expect(body).toContain('Gottesdienst');
+    });
+
+    it('serves the favicon as a real image, not wrapped in the HTML layout', async () => {
+        const res = await request(port, '/docs/assets/favicon.png');
+
+        expect(res.statusCode).toBe(200);
+        expect(res.headers['content-type']).toBe('image/png');
+        const expected = fs.readFileSync(path.join(process.cwd(), 'docs/site/assets/favicon.png'));
+        expect(res.body.equals(expected)).toBe(true);
     });
 
     it('tolerates a trailing slash on a page route', async () => {
         const res = await request(port, '/docs/nutzer/');
 
         expect(res.statusCode).toBe(200);
-        expect(res.body).toContain('Willkommen');
+        expect(res.body.toString()).toContain('Willkommen');
     });
 
     it('returns a 404 page for an unknown path', async () => {
         const res = await request(port, '/does-not-exist');
 
         expect(res.statusCode).toBe(404);
-        expect(res.body).toContain('Seite nicht gefunden');
+        expect(res.body.toString()).toContain('Seite nicht gefunden');
     });
 });

@@ -58,19 +58,34 @@ index.ts (CronJob tick)
                 LockDB.save(new Lock for this room)
 ```
 
-`HeatingScheduler.calculateHeatingSchedule` is pure: `requiredTime = spinUpTime + buffer +
-(degreeDifference * minutesPerDegree)`; heating starts once `requiredTime` is less than the time
-remaining until the event begins. See `RoomConfig.getMinutesNeededToReachTemperatureForEvent` in
-`src/db/model/room-config.ts` for the actual calculation, and
-`RoomConfig.getDesiredRoomTemperatureForEvent` for how `event-room-temperature.config.json`
-overrides the default target temperature for specific events (case-insensitive substring match
-on the event name).
+`HeatingScheduler.calculateHeatingSchedule` is pure: `requiredTime = spinUpTime +
+(degreeDifference * minutesPerDegree) + booking.minPre` (the last term is an optional per-booking
+lead time set on the ChurchTools booking itself, not a per-room constant); heating starts once
+`requiredTime` is less than the time remaining until the event begins. See
+`RoomConfig.getMinutesNeededToReachTemperatureForEvent` in `src/db/model/room-config.ts` for the
+room-level part of the calculation, `HeatingScheduler.calculateHeatingSchedule` for where
+`minPre` is added, and `RoomConfig.getDesiredRoomTemperatureForEvent` for how
+`event-room-temperature.config.json` overrides the default target temperature for specific events
+(case-insensitive substring match on the event name).
 
-At `HH:00`, `execute()` is preceded by up to 3 attempts of `resetEverythingIfNotLocked`: for
+At exactly midnight (`moment().hours() === 0 && moment().minutes() === 0`, i.e. once a day, not
+once an hour), `execute()` is preceded by up to 3 attempts of `resetEverythingIfNotLocked`: for
 every configured room with no active lock, reset to `desiredTemperatureIdle`. Retries (refreshing
 `HOMEMATIC_API_URL`/`HOMEMATIC_WS_URL` via `EnvironmentManager.updateServerVariables()` between
 attempts) exist because those URLs can change and need re-resolving from the Homematic Lookup
 endpoint — not related to the room-locked check.
+
+`GroupManager.heatForEvent` (`src/homematic/group/group-manager.ts`) is where a manual override is
+actually detected, by comparing the room's last-known set-temperature against its own
+`desiredTemperatureIdle` — if they differ, heating for that room is skipped (`throw new
+Error('Blocked')`, caught in `EventManager.#executeHeatingSchedule`) rather than started. This
+only guards *starting* a new heating cycle: `GroupManager.setToIdle` (called when a lock expires,
+i.e. at a booking's end, from `LockManager`) has no such check and unconditionally resets to idle,
+so a manual change made during an already-locked event does not survive past that event's end.
+
+See also: [reverse-engineered `set_point_temperature`
+docs](https://homematicip-rest-api.readthedocs.io/en/latest/_modules/homematicip/group.html#HeatingGroup.set_point_temperature)
+for the underlying Homematic IP REST call `homematic-api.ts` wraps.
 
 ## Flow 2: WS-driven state sync
 

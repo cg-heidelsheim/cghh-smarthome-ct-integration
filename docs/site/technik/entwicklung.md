@@ -23,6 +23,9 @@ Token nutzt. Deshalb gibt es mehrere Tokens.
 
 ### `.env` befüllen
 
+Im Repository liegt eine `.env-sample` — die kopieren (`cp .env-sample .env`) und dann die eigenen
+Werte eintragen:
+
 - Das eben erzeugte HomematicIP-Token eintragen.
 - Einen **eindeutigen Wert** für `ENVIRONMENT` setzen (z. B. den eigenen Namen), damit die eigenen
   Testdaten in InfluxDB/Grafana später klar von anderen unterscheidbar sind und nicht in den

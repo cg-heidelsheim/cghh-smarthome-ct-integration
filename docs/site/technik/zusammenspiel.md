@@ -15,16 +15,20 @@ Kurz zusammengefasst, wie ein Commit am Ende zu einer echten Temperaturänderung
 7. Alle Daten — sowohl aus der Berechnung als auch aus dem WebSocket — werden dauerhaft in
    **InfluxDB** gespeichert.
 8. **Grafana** greift auf InfluxDB zu und stellt die Daten als Graphen dar (siehe
-   [Grafana-Dashboards](/docs/nutzer/grafana)).
+   [Grafana-Dashboards](/docs/hausverwaltung/grafana)).
 
-```
-GitHub Commit
-   └─▶ Jenkins Pipeline (Build + Quality Gates)
-          └─▶ Docker-Deployment auf dem Server
-                 ├─▶ Cron: ChurchTools-Buchungen lesen ─▶ Heizplan berechnen ─▶ HomematicIP setzen
-                 └─▶ WebSocket: HomematicIP-Updates (Gruppe/Gerät/Wetter)
-                         └─▶ InfluxDB ─▶ Grafana
-```
+<div class="mermaid">
+flowchart TD
+    A["GitHub Commit"] --> B["Jenkins Pipeline<br/>Build + Quality Gates"]
+    B --> C["Docker-Deployment<br/>auf dem Server"]
+    C --> D["Cron: ChurchTools-<br/>Buchungen lesen"]
+    D --> E["Heizplan berechnen"]
+    E --> F["HomematicIP:<br/>Temperatur setzen"]
+    C --> G["WebSocket: HomematicIP-Updates<br/>Gruppe / Gerät / Wetter"]
+    F --> H["InfluxDB"]
+    G --> H
+    H --> I["Grafana"]
+</div>
 
 Für die genaue Modul-Architektur (welche Datei was macht) siehe das englische
 [docs/architecture.md](https://github.com/cg-heidelsheim/cghh-smarthome-ct-integration/blob/master/docs/architecture.md)

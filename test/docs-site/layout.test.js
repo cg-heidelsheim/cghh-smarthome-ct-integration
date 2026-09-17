@@ -71,4 +71,25 @@ describe('renderLayout', () => {
         expect(html).not.toContain('<script>alert(1)</script>');
         expect(html).toContain('&lt;script&gt;');
     });
+
+    it('includes a theme toggle button and its script', () => {
+        const html = renderLayout({
+            sections, activeSectionSlug: 'nutzer', activePageSlug: 'faq', title: 'FAQ', bodyHtml: '',
+        });
+
+        expect(html).toContain('id="theme-toggle"');
+        expect(html).toContain('localStorage.setItem(KEY, next)');
+    });
+
+    it('only pulls in mermaid when the page body actually contains a diagram', () => {
+        const withDiagram = renderLayout({
+            sections, activeSectionSlug: 'technik', activePageSlug: '', title: 'X', bodyHtml: '<div class="mermaid">flowchart TD</div>',
+        });
+        const withoutDiagram = renderLayout({
+            sections, activeSectionSlug: 'technik', activePageSlug: '', title: 'X', bodyHtml: '<p>no diagram here</p>',
+        });
+
+        expect(withDiagram).toContain('mermaid@10');
+        expect(withoutDiagram).not.toContain('mermaid@10');
+    });
 });

@@ -8,7 +8,7 @@ interface LayoutOptions {
     bodyHtml: string;
 }
 
-const escapeHtml = (value: string): string =>
+export const escapeHtml = (value: string): string =>
     value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 const renderNav = (sections: DocSection[], activeSectionSlug: string, activePageSlug: string): string =>
@@ -41,6 +41,62 @@ const renderBreadcrumb = (sections: DocSection[], activeSectionSlug: string, act
     return `<p class="breadcrumb">${crumbs.join(' <span aria-hidden="true">&rsaquo;</span> ')}</p>`;
 };
 
+// mermaid is only pulled in (from a CDN, at ~500KB) on pages that actually contain a diagram -
+// see docs/site/technik/zusammenspiel.md for the one page that currently uses it.
+const MERMAID_MARKER = 'class="mermaid"';
+
+const renderMermaidSupport = (bodyHtml: string): string => {
+    if (!bodyHtml.includes(MERMAID_MARKER)) {return '';}
+
+    return `
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  mermaid.initialize({startOnLoad: true, theme: 'neutral', securityLevel: 'strict'});
+</script>`;
+};
+
+const THEME_SCRIPT = `
+<script>
+(function () {
+  var KEY = 'docs-theme';
+  var root = document.documentElement;
+
+  function prefersDark() {
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  }
+
+  function isDark() {
+    var current = root.getAttribute('data-theme');
+    return current === 'dark' || (!current && prefersDark());
+  }
+
+  function updateButton() {
+    var btn = document.getElementById('theme-toggle');
+    if (!btn) {return;}
+    var dark = isDark();
+    btn.textContent = dark ? '☀️ Hell' : '🌙 Dunkel';
+    btn.setAttribute('aria-label', dark ? 'Zu hellem Modus wechseln' : 'Zu dunklem Modus wechseln');
+  }
+
+  try {
+    var saved = localStorage.getItem(KEY);
+    if (saved === 'dark' || saved === 'light') {root.setAttribute('data-theme', saved);}
+  } catch (e) { /* localStorage unavailable (private mode etc.) - fall back to system theme */ }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    updateButton();
+    var btn = document.getElementById('theme-toggle');
+    if (!btn) {return;}
+    btn.addEventListener('click', function () {
+      var next = isDark() ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      try { localStorage.setItem(KEY, next); } catch (e) { /* ignore */ }
+      updateButton();
+    });
+  });
+})();
+</script>`;
+
 /** Pure HTML-page shell (nav + content). No I/O, no Markdown parsing - see markdown-renderer.ts. */
 export const renderLayout = ({sections, activeSectionSlug, activePageSlug, title, bodyHtml}: LayoutOptions): string => `<!DOCTYPE html>
 <html lang="de">
@@ -48,9 +104,10 @@ export const renderLayout = ({sections, activeSectionSlug, activePageSlug, title
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${escapeHtml(title)} - ChurchTools-Heizungsintegration</title>
+<link rel="icon" type="image/png" href="/docs/assets/favicon.png">
 <style>
   :root {
-    color-scheme: light dark;
+    color-scheme: light;
     --bg: #fbfbfa;
     --bg-nav: #f4f3f0;
     --bg-code: #f1efea;
@@ -63,13 +120,26 @@ export const renderLayout = ({sections, activeSectionSlug, activePageSlug, title
     --accent-soft: #f3e3d6;
     --link: #9a4315;
     --shadow: 0 1px 2px rgba(35, 32, 27, 0.04);
+    --callout-note: #2563a8;
+    --callout-note-bg: #e5eefb;
+    --callout-tip: #1a7f4b;
+    --callout-tip-bg: #e3f5eb;
+    --callout-important: #7c3aed;
+    --callout-important-bg: #efe6fd;
+    --callout-warning: #b5541f;
+    --callout-warning-bg: #fbe9dc;
+    --callout-caution: #b3261e;
+    --callout-caution-bg: #fbe2e0;
+    --callout-kontakt: #0f766e;
+    --callout-kontakt-bg: #dff3f1;
   }
   @media (prefers-color-scheme: dark) {
-    :root {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
       --bg: #1b1917;
       --bg-nav: #16140f;
       --bg-code: #292623;
-      --bg-code-block: #16140f;
+      --bg-code-block: #0f0d0b;
       --fg-code-block: #e7e5e4;
       --border: #34302a;
       --text: #ede9e3;
@@ -78,7 +148,46 @@ export const renderLayout = ({sections, activeSectionSlug, activePageSlug, title
       --accent-soft: #3a2a1c;
       --link: #f0a877;
       --shadow: none;
+      --callout-note: #7fb2e8;
+      --callout-note-bg: #1c2a38;
+      --callout-tip: #7cd6a4;
+      --callout-tip-bg: #17281f;
+      --callout-important: #c3a3fb;
+      --callout-important-bg: #271f38;
+      --callout-warning: #f0a877;
+      --callout-warning-bg: #332318;
+      --callout-caution: #f19a94;
+      --callout-caution-bg: #332019;
+      --callout-kontakt: #6fd8cd;
+      --callout-kontakt-bg: #16302c;
     }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #1b1917;
+    --bg-nav: #16140f;
+    --bg-code: #292623;
+    --bg-code-block: #0f0d0b;
+    --fg-code-block: #e7e5e4;
+    --border: #34302a;
+    --text: #ede9e3;
+    --text-muted: #a89e93;
+    --accent: #e8935c;
+    --accent-soft: #3a2a1c;
+    --link: #f0a877;
+    --shadow: none;
+    --callout-note: #7fb2e8;
+    --callout-note-bg: #1c2a38;
+    --callout-tip: #7cd6a4;
+    --callout-tip-bg: #17281f;
+    --callout-important: #c3a3fb;
+    --callout-important-bg: #271f38;
+    --callout-warning: #f0a877;
+    --callout-warning-bg: #332318;
+    --callout-caution: #f19a94;
+    --callout-caution-bg: #332019;
+    --callout-kontakt: #6fd8cd;
+    --callout-kontakt-bg: #16302c;
   }
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
@@ -97,19 +206,38 @@ export const renderLayout = ({sections, activeSectionSlug, activePageSlug, title
     flex: 0 0 272px;
     background: var(--bg-nav);
     border-right: 1px solid var(--border);
-    padding: 28px 20px 40px;
+    padding: 24px 20px 40px;
     overflow-y: auto;
   }
   nav a { color: var(--text); text-decoration: none; }
+  .nav-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+  }
   .nav-brand {
     display: block;
     font-weight: 700;
     font-size: 0.95rem;
     letter-spacing: -0.01em;
-    margin: 0 0 4px;
+    line-height: 1.3;
   }
+  .theme-toggle {
+    flex: 0 0 auto;
+    font: inherit;
+    font-size: 0.78rem;
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 5px 10px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
   .nav-tagline {
-    margin: 0 0 24px;
+    margin: 4px 0 20px;
     font-size: 0.78rem;
     color: var(--text-muted);
   }
@@ -119,7 +247,7 @@ export const renderLayout = ({sections, activeSectionSlug, activePageSlug, title
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--text-muted);
-    margin: 24px 0 6px;
+    margin: 22px 0 6px;
   }
   .nav-section:first-of-type h2 { margin-top: 0; }
   .nav-section ul { list-style: none; margin: 0; padding: 0; }
@@ -130,6 +258,7 @@ export const renderLayout = ({sections, activeSectionSlug, activePageSlug, title
     border-radius: 7px;
     font-size: 0.92rem;
     border-left: 3px solid transparent;
+    transition: background-color 0.1s ease;
   }
   .nav-section li a:hover { background: var(--bg-code); }
   .nav-section li a.active {
@@ -144,7 +273,7 @@ export const renderLayout = ({sections, activeSectionSlug, activePageSlug, title
     padding: 44px clamp(24px, 6vw, 88px) 80px;
   }
   .page {
-    max-width: 720px;
+    max-width: 740px;
   }
   .breadcrumb {
     margin: 0 0 20px;
@@ -168,6 +297,15 @@ export const renderLayout = ({sections, activeSectionSlug, activePageSlug, title
     margin: 1.8em 0 0.6em;
   }
   .page h2, .page h3 { scroll-margin-top: 20px; }
+  .page h2 .heading-anchor, .page h3 .heading-anchor {
+    opacity: 0;
+    margin-left: 6px;
+    font-weight: 400;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.85em;
+  }
+  .page h2:hover .heading-anchor, .page h3:hover .heading-anchor { opacity: 1; }
   .page p, .page ul, .page ol { margin: 0 0 1.1em; }
   .page li { margin-bottom: 0.35em; }
   .page a { text-underline-offset: 2px; }
@@ -220,6 +358,34 @@ export const renderLayout = ({sections, activeSectionSlug, activePageSlug, title
   }
   .page tr:last-child td { border-bottom: none; }
   .page hr { border: none; border-top: 1px solid var(--border); margin: 2.4em 0; }
+  .page .mermaid {
+    margin: 1.4em 0;
+    padding: 12px;
+    background: var(--bg-code);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    text-align: center;
+  }
+  .page .mermaid svg { max-width: 100%; height: auto; }
+  .callout {
+    margin: 1.4em 0;
+    padding: 14px 18px;
+    border-radius: 10px;
+    border-left: 4px solid var(--callout-note);
+    background: var(--callout-note-bg);
+  }
+  .callout::before {
+    content: attr(data-callout-label);
+    display: block;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .callout > :last-child { margin-bottom: 0; }
+  .callout-tip { border-left-color: var(--callout-tip); background: var(--callout-tip-bg); }
+  .callout-important { border-left-color: var(--callout-important); background: var(--callout-important-bg); }
+  .callout-warning { border-left-color: var(--callout-warning); background: var(--callout-warning-bg); }
+  .callout-caution { border-left-color: var(--callout-caution); background: var(--callout-caution-bg); }
+  .callout-kontakt { border-left-color: var(--callout-kontakt); background: var(--callout-kontakt-bg); }
   @media (max-width: 760px) {
     body { flex-direction: column; }
     nav {
@@ -234,7 +400,10 @@ export const renderLayout = ({sections, activeSectionSlug, activePageSlug, title
 </head>
 <body>
 <nav>
-  <span class="nav-brand">ChurchTools-Heizungsintegration</span>
+  <div class="nav-top">
+    <a class="nav-brand" href="/docs/nutzer">ChurchTools-Heizungsintegration</a>
+    <button type="button" id="theme-toggle" class="theme-toggle">🌙 Dunkel</button>
+  </div>
   <p class="nav-tagline">Dokumentation</p>
   ${renderNav(sections, activeSectionSlug, activePageSlug)}
 </nav>
@@ -244,6 +413,8 @@ ${renderBreadcrumb(sections, activeSectionSlug, activePageSlug)}
 ${bodyHtml}
 </div>
 </main>
+${renderMermaidSupport(bodyHtml)}
+${THEME_SCRIPT}
 </body>
 </html>
 `;

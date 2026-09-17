@@ -15,26 +15,31 @@ Der Reihe nach durchgehen:
 4. **War genug Zeit zum Vorheizen?** Bei sehr kurzfristig angelegten oder verschobenen Terminen
    reicht die verbleibende Zeit unter Umständen nicht mehr aus, um die Zieltemperatur pünktlich zu
    erreichen — siehe [Heizungslogik](/docs/nutzer/heizungslogik).
-5. **Wurde die Temperatur manuell verändert?** Eine manuelle Änderung am Thermostat wird als
-   bewusste Entscheidung respektiert und nicht automatisch überschrieben.
+5. **Wurde die Temperatur manuell verändert und nicht wieder zurückgestellt?** Solange die
+   Temperatur eines Raumes von seiner Grundtemperatur abweicht, geht das System von einer
+   bewussten manuellen Einstellung aus und heizt für kommende Termine in diesem Raum nicht
+   automatisch vor — siehe [Heizungslogik](/docs/nutzer/heizungslogik).
 
-Falls all das passt und der Raum trotzdem nicht geheizt hat, im
-[Log-Dashboard](/docs/nutzer/grafana) nachsehen oder die Betreuung des Systems kontaktieren.
+Falls all das passt und der Raum trotzdem nicht geheizt hat, wende dich an die
+[Hausverwaltung](/docs/hausverwaltung) (Zugriff auf das Log-Dashboard) oder die Betreuung des
+Systems.
 
 ## Der Raum ist zu kalt / zu warm eingestellt
 
-Die Zieltemperatur für einen Raum bzw. für einzelne Termine ist konfigurierbar. Wer eine andere
+Die Zieltemperatur für einen Raum bzw. für einzelne Termine ist konfigurierbar — die aktuell
+hinterlegten Werte stehen unter [Zieltemperaturen](/docs/nutzer/zieltemperaturen). Wer eine andere
 Standardtemperatur für einen Raum oder eine abweichende Temperatur für bestimmte Termine möchte,
 wendet sich an die Betreuung des Systems.
 
 ## Ich habe die Temperatur manuell geändert, jetzt heizt das System gar nicht mehr
 
 Das ist gewolltes Verhalten: Eine manuelle Änderung wird als bewusste Entscheidung interpretiert
-und nicht automatisch rückgängig gemacht. Spätestens beim nächsten planmäßigen Reset (stündlich,
-sofern der Raum gerade keine aktive Buchung hat) wird der Raum wieder auf die Grundtemperatur
-zurückgesetzt.
+und blockiert das automatische Vorheizen für kommende Termine in diesem Raum, bis die Temperatur
+wieder der Grundtemperatur entspricht. Am einfachsten: die Temperatur selbst wieder auf die
+Grundtemperatur zurückstellen. Wird das vergessen, greift spätestens die tägliche
+Sicherheitsprüfung um Mitternacht — siehe [Heizungslogik](/docs/nutzer/heizungslogik#der-naechtliche-reset).
 
 ## Wo sehe ich, was das System gerade macht?
 
-Siehe [Grafana-Dashboards](/docs/nutzer/grafana) — dort gibt es sowohl die Sensordaten je Raum als
-auch ein Log-Dashboard mit den ausgeführten Aktionen.
+Das ist ein Thema für die [Hausverwaltung](/docs/hausverwaltung): Dort gibt es sowohl die
+Sensordaten je Raum als auch ein Log-Dashboard mit den ausgeführten Aktionen in Grafana.

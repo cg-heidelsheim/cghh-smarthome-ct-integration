@@ -1,12 +1,15 @@
 import * as http from 'http';
 import * as fs from 'fs';
+import * as path from 'path';
 
 import {routeFor, sections} from './content-manifest';
 import {renderMarkdown} from './markdown-renderer';
 import {renderLayout} from './layout';
+import {renderTemperaturesBody} from './temperatures';
 import {Logger} from '../util/logger';
 
 const DEFAULT_REDIRECT_TARGET = '/docs/nutzer';
+const FAVICON_PATH = '/docs/assets/favicon.png';
 
 const normalizePath = (url: string | undefined): string => {
     const withoutQuery = (url ?? '/').split('?')[0].split('#')[0];
@@ -19,6 +22,8 @@ const buildPages = (): Map<string, string> => {
 
     for (const section of sections) {
         for (const page of section.pages) {
+            if (!page.file) {continue;} // dynamic page - rendered per-request, see buildDynamicRoutes()
+
             const markdown = fs.readFileSync(page.file, 'utf-8');
             const html = renderLayout({
                 sections,
@@ -34,6 +39,32 @@ const buildPages = (): Map<string, string> => {
     return pages;
 };
 
+/**
+ * Routes rendered fresh on every request rather than once at startup - currently just
+ * "Zieltemperaturen", which reflects config/*.json as it is on disk right now (see
+ * temperatures.ts), not as it was when the process started.
+ */
+const buildDynamicRoutes = (): Map<string, () => string> => {
+    const routes = new Map<string, () => string>();
+
+    for (const section of sections) {
+        for (const page of section.pages) {
+            if (page.file) {continue;}
+            if (page.slug === 'zieltemperaturen') {
+                routes.set(routeFor(section, page), () => renderLayout({
+                    sections,
+                    activeSectionSlug: section.slug,
+                    activePageSlug: page.slug,
+                    title: page.title,
+                    bodyHtml: renderTemperaturesBody(),
+                }));
+            }
+        }
+    }
+
+    return routes;
+};
+
 const buildNotFoundPage = (): string => renderLayout({
     sections,
     activeSectionSlug: '',
@@ -43,23 +74,39 @@ const buildNotFoundPage = (): string => renderLayout({
 });
 
 /**
- * Serves the rendered documentation site. Content is read from disk and rendered once at
- * construction (docs only change on redeploy) and served straight from memory afterwards.
+ * Serves the rendered documentation site. Markdown content is read from disk and rendered once
+ * at construction (docs only change on redeploy) and served straight from memory afterwards;
+ * see buildDynamicRoutes() for the one page that's re-rendered per request instead.
  */
 export const startDocsServer = (port: number): http.Server => {
     const pages = buildPages();
+    const dynamicRoutes = buildDynamicRoutes();
     const notFoundPage = buildNotFoundPage();
+    const favicon = fs.readFileSync(path.join(process.cwd(), 'docs/site/assets/favicon.png'));
 
     const server = http.createServer((req, res) => {
-        const path = normalizePath(req.url);
+        const reqPath = normalizePath(req.url);
 
-        if (path === '/' || path === '/docs') {
+        if (reqPath === '/' || reqPath === '/docs') {
             res.writeHead(302, {Location: DEFAULT_REDIRECT_TARGET});
             res.end();
             return;
         }
 
-        const page = pages.get(path);
+        if (reqPath === FAVICON_PATH) {
+            res.writeHead(200, {'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=86400'});
+            res.end(favicon);
+            return;
+        }
+
+        const dynamicRoute = dynamicRoutes.get(reqPath);
+        if (dynamicRoute) {
+            res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
+            res.end(dynamicRoute());
+            return;
+        }
+
+        const page = pages.get(reqPath);
         if (page) {
             res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
             res.end(page);
