@@ -2,6 +2,7 @@ import './src/util/timezone.bootstrap';
 
 import {executeCron} from './src/churchtools/churchtools-event-cron';
 import {startEventListener} from './src/homematic/homematic-event-listener';
+import {startDocsServer} from './src/docs-site/docs-server';
 
 import {Logger} from './src/util/logger';
 import {EnvironmentManager} from './src/util/environment-manager';
@@ -26,6 +27,7 @@ const shutdown = async (signal: string) => {
 
     Logger.info({tags: {module: 'SERVER', function: 'SHUTDOWN'}, message: `Received ${signal}, flushing InfluxDB writes before exit`});
     job.stop();
+    docsServer.close();
     await influxDb.flushAndClose();
     process.exit(0);
 };
@@ -46,6 +48,10 @@ const job = new CronJob(process.env.CRON_DEFINITION!, () => {
 });
 
 job.start();
+
+// Serves the German end-user/developer docs site (see docs/site/) - matches the Dockerfile's
+// `EXPOSE 8080`, which had nothing listening on it until now.
+const docsServer = startDocsServer(Number(process.env.PORT) || 8080);
 
 const run = async () => {
     const tags = {module: 'SERVER', function: 'START'};

@@ -82,6 +82,11 @@ src/
                          timezone.bootstrap.ts (see "Timezone" below)
   websocket-manager.ts    the raw `ws` connection: ping/reconnect intervals, dry-run-aware
                          message delay
+  docs-site/              serves the German end-user/developer docs site on `PORT` (default
+                         8080) — content-manifest.ts (which .md files go where),
+                         markdown-renderer.ts (marked wrapper, adds heading anchors),
+                         layout.ts (HTML shell + nav), docs-server.ts (plain `http`, no
+                         framework — renders every page once at startup, serves from memory)
 test/                    mirrors src/ 1:1 - see docs/testing-guide.md
 config/                  room.config.json, event-room-temperature.config.json — not
                          committed, provisioned per-environment (see below)
@@ -91,6 +96,11 @@ docs/
   architecture.md          module map and the two real data flows (cron heating-decision,
                          WS state-sync) in more detail than this file
   testing-guide.md         unit vs. characterization-test conventions, coverage expectations
+  site/                    German Markdown source for the docs site served by src/docs-site/
+                         (docs/site/nutzer/ for end users, docs/site/technik/ for devs) — this
+                         is the only doc content in the repo written in German, deliberately;
+                         everything else (this file, README.md, docs/architecture.md,
+                         docs/testing-guide.md) stays English for contributors/agents
 ```
 
 ## Naming convention (already consistent, not enforced by tooling — just know it)

@@ -4,6 +4,10 @@
 > and [`docs/architecture.md`](docs/architecture.md) — this README is the product-level
 > explanation and operator FAQ.
 
+> The running container also serves a German-language docs site (end-user heating explanation +
+> developer overview) at `/docs` on port 8080 — see `docs/site/` for the source and
+> `src/docs-site/` for the server that renders it.
+
 ##
 Reverse Engineered API: https://homematicip-rest-api.readthedocs.io/en/latest/_modules/homematicip/group.html#HeatingGroup.set_point_temperature
 
