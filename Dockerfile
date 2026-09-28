@@ -1,7 +1,14 @@
 # Stage: deps - install once, shared by the reports and builder stages below via Docker's
 # build cache (both extend this same base, so `npm install`/`COPY . ./` only run once per
 # build as long as the context is unchanged).
-FROM node:20 AS deps
+FROM node:24 AS deps
+
+# knip's TS parser (oxc-parser) defaults to a "raw transfer" fast path that allocates a
+# fixed ~2GiB, 4GiB-aligned ArrayBuffer for zero-copy AST transfer. On Node >=22 that
+# allocation can fail outright ("RangeError: Array buffer allocation failed") in
+# memory/address-space-constrained build environments, even with several GiB free. This
+# falls back to knip's safe (de)serializing path, which has no such requirement.
+ENV KNIP_DISABLE_RAW_TRANSFER=1
 
 WORKDIR /usr/src/app
 
@@ -38,7 +45,7 @@ RUN npm run test:ci:coverage
 RUN npm run build
 
 # Stage: production image
-FROM node:20-alpine
+FROM node:24-alpine
 
 WORKDIR /usr/src/app
 
