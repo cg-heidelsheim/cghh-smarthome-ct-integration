@@ -32,7 +32,7 @@
   "homepage": "https://github.com/sebamomann/cghh-smarthome-ct-integration",
   "dependencies": {
     "@influxdata/influxdb-client": "^1.20.0",
-    "axios": "^0.24.0",
+    "axios": "^1.20.0",
     "cron": "^1.8.2",
     "dotenv": "^10.0.0",
     "fs-extra": "^10.0.0",
