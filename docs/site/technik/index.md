@@ -1,8 +1,8 @@
-# Für Entwickler:innen
+# Für Entwickler
 
 Dieser Bereich gibt einen Überblick über die beteiligten Systeme, wie sie zusammenspielen, und wie
 man lokal entwickelt. Für die produktseitige Erklärung ("wie heizt das System") siehe
-[Für Nutzer:innen](/docs/nutzer).
+[Für Nutzer](/docs/nutzer).
 
 - [Komponenten](/docs/technik/komponenten) — welche Systeme beteiligt sind und wer worauf Zugriff
   braucht

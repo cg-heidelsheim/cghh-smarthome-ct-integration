@@ -32,7 +32,7 @@ Pipeline-Anweisungen liegen im Repository (`Jenkinsfile`) und werden von dort ge
 Für [InfluxDB](https://influx.smarthome.cg-heidelsheim.de/) wird in der Regel kein eigener Account
 vergeben. Es ist die zentrale Datenbank für sämtliche Logs und Gerätezustände und benötigt von
 niemandem eine manuelle Anpassung. Zusätzliche Buckets können bei Bedarf von den
-Administrator:innen angelegt werden.
+Administratoren angelegt werden.
 
 ## Grafana
 

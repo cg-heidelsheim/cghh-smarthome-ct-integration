@@ -26,8 +26,8 @@ unter [Heizungslogik](/docs/nutzer/heizungslogik). Welche Temperatur für welche
 Termin gilt, steht unter [Zieltemperaturen](/docs/nutzer/zieltemperaturen). Bei Problemen hilft die
 [FAQ](/docs/nutzer/faq) weiter.
 
-## Für Entwickler:innen und die Hausverwaltung
+## Für Entwickler und die Hausverwaltung
 
 Die technische Dokumentation (Architektur, Komponenten, lokales Setup) liegt unter
-[Für Entwickler:innen](/docs/technik). Grafana-Dashboards und weitere Betriebs-Themen liegen unter
+[Für Entwickler](/docs/technik). Grafana-Dashboards und weitere Betriebs-Themen liegen unter
 [Für die Hausverwaltung](/docs/hausverwaltung).
