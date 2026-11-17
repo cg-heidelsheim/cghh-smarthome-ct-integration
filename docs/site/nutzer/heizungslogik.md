@@ -16,6 +16,16 @@ Alle paar Minuten prüft das System automatisch alle anstehenden gebuchten Termi
 jeden betroffenen Raum durch, ob **jetzt** mit dem Heizen begonnen werden muss, damit der Raum
 **pünktlich zu Beginn des Termins** die gewünschte Zieltemperatur erreicht hat.
 
+## Ganztägige Termine
+
+Ein in ChurchTools als **ganztägig** angelegter Termin hat keine Uhrzeit. Für die Heizung zählt er
+deshalb so, als ginge er von **06:00 bis 22:00 Uhr** — der Raum ist also um 6 Uhr morgens warm und
+wird um 22 Uhr abends wieder auf die Grundtemperatur zurückgestellt. Geht ein ganztägiger Termin
+über mehrere Tage, gilt 06:00 Uhr am ersten Tag bis 22:00 Uhr am letzten Tag.
+
+Wer einen Raum zu anderen Zeiten warm braucht, legt den Termin am besten mit konkreten Uhrzeiten
+an statt als ganztägig.
+
 ## Wie die Zeit berechnet wird
 
 Für jeden Raum ist hinterlegt:
